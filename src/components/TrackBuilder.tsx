@@ -14,6 +14,7 @@ interface TrackBuilderProps {
 const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const allSlots = getAllSlots();
   const [reverbAmount, setReverbAmount] = useState(0.5);
+  const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
   const [loopCount, setLoopCount] = useState(3);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,7 +45,21 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
       // 3. Apply reverb
       setProgress("Adding ethereal reverb...");
-      const withReverb = await audioEngine.applyReverbToBuffer(concatenated, reverbAmount);
+      let processed = await audioEngine.applyReverbToBuffer(concatenated, reverbAmount);
+
+      // 3b. Apply vocal volume
+      if (vocalVolume < 1.0) {
+        const ctx = audioEngine.getContext();
+        const scaled = ctx.createBuffer(processed.numberOfChannels, processed.length, processed.sampleRate);
+        for (let ch = 0; ch < processed.numberOfChannels; ch++) {
+          const input = processed.getChannelData(ch);
+          const output = scaled.getChannelData(ch);
+          for (let i = 0; i < input.length; i++) {
+            output[i] = input[i] * vocalVolume;
+          }
+        }
+        processed = scaled;
+      }
 
       // 4. Load default 417Hz background
       setProgress("Loading 417 Hz frequency...");
@@ -55,7 +70,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
       // 5. Mix with background and apply looping
       setProgress(`Mixing with 417 Hz and creating ${loopCount}x loop...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
-        withReverb,
+        processed,
         bgBuffer,
         bgVolume,
         loopCount
@@ -131,6 +146,21 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           <Slider
             value={[reverbAmount]}
             onValueChange={([v]) => setReverbAmount(v)}
+            max={1}
+            step={0.05}
+            className="w-full"
+          />
+        </div>
+
+        {/* Vocal Volume */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Vocal Volume</label>
+            <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
+          </div>
+          <Slider
+            value={[vocalVolume]}
+            onValueChange={([v]) => setVocalVolume(v)}
             max={1}
             step={0.05}
             className="w-full"
