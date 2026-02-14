@@ -151,43 +151,30 @@ export class AudioEngine {
   ): Promise<AudioBuffer> {
     const sampleRate = voiceBuffer.sampleRate;
     const voiceLen = voiceBuffer.length;
-    const tailSeconds = 3; // 417Hz plays alone after last voice
+    const tailSeconds = 3;
     const tailSamples = Math.floor(sampleRate * tailSeconds);
-    const crossfadeSamples = Math.floor(sampleRate * 2); // 2s crossfade between voice loops
-    const bgFadeSamples = Math.floor(sampleRate * 3); // 3s fade out for background at end
 
-    // Total length: voice loops with crossfade overlap + tail
+    // No crossfade overlap — just place loops back to back with a tiny silence gap
+    const gapSamples = Math.floor(sampleRate * 1.5); // 1.5s silence between loops
     let totalVoiceLength: number;
     if (loopCount <= 1) {
       totalVoiceLength = voiceLen;
     } else {
-      totalVoiceLength = voiceLen * loopCount - crossfadeSamples * (loopCount - 1);
+      totalVoiceLength = voiceLen * loopCount + gapSamples * (loopCount - 1);
     }
     const totalLength = totalVoiceLength + tailSamples;
 
     const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
 
-    // --- Voice loops (no fade on voice, just gentle crossfade overlap) ---
+    // --- Voice loops: constant volume, no fading, just gaps between repeats ---
     for (let loop = 0; loop < loopCount; loop++) {
-      const startSample = loop * (voiceLen - crossfadeSamples);
+      const startSample = loop * (voiceLen + gapSamples);
       const startTime = startSample / sampleRate;
 
       const voiceSource = offlineCtx.createBufferSource();
       voiceSource.buffer = voiceBuffer;
       const voiceGain = offlineCtx.createGain();
       voiceGain.gain.value = 1.0;
-
-      // Fade in for non-first loops
-      if (loop > 0) {
-        voiceGain.gain.setValueAtTime(0.0, startTime);
-        voiceGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeSamples / sampleRate);
-      }
-      // Fade out for non-last loops
-      if (loop < loopCount - 1) {
-        const fadeOutStart = startTime + (voiceLen - crossfadeSamples) / sampleRate;
-        voiceGain.gain.setValueAtTime(1.0, fadeOutStart);
-        voiceGain.gain.linearRampToValueAtTime(0.0, fadeOutStart + crossfadeSamples / sampleRate);
-      }
 
       voiceSource.connect(voiceGain);
       voiceGain.connect(offlineCtx.destination);
