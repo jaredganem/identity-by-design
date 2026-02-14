@@ -153,22 +153,25 @@ export class AudioEngine {
     const voiceLen = voiceBuffer.length;
     const tailSeconds = 3;
     const tailSamples = Math.floor(sampleRate * tailSeconds);
+    const bgFadeInSeconds = 3; // Background fades in over 3 seconds
+    const voiceDelaySeconds = 2; // Voice starts 2 seconds after background
+    const voiceDelaySamples = Math.floor(sampleRate * voiceDelaySeconds);
 
-    // No crossfade overlap — just place loops back to back with a tiny silence gap
-    const gapSamples = Math.floor(sampleRate * 1.5); // 1.5s silence between loops
+    const gapSamples = Math.floor(sampleRate * 1.5);
     let totalVoiceLength: number;
     if (loopCount <= 1) {
       totalVoiceLength = voiceLen;
     } else {
       totalVoiceLength = voiceLen * loopCount + gapSamples * (loopCount - 1);
     }
-    const totalLength = totalVoiceLength + tailSamples;
+    // Add voice delay to total length
+    const totalLength = voiceDelaySamples + totalVoiceLength + tailSamples;
 
     const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
 
-    // --- Voice loops: constant volume, no fading, just gaps between repeats ---
+    // --- Voice loops: start after delay ---
     for (let loop = 0; loop < loopCount; loop++) {
-      const startSample = loop * (voiceLen + gapSamples);
+      const startSample = voiceDelaySamples + loop * (voiceLen + gapSamples);
       const startTime = startSample / sampleRate;
 
       const voiceSource = offlineCtx.createBufferSource();
@@ -181,15 +184,18 @@ export class AudioEngine {
       voiceSource.start(startTime);
     }
 
-    // --- Single continuous 417Hz background ---
+    // --- Single continuous 417Hz background with fade-in ---
     const bgSource = offlineCtx.createBufferSource();
     bgSource.buffer = backgroundBuffer;
     bgSource.loop = true;
     const bgGain = offlineCtx.createGain();
-    bgGain.gain.value = bgVolume;
+
+    // Fade in from 0 to bgVolume over first few seconds
+    bgGain.gain.setValueAtTime(0, 0);
+    bgGain.gain.linearRampToValueAtTime(bgVolume, bgFadeInSeconds);
 
     // Fade out background during the tail (after voice ends)
-    const voiceEndTime = totalVoiceLength / sampleRate;
+    const voiceEndTime = (voiceDelaySamples + totalVoiceLength) / sampleRate;
     bgGain.gain.setValueAtTime(bgVolume, voiceEndTime);
     bgGain.gain.linearRampToValueAtTime(0.0, totalLength / sampleRate);
 
@@ -199,6 +205,33 @@ export class AudioEngine {
     bgSource.stop(totalLength / sampleRate);
 
     return offlineCtx.startRendering();
+  }
+
+  /**
+   * Preview a clip with reverb and volume applied
+   */
+  async previewClipWithEffects(
+    blob: Blob,
+    reverbAmount: number,
+    vocalVolume: number
+  ): Promise<{ stop: () => void }> {
+    let buffer = await this.decodeBlob(blob);
+    buffer = await this.applyReverbToBuffer(buffer, reverbAmount);
+
+    if (vocalVolume < 1.0) {
+      const ctx = this.getContext();
+      const scaled = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+      for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+        const input = buffer.getChannelData(ch);
+        const output = scaled.getChannelData(ch);
+        for (let i = 0; i < input.length; i++) {
+          output[i] = input[i] * vocalVolume;
+        }
+      }
+      buffer = scaled;
+    }
+
+    return this.playBuffer(buffer);
   }
 
   audioBufferToWav(buffer: AudioBuffer): Blob {
