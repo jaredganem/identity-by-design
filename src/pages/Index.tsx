@@ -47,7 +47,7 @@ const Index = () => {
                 {mode === "guided" ? (
                   <>Record Your <span className="text-primary text-glow">Affirmations</span></>
                 ) : (
-                  <>Freestyle <span className="text-primary text-glow">Recording</span></>
+                  <>Create Your <span className="text-primary text-glow">Own</span></>
                 )}
               </h2>
             </div>

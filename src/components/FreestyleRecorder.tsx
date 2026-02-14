@@ -1,8 +1,7 @@
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Trash2, Play, Pause, Plus } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { Mic, Square, Trash2, Play, Pause, Plus, GripVertical } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 interface FreestyleRecorderProps {
@@ -14,14 +13,25 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
   const [isRecording, setIsRecording] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [playerRef, setPlayerRef] = useState<{ stop: () => void } | null>(null);
+  // Stable IDs for reorder tracking
+  const nextId = useRef(0);
+  const [clipItems, setClipItems] = useState<{ id: number; blob: Blob }[]>([]);
   const { toast } = useToast();
+
+  // Sync clipItems → parent clips
+  const updateClips = (items: { id: number; blob: Blob }[]) => {
+    setClipItems(items);
+    onClipsChange(items.map((c) => c.blob));
+  };
 
   const handleRecord = useCallback(async () => {
     if (isRecording) {
       const blob = await audioEngine.stopRecording();
-      onClipsChange([...clips, blob]);
+      const newItem = { id: nextId.current++, blob };
+      const updated = [...clipItems, newItem];
+      updateClips(updated);
       setIsRecording(false);
-      toast({ title: "Clip saved ✓", description: `${clips.length + 1} clip${clips.length > 0 ? "s" : ""} total.` });
+      toast({ title: "Clip saved ✓", description: `${updated.length} clip${updated.length > 1 ? "s" : ""} total.` });
     } else {
       try {
         await audioEngine.startRecording();
@@ -30,10 +40,10 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
         toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
       }
     }
-  }, [isRecording, clips, onClipsChange, toast]);
+  }, [isRecording, clipItems, toast]);
 
-  const handleDelete = (index: number) => {
-    onClipsChange(clips.filter((_, i) => i !== index));
+  const handleDelete = (id: number) => {
+    updateClips(clipItems.filter((c) => c.id !== id));
   };
 
   const handlePlayClip = async (index: number) => {
@@ -47,7 +57,7 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
     if (playerRef) playerRef.stop();
 
     const ctx = audioEngine.getContext();
-    const arrayBuffer = await clips[index].arrayBuffer();
+    const arrayBuffer = await clipItems[index].blob.arrayBuffer();
     const buffer = await ctx.decodeAudioData(arrayBuffer);
     const player = audioEngine.playBuffer(buffer);
     setPlayerRef(player);
@@ -59,44 +69,54 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
   };
 
   const handleStartOver = () => {
+    setClipItems([]);
     onClipsChange([]);
   };
 
   return (
     <div className="space-y-6">
-      {/* Clip list */}
-      {clips.length > 0 && (
+      {/* Clip list — drag to reorder */}
+      {clipItems.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Your Clips ({clips.length})
+            Your Clips ({clipItems.length})
           </p>
-          <AnimatePresence>
-            {clips.map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="flex items-center gap-3 p-3 rounded-xl bg-gradient-card border border-border"
-              >
-                <span className="text-sm font-medium text-foreground flex-1">
-                  Clip {i + 1}
-                </span>
-                <button
-                  onClick={() => handlePlayClip(i)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          <Reorder.Group
+            axis="y"
+            values={clipItems}
+            onReorder={updateClips}
+            className="space-y-2"
+          >
+            <AnimatePresence>
+              {clipItems.map((item, i) => (
+                <Reorder.Item
+                  key={item.id}
+                  value={item}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-gradient-card border border-border cursor-grab active:cursor-grabbing"
                 >
-                  {playingIndex === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => handleDelete(i)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  <GripVertical className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground flex-1">
+                    Clip {i + 1}
+                  </span>
+                  <button
+                    onClick={() => handlePlayClip(i)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  >
+                    {playingIndex === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Reorder.Item>
+              ))}
+            </AnimatePresence>
+          </Reorder.Group>
         </div>
       )}
 
@@ -113,7 +133,7 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
         >
           {isRecording ? (
             <Square className="w-6 h-6 text-destructive-foreground" />
-          ) : clips.length > 0 ? (
+          ) : clipItems.length > 0 ? (
             <Plus className="w-6 h-6 text-primary-foreground" />
           ) : (
             <Mic className="w-6 h-6 text-primary-foreground" />
@@ -123,14 +143,14 @@ const FreestyleRecorder = ({ clips, onClipsChange }: FreestyleRecorderProps) => 
         <p className="text-sm text-muted-foreground">
           {isRecording
             ? "Recording... tap to stop"
-            : clips.length > 0
+            : clipItems.length > 0
             ? "Tap to add another clip"
             : "Tap to start recording"}
         </p>
       </div>
 
       {/* Start over */}
-      {clips.length > 0 && !isRecording && (
+      {clipItems.length > 0 && !isRecording && (
         <div className="text-center">
           <button
             onClick={handleStartOver}
