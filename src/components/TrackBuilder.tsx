@@ -147,7 +147,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             value={[reverbAmount]}
             onValueChange={([v]) => setReverbAmount(v)}
             max={1}
-            step={0.05}
+            step={0.01}
             className="w-full"
           />
         </div>
@@ -162,7 +162,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             value={[vocalVolume]}
             onValueChange={([v]) => setVocalVolume(v)}
             max={1}
-            step={0.05}
+            step={0.01}
             className="w-full"
           />
         </div>
@@ -177,7 +177,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             value={[bgVolume]}
             onValueChange={([v]) => setBgVolume(v)}
             max={1}
-            step={0.05}
+            step={0.01}
             className="w-full"
           />
         </div>

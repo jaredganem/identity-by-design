@@ -128,7 +128,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <label className="text-sm font-medium text-foreground">Reverb Amount</label>
             <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
           </div>
-          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.05} className="w-full" />
+          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
         </div>
 
         {/* Vocal Volume */}
@@ -137,7 +137,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <label className="text-sm font-medium text-foreground">Vocal Volume</label>
             <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
           </div>
-          <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.05} className="w-full" />
+          <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
         {/* Background volume */}
@@ -146,7 +146,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <label className="text-sm font-medium text-foreground">417 Hz Background Volume</label>
             <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
           </div>
-          <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.05} className="w-full" />
+          <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
         {/* Loop count */}

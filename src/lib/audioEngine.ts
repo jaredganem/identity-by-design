@@ -3,6 +3,7 @@
 export class AudioEngine {
   private audioContext: AudioContext | null = null;
   private mediaRecorder: MediaRecorder | null = null;
+  private activePlayback: { stop: () => void } | null = null;
   private recordedChunks: Blob[] = [];
 
   getContext(): AudioContext {
@@ -137,8 +138,10 @@ export class AudioEngine {
   }
 
   /**
-   * Mix voice buffer with background, trimming background to voice length with fade out.
-   * Optionally loop the result.
+   * Mix voice buffer with background, looping voice with smooth crossfades.
+   * 417Hz plays continuously underneath. After the last voice loop,
+   * 417Hz plays alone for a few seconds then gently fades out.
+   * Voice never fades — only background fades at the very end.
    */
   async mixWithBackgroundAndLoop(
     voiceBuffer: AudioBuffer,
@@ -147,73 +150,66 @@ export class AudioEngine {
     loopCount = 1
   ): Promise<AudioBuffer> {
     const sampleRate = voiceBuffer.sampleRate;
-    const singlePassLength = voiceBuffer.length;
-    const crossfadeSamples = Math.floor(sampleRate * 4); // 4s crossfade for seamless loops
-    
-    // Total length: N full passes, with crossfade overlap between them
-    let totalLength: number;
+    const voiceLen = voiceBuffer.length;
+    const tailSeconds = 3; // 417Hz plays alone after last voice
+    const tailSamples = Math.floor(sampleRate * tailSeconds);
+    const crossfadeSamples = Math.floor(sampleRate * 2); // 2s crossfade between voice loops
+    const bgFadeSamples = Math.floor(sampleRate * 3); // 3s fade out for background at end
+
+    // Total length: voice loops with crossfade overlap + tail
+    let totalVoiceLength: number;
     if (loopCount <= 1) {
-      totalLength = singlePassLength;
+      totalVoiceLength = voiceLen;
     } else {
-      totalLength = singlePassLength * loopCount - crossfadeSamples * (loopCount - 1);
+      totalVoiceLength = voiceLen * loopCount - crossfadeSamples * (loopCount - 1);
     }
+    const totalLength = totalVoiceLength + tailSamples;
 
     const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
 
+    // --- Voice loops (no fade on voice, just gentle crossfade overlap) ---
     for (let loop = 0; loop < loopCount; loop++) {
-      const startSample = loop * (singlePassLength - crossfadeSamples);
+      const startSample = loop * (voiceLen - crossfadeSamples);
       const startTime = startSample / sampleRate;
-      const crossfadeDuration = crossfadeSamples / sampleRate;
 
-      // Voice source for this loop
       const voiceSource = offlineCtx.createBufferSource();
       voiceSource.buffer = voiceBuffer;
       const voiceGain = offlineCtx.createGain();
       voiceGain.gain.value = 1.0;
 
-      // Equal-power crossfade using exponential ramps for smoother transitions
+      // Fade in for non-first loops
       if (loop > 0) {
-        voiceGain.gain.setValueAtTime(0.001, startTime);
-        voiceGain.gain.exponentialRampToValueAtTime(1.0, startTime + crossfadeDuration);
+        voiceGain.gain.setValueAtTime(0.0, startTime);
+        voiceGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeSamples / sampleRate);
       }
+      // Fade out for non-last loops
       if (loop < loopCount - 1) {
-        const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
+        const fadeOutStart = startTime + (voiceLen - crossfadeSamples) / sampleRate;
         voiceGain.gain.setValueAtTime(1.0, fadeOutStart);
-        voiceGain.gain.exponentialRampToValueAtTime(0.001, fadeOutStart + crossfadeDuration);
+        voiceGain.gain.linearRampToValueAtTime(0.0, fadeOutStart + crossfadeSamples / sampleRate);
       }
 
       voiceSource.connect(voiceGain);
       voiceGain.connect(offlineCtx.destination);
       voiceSource.start(startTime);
-
-      // Background source for this loop (loop bg if shorter than voice)
-      const bgSource = offlineCtx.createBufferSource();
-      bgSource.buffer = backgroundBuffer;
-      bgSource.loop = true;
-      const bgGain = offlineCtx.createGain();
-      bgGain.gain.value = bgVolume;
-
-      // Background stays continuous — no fade between loops, only fade at very end
-      if (loop > 0) {
-        bgGain.gain.setValueAtTime(0.001, startTime);
-        bgGain.gain.exponentialRampToValueAtTime(bgVolume, startTime + crossfadeDuration);
-      }
-      if (loop < loopCount - 1) {
-        const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
-        bgGain.gain.setValueAtTime(bgVolume, fadeOutStart);
-        bgGain.gain.exponentialRampToValueAtTime(0.001, fadeOutStart + crossfadeDuration);
-      } else {
-        // Final loop: gentle fade out at the end
-        const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
-        bgGain.gain.setValueAtTime(bgVolume, fadeOutStart);
-        bgGain.gain.exponentialRampToValueAtTime(0.001, startTime + singlePassLength / sampleRate);
-      }
-
-      bgSource.connect(bgGain);
-      bgGain.connect(offlineCtx.destination);
-      bgSource.start(startTime);
-      bgSource.stop(startTime + singlePassLength / sampleRate);
     }
+
+    // --- Single continuous 417Hz background ---
+    const bgSource = offlineCtx.createBufferSource();
+    bgSource.buffer = backgroundBuffer;
+    bgSource.loop = true;
+    const bgGain = offlineCtx.createGain();
+    bgGain.gain.value = bgVolume;
+
+    // Fade out background during the tail (after voice ends)
+    const voiceEndTime = totalVoiceLength / sampleRate;
+    bgGain.gain.setValueAtTime(bgVolume, voiceEndTime);
+    bgGain.gain.linearRampToValueAtTime(0.0, totalLength / sampleRate);
+
+    bgSource.connect(bgGain);
+    bgGain.connect(offlineCtx.destination);
+    bgSource.start(0);
+    bgSource.stop(totalLength / sampleRate);
 
     return offlineCtx.startRendering();
   }
@@ -271,12 +267,22 @@ export class AudioEngine {
   }
 
   playBuffer(buffer: AudioBuffer): { stop: () => void } {
+    // Stop any currently playing track first
+    if (this.activePlayback) {
+      try { this.activePlayback.stop(); } catch {}
+      this.activePlayback = null;
+    }
     const ctx = this.getContext();
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(ctx.destination);
     source.start(0);
-    return { stop: () => source.stop() };
+    const handle = { stop: () => { try { source.stop(); } catch {} } };
+    this.activePlayback = handle;
+    source.onended = () => {
+      if (this.activePlayback === handle) this.activePlayback = null;
+    };
+    return handle;
   }
 }
 
