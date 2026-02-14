@@ -2,12 +2,13 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import SacredGeometry from "@/components/SacredGeometry";
 import HeroSection from "@/components/HeroSection";
-import PromptSelector from "@/components/PromptSelector";
-import RecordingStudio from "@/components/RecordingStudio";
+import AffirmationRecorder from "@/components/AffirmationRecorder";
+import TrackBuilder from "@/components/TrackBuilder";
 
 const Index = () => {
   const [started, setStarted] = useState(false);
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [recordings, setRecordings] = useState<Record<string, Blob>>({});
+  const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
 
   return (
     <div className="min-h-screen bg-sacred relative overflow-hidden">
@@ -28,26 +29,32 @@ const Index = () => {
             {/* Header */}
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-2">
-                Recording Studio
+                Better Life Hypnosis &amp; Meditations
               </p>
               <h2 className="font-display text-3xl md:text-4xl text-foreground">
-                Create Your <span className="text-primary text-glow">Sacred Track</span>
+                Record Your <span className="text-primary text-glow">Affirmations</span>
               </h2>
             </div>
 
-            {/* Prompt selector */}
-            <PromptSelector
-              onSelect={setSelectedPrompt}
-              selectedPrompt={selectedPrompt}
+            {/* Affirmation recorder */}
+            <AffirmationRecorder
+              recordings={recordings}
+              onRecordingsChange={setRecordings}
+              customTexts={customTexts}
+              onCustomTextsChange={setCustomTexts}
             />
 
-            {/* Recording studio */}
-            <RecordingStudio selectedPrompt={selectedPrompt} />
+            {/* Track builder */}
+            <TrackBuilder recordings={recordings} />
 
             {/* Back button */}
             <div className="text-center pt-4">
               <button
-                onClick={() => { setStarted(false); setSelectedPrompt(null); }}
+                onClick={() => {
+                  setStarted(false);
+                  setRecordings({});
+                  setCustomTexts({});
+                }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 ← Back to home
