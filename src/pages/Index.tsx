@@ -4,19 +4,31 @@ import SacredGeometry from "@/components/SacredGeometry";
 import HeroSection from "@/components/HeroSection";
 import AffirmationRecorder from "@/components/AffirmationRecorder";
 import TrackBuilder from "@/components/TrackBuilder";
+import FreestyleRecorder from "@/components/FreestyleRecorder";
+import FreestyleTrackBuilder from "@/components/FreestyleTrackBuilder";
+
+type Mode = "guided" | "freestyle";
 
 const Index = () => {
-  const [started, setStarted] = useState(false);
+  const [mode, setMode] = useState<Mode | null>(null);
   const [recordings, setRecordings] = useState<Record<string, Blob>>({});
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
+  const [clips, setClips] = useState<Blob[]>([]);
+
+  const handleBack = () => {
+    setMode(null);
+    setRecordings({});
+    setCustomTexts({});
+    setClips([]);
+  };
 
   return (
     <div className="min-h-screen bg-sacred relative overflow-hidden">
       <SacredGeometry />
 
       <AnimatePresence mode="wait">
-        {!started ? (
-          <HeroSection key="hero" onStart={() => setStarted(true)} />
+        {!mode ? (
+          <HeroSection key="hero" onStart={(m) => setMode(m)} />
         ) : (
           <motion.div
             key="studio"
@@ -32,29 +44,35 @@ const Index = () => {
                 Better Life Hypnosis &amp; Meditations
               </p>
               <h2 className="font-display text-3xl md:text-4xl text-foreground">
-                Record Your <span className="text-primary text-glow">Affirmations</span>
+                {mode === "guided" ? (
+                  <>Record Your <span className="text-primary text-glow">Affirmations</span></>
+                ) : (
+                  <>Freestyle <span className="text-primary text-glow">Recording</span></>
+                )}
               </h2>
             </div>
 
-            {/* Affirmation recorder */}
-            <AffirmationRecorder
-              recordings={recordings}
-              onRecordingsChange={setRecordings}
-              customTexts={customTexts}
-              onCustomTextsChange={setCustomTexts}
-            />
-
-            {/* Track builder */}
-            <TrackBuilder recordings={recordings} />
+            {mode === "guided" ? (
+              <>
+                <AffirmationRecorder
+                  recordings={recordings}
+                  onRecordingsChange={setRecordings}
+                  customTexts={customTexts}
+                  onCustomTextsChange={setCustomTexts}
+                />
+                <TrackBuilder recordings={recordings} />
+              </>
+            ) : (
+              <>
+                <FreestyleRecorder clips={clips} onClipsChange={setClips} />
+                <FreestyleTrackBuilder clips={clips} />
+              </>
+            )}
 
             {/* Back button */}
             <div className="text-center pt-4">
               <button
-                onClick={() => {
-                  setStarted(false);
-                  setRecordings({});
-                  setCustomTexts({});
-                }}
+                onClick={handleBack}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 ← Back to home

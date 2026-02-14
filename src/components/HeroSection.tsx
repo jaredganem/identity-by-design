@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 interface HeroSectionProps {
-  onStart: () => void;
+  onStart: (mode: "guided" | "freestyle") => void;
 }
 
 const HeroSection = ({ onStart }: HeroSectionProps) => (
@@ -37,22 +37,44 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       transition={{ delay: 0.8 }}
       className="text-muted-foreground max-w-md text-base leading-relaxed mb-10"
     >
-      Record 12 personalized affirmations with ethereal reverb, layered over
+      Record personalized affirmations with ethereal reverb, layered over
       sacred 417 Hz frequencies. Fall asleep to the sound of your own
       transformation.
     </motion.p>
 
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1.1, duration: 0.5 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onStart}
-      className="px-10 py-4 rounded-full bg-primary text-primary-foreground font-body font-medium text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)] transition-shadow duration-500"
+      className="flex flex-col sm:flex-row gap-4"
     >
-      Begin Your Journey
-    </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onStart("guided")}
+        className="px-10 py-4 rounded-full bg-primary text-primary-foreground font-body font-medium text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)] transition-shadow duration-500"
+      >
+        Guided Journey
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onStart("freestyle")}
+        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-body font-medium text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
+      >
+        Freestyle Recording
+      </motion.button>
+    </motion.div>
+
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1.5 }}
+      className="text-xs text-muted-foreground mt-6 max-w-sm"
+    >
+      <span className="text-primary">Guided</span> walks you through 12 curated affirmations.{" "}
+      <span className="text-primary">Freestyle</span> lets you record your own way.
+    </motion.p>
   </motion.div>
 );
 
