@@ -1,52 +1,64 @@
-export const AFFIRMATION_PROMPTS = [
+export interface AffirmationSlot {
+  id: string;
+  suggestion: string;
+}
+
+export interface AffirmationCategory {
+  category: string;
+  icon: string;
+  count: number;
+  slots: AffirmationSlot[];
+}
+
+export const AFFIRMATION_CATEGORIES: AffirmationCategory[] = [
   {
-    category: "Self-Love",
-    icon: "💛",
-    prompts: [
-      "I am worthy of love and respect.",
-      "I deeply and completely accept myself.",
-      "I am enough, exactly as I am.",
-      "My heart is open to giving and receiving love.",
-    ],
-  },
-  {
-    category: "Abundance",
-    icon: "✨",
-    prompts: [
-      "Abundance flows freely into my life.",
-      "I am a magnet for prosperity and success.",
-      "I deserve all the good things coming my way.",
-      "The universe provides for all my needs.",
-    ],
-  },
-  {
-    category: "Healing",
+    category: "Health",
     icon: "🌿",
-    prompts: [
-      "My body is healing and renewing itself.",
-      "I release all that no longer serves me.",
-      "Every cell in my body vibrates with health.",
-      "I am at peace with my past and excited for my future.",
+    count: 2,
+    slots: [
+      { id: "health-1", suggestion: "Every cell in my body vibrates with perfect health and vitality." },
+      { id: "health-2", suggestion: "I nourish my body with love and it rewards me with energy and strength." },
     ],
   },
   {
-    category: "Sleep & Peace",
-    icon: "🌙",
-    prompts: [
-      "I surrender to deep, restorative sleep.",
-      "My mind is calm, my body is relaxed.",
-      "I release the day and welcome peaceful rest.",
-      "I am safe, I am protected, I am at ease.",
+    category: "Wealth",
+    icon: "✨",
+    count: 2,
+    slots: [
+      { id: "wealth-1", suggestion: "Abundance flows freely and effortlessly into my life." },
+      { id: "wealth-2", suggestion: "I am a powerful magnet for prosperity and financial freedom." },
     ],
   },
   {
-    category: "Spiritual Growth",
+    category: "Relationships",
+    icon: "💛",
+    count: 2,
+    slots: [
+      { id: "relationships-1", suggestion: "I attract loving, supportive, and authentic connections." },
+      { id: "relationships-2", suggestion: "My relationships are filled with trust, joy, and deep understanding." },
+    ],
+  },
+  {
+    category: "Career",
+    icon: "🚀",
+    count: 2,
+    slots: [
+      { id: "career-1", suggestion: "I am confidently stepping into my highest professional purpose." },
+      { id: "career-2", suggestion: "Success and recognition flow to me through work I love." },
+    ],
+  },
+  {
+    category: "Personal Growth",
     icon: "🔮",
-    prompts: [
-      "I am connected to the divine source of all creation.",
-      "My intuition guides me with perfect clarity.",
-      "I trust the journey of my soul.",
-      "I am aligned with my highest purpose.",
+    count: 4,
+    slots: [
+      { id: "personal-1", suggestion: "I am worthy of love, success, and happiness exactly as I am." },
+      { id: "personal-2", suggestion: "I release all fear and embrace my limitless potential." },
+      { id: "personal-3", suggestion: "My confidence grows stronger with each passing day." },
+      { id: "personal-4", suggestion: "I trust my intuition and honor my authentic self." },
     ],
   },
 ];
+
+export const getAllSlots = (): AffirmationSlot[] =>
+  AFFIRMATION_CATEGORIES.flatMap((c) => c.slots);

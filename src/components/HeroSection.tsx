@@ -17,7 +17,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       transition={{ delay: 0.3 }}
       className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
     >
-      Sacred Frequency · 417 Hz
+      Better Life Hypnosis &amp; Meditations
     </motion.p>
 
     <motion.h1
@@ -37,8 +37,9 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       transition={{ delay: 0.8 }}
       className="text-muted-foreground max-w-md text-base leading-relaxed mb-10"
     >
-      Record your affirmations with ethereal reverb, layered over sacred 417 Hz
-      frequencies. Fall asleep to the sound of your own transformation.
+      Record 12 personalized affirmations with ethereal reverb, layered over
+      sacred 417 Hz frequencies. Fall asleep to the sound of your own
+      transformation.
     </motion.p>
 
     <motion.button
