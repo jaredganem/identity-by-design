@@ -171,13 +171,15 @@ const AffirmationRecorder = ({
         </p>
 
         {hasRecording && !isRecording && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleReRecord}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="border-primary/30 hover:bg-primary/10 text-muted-foreground hover:text-foreground"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
             Re-record
-          </button>
+          </Button>
         )}
       </div>
 

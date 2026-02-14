@@ -130,7 +130,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           </div>
           <Slider
             value={[reverbAmount]}
-            onValueChange={([v]) => { setReverbAmount(v); setFinalBlob(null); }}
+            onValueChange={([v]) => setReverbAmount(v)}
             max={1}
             step={0.05}
             className="w-full"
@@ -145,7 +145,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           </div>
           <Slider
             value={[bgVolume]}
-            onValueChange={([v]) => { setBgVolume(v); setFinalBlob(null); }}
+            onValueChange={([v]) => setBgVolume(v)}
             max={1}
             step={0.05}
             className="w-full"
@@ -160,7 +160,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           </div>
           <Slider
             value={[loopCount]}
-            onValueChange={([v]) => { setLoopCount(v); setFinalBlob(null); }}
+            onValueChange={([v]) => setLoopCount(v)}
             min={1}
             max={10}
             step={1}
