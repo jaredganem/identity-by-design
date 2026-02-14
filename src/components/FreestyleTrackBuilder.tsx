@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, Download, Loader2 } from "lucide-react";
+import { Play, Pause, Download, Loader2, Headphones } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
+import SleepTimer from "@/components/SleepTimer";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -19,7 +20,9 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState("");
+  const [previewingIndex, setPreviewingIndex] = useState<number | null>(null);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
+  const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
   const hasClips = clips.length > 0;
@@ -75,24 +78,25 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
       });
     } catch (err) {
       console.error(err);
-      toast({
-        variant: "destructive",
-        title: "Processing error",
-        description: "Something went wrong. Please try again.",
-      });
+      toast({ variant: "destructive", title: "Processing error", description: "Something went wrong. Please try again." });
     } finally {
       setIsProcessing(false);
       setProgress("");
     }
   };
 
+  const stopPlayback = () => {
+    if (playbackRef.current) {
+      playbackRef.current.stop();
+      playbackRef.current = null;
+    }
+    setIsPlaying(false);
+  };
+
   const handlePlayback = async () => {
     if (!finalBlob) return;
-    if (isPlaying && playbackRef.current) {
-      playbackRef.current.stop();
-      setIsPlaying(false);
-      return;
-    }
+    if (isPlaying) { stopPlayback(); return; }
+
     const ctx = audioEngine.getContext();
     const arrayBuffer = await finalBlob.arrayBuffer();
     const buffer = await ctx.decodeAudioData(arrayBuffer);
@@ -112,6 +116,29 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
     URL.revokeObjectURL(url);
   };
 
+  const handlePreviewClip = async (index: number) => {
+    if (previewingIndex === index && previewRef.current) {
+      previewRef.current.stop();
+      setPreviewingIndex(null);
+      previewRef.current = null;
+      return;
+    }
+    if (previewRef.current) previewRef.current.stop();
+
+    setPreviewingIndex(index);
+    try {
+      const player = await audioEngine.previewClipWithEffects(clips[index], reverbAmount, vocalVolume);
+      previewRef.current = player;
+      const buffer = await audioEngine.decodeBlob(clips[index]);
+      setTimeout(() => {
+        setPreviewingIndex(null);
+        previewRef.current = null;
+      }, (buffer.duration + 3) * 1000);
+    } catch {
+      setPreviewingIndex(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -120,6 +147,34 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           Customize reverb, volume, and looping before creating your final track.
         </p>
       </div>
+
+      {/* Voice Preview with Effects */}
+      {hasClips && (
+        <div className="p-4 rounded-2xl bg-secondary/30 border border-border space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
+            <Headphones className="w-3.5 h-3.5" /> Preview with Effects
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {clips.map((_, i) => (
+              <Button
+                key={i}
+                variant="outline"
+                size="sm"
+                onClick={() => handlePreviewClip(i)}
+                className={`text-xs border-border ${
+                  previewingIndex === i
+                    ? "bg-primary/20 border-primary/50 text-primary"
+                    : "hover:bg-primary/10"
+                }`}
+              >
+                {previewingIndex === i ? <Pause className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
+                Clip {i + 1}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Hear each clip with your current reverb & volume settings.</p>
+        </div>
+      )}
 
       <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
         {/* Reverb */}
@@ -165,10 +220,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
         >
           {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              {progress || "Processing..."}
-            </>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
           ) : (
             "✨ Create Sacred Track"
           )}
@@ -186,6 +238,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           className="p-6 rounded-2xl bg-gradient-card border border-primary/30 shadow-glow space-y-4"
         >
           <h4 className="font-display text-xl text-foreground text-center">Your Track is Ready ✨</h4>
+          
           <div className="flex gap-3">
             <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
               {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
@@ -193,9 +246,11 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             </Button>
             <Button onClick={handleDownload} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
               <Download className="w-4 h-4 mr-2" />
-              Download
+              Download .WAV
             </Button>
           </div>
+
+          <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />
         </motion.div>
       )}
     </div>
