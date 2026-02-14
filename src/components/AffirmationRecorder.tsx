@@ -126,10 +126,11 @@ const AffirmationRecorder = ({
               </p>
               <button
                 onClick={() => setEditingText(currentSlot.id)}
-                className="mt-1 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                className="mt-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
                 title="Edit affirmation text"
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="w-3.5 h-3.5" />
+                Edit or write your own
               </button>
             </div>
           )}
