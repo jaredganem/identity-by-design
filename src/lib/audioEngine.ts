@@ -148,7 +148,7 @@ export class AudioEngine {
   ): Promise<AudioBuffer> {
     const sampleRate = voiceBuffer.sampleRate;
     const singlePassLength = voiceBuffer.length;
-    const crossfadeSamples = Math.floor(sampleRate * 2); // 2s crossfade between loops
+    const crossfadeSamples = Math.floor(sampleRate * 4); // 4s crossfade for seamless loops
     
     // Total length: N full passes, with crossfade overlap between them
     let totalLength: number;
@@ -163,6 +163,7 @@ export class AudioEngine {
     for (let loop = 0; loop < loopCount; loop++) {
       const startSample = loop * (singlePassLength - crossfadeSamples);
       const startTime = startSample / sampleRate;
+      const crossfadeDuration = crossfadeSamples / sampleRate;
 
       // Voice source for this loop
       const voiceSource = offlineCtx.createBufferSource();
@@ -170,16 +171,15 @@ export class AudioEngine {
       const voiceGain = offlineCtx.createGain();
       voiceGain.gain.value = 1.0;
 
-      // Fade in (except first loop)
+      // Equal-power crossfade using exponential ramps for smoother transitions
       if (loop > 0) {
-        voiceGain.gain.setValueAtTime(0, startTime);
-        voiceGain.gain.linearRampToValueAtTime(1.0, startTime + crossfadeSamples / sampleRate);
+        voiceGain.gain.setValueAtTime(0.001, startTime);
+        voiceGain.gain.exponentialRampToValueAtTime(1.0, startTime + crossfadeDuration);
       }
-      // Fade out (except last loop)
       if (loop < loopCount - 1) {
         const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
         voiceGain.gain.setValueAtTime(1.0, fadeOutStart);
-        voiceGain.gain.linearRampToValueAtTime(0, fadeOutStart + crossfadeSamples / sampleRate);
+        voiceGain.gain.exponentialRampToValueAtTime(0.001, fadeOutStart + crossfadeDuration);
       }
 
       voiceSource.connect(voiceGain);
@@ -193,20 +193,20 @@ export class AudioEngine {
       const bgGain = offlineCtx.createGain();
       bgGain.gain.value = bgVolume;
 
-      // Same fades for bg
+      // Background stays continuous — no fade between loops, only fade at very end
       if (loop > 0) {
-        bgGain.gain.setValueAtTime(0, startTime);
-        bgGain.gain.linearRampToValueAtTime(bgVolume, startTime + crossfadeSamples / sampleRate);
+        bgGain.gain.setValueAtTime(0.001, startTime);
+        bgGain.gain.exponentialRampToValueAtTime(bgVolume, startTime + crossfadeDuration);
       }
       if (loop < loopCount - 1) {
         const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
         bgGain.gain.setValueAtTime(bgVolume, fadeOutStart);
-        bgGain.gain.linearRampToValueAtTime(0, fadeOutStart + crossfadeSamples / sampleRate);
+        bgGain.gain.exponentialRampToValueAtTime(0.001, fadeOutStart + crossfadeDuration);
       } else {
-        // Final loop: fade out bg at end
+        // Final loop: gentle fade out at the end
         const fadeOutStart = startTime + (singlePassLength - crossfadeSamples) / sampleRate;
         bgGain.gain.setValueAtTime(bgVolume, fadeOutStart);
-        bgGain.gain.linearRampToValueAtTime(0, startTime + singlePassLength / sampleRate);
+        bgGain.gain.exponentialRampToValueAtTime(0.001, startTime + singlePassLength / sampleRate);
       }
 
       bgSource.connect(bgGain);

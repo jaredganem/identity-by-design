@@ -62,7 +62,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
         onClick={() => onStart("freestyle")}
         className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-body font-medium text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
       >
-        Freestyle Recording
+        Create Your Own
       </motion.button>
     </motion.div>
 
@@ -73,7 +73,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       className="text-xs text-muted-foreground mt-6 max-w-sm"
     >
       <span className="text-primary">Guided</span> walks you through 12 curated affirmations.{" "}
-      <span className="text-primary">Freestyle</span> lets you record your own way.
+      <span className="text-primary">Create Your Own</span> lets you record your own way.
     </motion.p>
   </motion.div>
 );
