@@ -70,7 +70,7 @@ const Index = () => {
               </>
             ) : mode === "freestyle" ? (
               <>
-                <FreestyleRecorder clips={clips} onClipsChange={setClips} />
+                <FreestyleRecorder clips={clips} onClipsChange={setClips} onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)} />
                 <FreestyleTrackBuilder clips={clips} />
               </>
             ) : (
