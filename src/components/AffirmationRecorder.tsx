@@ -26,6 +26,8 @@ const AffirmationRecorder = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [editingText, setEditingText] = useState<string | null>(null);
+  const [savingToLibrary, setSavingToLibrary] = useState(false);
+  const [libraryName, setLibraryName] = useState("");
   const { toast } = useToast();
 
   const currentSlot = allSlots[currentIndex];
@@ -185,27 +187,59 @@ const AffirmationRecorder = ({
               <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
               Re-record
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                await saveAffirmation({
-                  id: `${currentSlot.id}-${Date.now()}`,
-                  name: displayText.slice(0, 40),
-                  text: displayText,
-                  category: categoryInfo.category,
-                  blob: recordings[currentSlot.id],
-                  createdAt: Date.now(),
-                  updatedAt: Date.now(),
-                });
-                onLibraryChanged?.();
-                toast({ title: "Saved to Library 📚", description: "You can reuse this affirmation in the Modular Builder." });
-              }}
-              className="border-primary/30 hover:bg-primary/10 text-primary hover:text-foreground"
-            >
-              <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
-              Save to Library
-            </Button>
+            {!savingToLibrary ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setLibraryName(displayText.slice(0, 40));
+                  setSavingToLibrary(true);
+                }}
+                className="border-primary/30 hover:bg-primary/10 text-primary hover:text-foreground"
+              >
+                <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+                Save to Library
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={libraryName}
+                  onChange={(e) => setLibraryName(e.target.value)}
+                  placeholder="Name this affirmation..."
+                  autoFocus
+                  className="h-8 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-48"
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    await saveAffirmation({
+                      id: `${currentSlot.id}-${Date.now()}`,
+                      name: libraryName || displayText.slice(0, 40),
+                      text: displayText,
+                      category: categoryInfo.category,
+                      blob: recordings[currentSlot.id],
+                      createdAt: Date.now(),
+                      updatedAt: Date.now(),
+                    });
+                    onLibraryChanged?.();
+                    setSavingToLibrary(false);
+                    toast({ title: "Saved to Library 📚", description: `"${libraryName}" added.` });
+                  }}
+                  className="bg-primary text-primary-foreground h-8"
+                >
+                  Save
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSavingToLibrary(false)}
+                  className="h-8 text-muted-foreground"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
