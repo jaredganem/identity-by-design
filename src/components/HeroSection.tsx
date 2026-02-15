@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 interface HeroSectionProps {
-  onStart: (mode: "guided" | "freestyle") => void;
+  onStart: (mode: "guided" | "freestyle" | "library") => void;
 }
 
 const HeroSection = ({ onStart }: HeroSectionProps) => (
@@ -64,16 +64,25 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       >
         Create Your Own
       </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onStart("library")}
+        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-body font-medium text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
+      >
+        My Library
+      </motion.button>
     </motion.div>
 
     <motion.p
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1.5 }}
-      className="text-xs text-muted-foreground mt-6 max-w-sm"
+      className="text-xs text-muted-foreground mt-6 max-w-md"
     >
       <span className="text-primary">Guided</span> walks you through 12 curated affirmations.{" "}
-      <span className="text-primary">Create Your Own</span> lets you record your own way.
+      <span className="text-primary">Create Your Own</span> lets you record freely.{" "}
+      <span className="text-primary">My Library</span> lets you mix & match saved recordings into new tracks.
     </motion.p>
   </motion.div>
 );

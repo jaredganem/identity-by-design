@@ -6,14 +6,17 @@ import AffirmationRecorder from "@/components/AffirmationRecorder";
 import TrackBuilder from "@/components/TrackBuilder";
 import FreestyleRecorder from "@/components/FreestyleRecorder";
 import FreestyleTrackBuilder from "@/components/FreestyleTrackBuilder";
+import AffirmationLibrary from "@/components/AffirmationLibrary";
+import ModularTrackBuilder from "@/components/ModularTrackBuilder";
 
-type Mode = "guided" | "freestyle";
+type Mode = "guided" | "freestyle" | "library";
 
 const Index = () => {
   const [mode, setMode] = useState<Mode | null>(null);
   const [recordings, setRecordings] = useState<Record<string, Blob>>({});
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
   const [clips, setClips] = useState<Blob[]>([]);
+  const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
 
   const handleBack = () => {
     setMode(null);
@@ -46,8 +49,10 @@ const Index = () => {
               <h2 className="font-display text-3xl md:text-4xl text-foreground">
                 {mode === "guided" ? (
                   <>Record Your <span className="text-primary text-glow">Affirmations</span></>
-                ) : (
+                ) : mode === "freestyle" ? (
                   <>Create Your <span className="text-primary text-glow">Own</span></>
+                ) : (
+                  <>My <span className="text-primary text-glow">Library</span></>
                 )}
               </h2>
             </div>
@@ -59,13 +64,24 @@ const Index = () => {
                   onRecordingsChange={setRecordings}
                   customTexts={customTexts}
                   onCustomTextsChange={setCustomTexts}
+                  onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)}
                 />
                 <TrackBuilder recordings={recordings} />
               </>
-            ) : (
+            ) : mode === "freestyle" ? (
               <>
                 <FreestyleRecorder clips={clips} onClipsChange={setClips} />
                 <FreestyleTrackBuilder clips={clips} />
+              </>
+            ) : (
+              <>
+                <div className="p-4 rounded-2xl bg-gradient-card border border-border">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your saved affirmations. Build a new track by picking favorites from different categories.
+                  </p>
+                  <AffirmationLibrary refreshKey={libraryRefreshKey} />
+                </div>
+                <ModularTrackBuilder refreshKey={libraryRefreshKey} />
               </>
             )}
 
