@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus } from "lucide-react";
+import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ const AffirmationRecorder = ({
   const [editingText, setEditingText] = useState<string | null>(null);
   const [savingToLibrary, setSavingToLibrary] = useState(false);
   const [libraryName, setLibraryName] = useState("");
+  const [saveCategory, setSaveCategory] = useState("");
   const { toast } = useToast();
 
   const currentSlot = allSlots[currentIndex];
@@ -193,6 +194,7 @@ const AffirmationRecorder = ({
                 size="sm"
                 onClick={() => {
                   setLibraryName(displayText.slice(0, 40));
+                  setSaveCategory(categoryInfo.category);
                   setSavingToLibrary(true);
                 }}
                 className="border-primary/30 hover:bg-primary/10 text-primary hover:text-foreground"
@@ -201,43 +203,63 @@ const AffirmationRecorder = ({
                 Save to Library
               </Button>
             ) : (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={libraryName}
-                  onChange={(e) => setLibraryName(e.target.value)}
-                  placeholder="Name this affirmation..."
-                  autoFocus
-                  className="h-8 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-48"
-                />
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    await saveAffirmation({
-                      id: `${currentSlot.id}-${Date.now()}`,
-                      name: libraryName || displayText.slice(0, 40),
-                      text: displayText,
-                      category: categoryInfo.category,
-                      blob: recordings[currentSlot.id],
-                      createdAt: Date.now(),
-                      updatedAt: Date.now(),
-                    });
-                    onLibraryChanged?.();
-                    setSavingToLibrary(false);
-                    toast({ title: "Saved to Library 📚", description: `"${libraryName}" added.` });
-                  }}
-                  className="bg-primary text-primary-foreground h-8"
-                >
-                  Save
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSavingToLibrary(false)}
-                  className="h-8 text-muted-foreground"
-                >
-                  Cancel
-                </Button>
+              <div className="w-full space-y-2 p-3 rounded-xl bg-secondary/50 border border-border">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground font-medium">Name</label>
+                  <input
+                    type="text"
+                    value={libraryName}
+                    onChange={(e) => setLibraryName(e.target.value)}
+                    placeholder="Name this affirmation..."
+                    autoFocus
+                    className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground font-medium">Category</label>
+                  <select
+                    value={saveCategory}
+                    onChange={(e) => setSaveCategory(e.target.value)}
+                    className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full appearance-none z-50"
+                  >
+                    {AFFIRMATION_CATEGORIES.map((c) => (
+                      <option key={c.category} value={c.category}>{c.icon} {c.category}</option>
+                    ))}
+                    <option value="Custom">🎤 Custom</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      await saveAffirmation({
+                        id: `${currentSlot.id}-${Date.now()}`,
+                        name: libraryName || displayText.slice(0, 40),
+                        text: displayText,
+                        category: saveCategory,
+                        blob: recordings[currentSlot.id],
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                      });
+                      onLibraryChanged?.();
+                      setSavingToLibrary(false);
+                      toast({ title: "Saved to Library 📚", description: `"${libraryName}" added to ${saveCategory}.` });
+                    }}
+                    className="bg-primary text-primary-foreground h-8"
+                  >
+                    <Check className="w-3.5 h-3.5 mr-1" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSavingToLibrary(false)}
+                    className="h-8 text-muted-foreground"
+                  >
+                    <X className="w-3.5 h-3.5 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
               </div>
             )}
           </div>
