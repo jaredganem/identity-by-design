@@ -1,16 +1,18 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil } from "lucide-react";
+import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { saveAffirmation } from "@/lib/affirmationLibrary";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
   onRecordingsChange: (recordings: Record<string, Blob>) => void;
   customTexts: Record<string, string>;
   onCustomTextsChange: (texts: Record<string, string>) => void;
+  onLibraryChanged?: () => void;
 }
 
 const AffirmationRecorder = ({
@@ -18,6 +20,7 @@ const AffirmationRecorder = ({
   onRecordingsChange,
   customTexts,
   onCustomTextsChange,
+  onLibraryChanged,
 }: AffirmationRecorderProps) => {
   const allSlots = getAllSlots();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -172,15 +175,38 @@ const AffirmationRecorder = ({
         </p>
 
         {hasRecording && !isRecording && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReRecord}
-            className="border-primary/30 hover:bg-primary/10 text-muted-foreground hover:text-foreground"
-          >
-            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-            Re-record
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReRecord}
+              className="border-primary/30 hover:bg-primary/10 text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+              Re-record
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await saveAffirmation({
+                  id: `${currentSlot.id}-${Date.now()}`,
+                  name: displayText.slice(0, 40),
+                  text: displayText,
+                  category: categoryInfo.category,
+                  blob: recordings[currentSlot.id],
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                });
+                onLibraryChanged?.();
+                toast({ title: "Saved to Library 📚", description: "You can reuse this affirmation in the Modular Builder." });
+              }}
+              className="border-primary/30 hover:bg-primary/10 text-primary hover:text-foreground"
+            >
+              <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+              Save to Library
+            </Button>
+          </div>
         )}
       </div>
 
