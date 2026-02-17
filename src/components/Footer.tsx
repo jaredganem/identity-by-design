@@ -20,6 +20,9 @@ const Footer = () => (
         </p>
       </div>
     </div>
+    <p className="text-xs text-muted-foreground text-center mt-4">
+      © {new Date().getFullYear()} Self-Mastery for Men™. All rights reserved.
+    </p>
   </footer>
 );
 
