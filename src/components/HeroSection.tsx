@@ -220,7 +220,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         <img
           src={jaredPhoto}
           alt="Jared — before and after"
-          className="w-16 h-16 rounded-lg object-cover object-right flex-shrink-0"
+          className="w-24 h-16 rounded-lg object-cover flex-shrink-0"
         />
         <div>
           <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
