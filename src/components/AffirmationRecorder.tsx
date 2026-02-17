@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X } from "lucide-react";
+import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { saveAffirmation } from "@/lib/affirmationLibrary";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -33,8 +34,26 @@ const AffirmationRecorder = ({
   const [saveCategory, setSaveCategory] = useState("");
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [spokenNames, setSpokenNames] = useState<Record<string, string>>({});
+  const [aiNaming, setAiNaming] = useState(false);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
+
+  const handleAiName = async (blob: Blob) => {
+    setAiNaming(true);
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
+      const { data, error } = await supabase.functions.invoke("transcribe-clip", {
+        body: { audioBase64: base64, mimeType: blob.type },
+      });
+      if (error) throw error;
+      setLibraryName(data?.name || "Untitled Clip");
+    } catch {
+      toast({ variant: "destructive", title: "AI naming failed", description: "Try again or name it manually." });
+    } finally {
+      setAiNaming(false);
+    }
+  };
 
   const currentSlot = allSlots[currentIndex];
   const displayText = customTexts[currentSlot.id] || currentSlot.suggestion;
@@ -226,7 +245,18 @@ const AffirmationRecorder = ({
             ) : (
               <div className="w-full space-y-2 p-3 rounded-xl bg-secondary/50 border border-border">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-muted-foreground font-medium">Name</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-muted-foreground font-medium">Name</label>
+                    <button
+                      type="button"
+                      onClick={() => handleAiName(recordings[currentSlot.id])}
+                      disabled={aiNaming}
+                      className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                    >
+                      {aiNaming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {aiNaming ? "Naming…" : "Name with AI"}
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={libraryName}
