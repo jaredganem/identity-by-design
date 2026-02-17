@@ -53,10 +53,10 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
-      >
-        Self Mastery for Men™
-      </motion.p>
+      className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
+    >
+      Self-Mastery for Men™
+    </motion.p>
 
       <motion.h1
         initial={{ opacity: 0, y: 30 }}
@@ -178,7 +178,18 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <p className="text-xs text-muted-foreground text-center pt-2 italic normal-case tracking-normal">
                   "Your brain can't tell the difference between what's real and what's imagined.
                   Within a week, your internal dialogue starts mimicking what you recorded."
+                  <br />
+                  <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Jared Ganem</span>
                 </p>
+
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
+                    "Any idea, plan, or purpose may be placed in the mind through repetition of thought.
+                    The principle of autosuggestion voluntarily reaches the subconscious mind and influences it with these thoughts."
+                    <br />
+                    <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Napoleon Hill, Think and Grow Rich</span>
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}

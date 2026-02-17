@@ -234,7 +234,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           {isProcessing ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
           ) : (
-            "✨ Create Sacred Track"
+            "🎧 Create Autosuggestion File"
           )}
         </Button>
 
