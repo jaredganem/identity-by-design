@@ -30,7 +30,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
             rel="noopener noreferrer"
             className="text-sm text-primary hover:text-accent transition-colors normal-case tracking-normal"
           >
-            Watch the free training →
+            🎓 Watch the free training
           </a>
           <a
             href="https://selfmasteryformen.com/booking-page/"
@@ -38,7 +38,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
             rel="noopener noreferrer"
             className="text-sm text-primary hover:text-accent transition-colors normal-case tracking-normal"
           >
-            Book a call with Jared →
+            📞 Book a call with Jared
           </a>
           <a
             href="https://urlgeni.us/youtube/channel/sVGKLQ"
@@ -46,7 +46,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
             rel="noopener noreferrer"
             className="text-sm text-primary hover:text-accent transition-colors normal-case tracking-normal"
           >
-            Subscribe on YouTube →
+            ▶️ Subscribe on YouTube
           </a>
           <a
             href="https://urlgeni.us/instagram/9US98f"
@@ -54,7 +54,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
             rel="noopener noreferrer"
             className="text-sm text-primary hover:text-accent transition-colors normal-case tracking-normal"
           >
-            Follow us on Instagram →
+            📸 Follow us on Instagram
           </a>
         </div>
       </div>
