@@ -159,6 +159,20 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     tier: "elite",
     category: "ai",
   },
+  {
+    id: "identity_player",
+    name: "Identity Player",
+    description: "Dedicated player with circular visualizer, playlist, loop/shuffle controls",
+    tier: "pro",
+    category: "audio",
+  },
+  {
+    id: "pwa_install",
+    name: "Installable App (PWA)",
+    description: "Install to home screen for native-like offline experience",
+    tier: "pro",
+    category: "export",
+  },
 
   // ─── FUTURE ADVANCED FEATURES (Elite) ──────────────────
   {

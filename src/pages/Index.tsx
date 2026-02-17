@@ -8,12 +8,14 @@ import FreestyleRecorder from "@/components/FreestyleRecorder";
 import FreestyleTrackBuilder from "@/components/FreestyleTrackBuilder";
 import AffirmationLibrary from "@/components/AffirmationLibrary";
 import ModularTrackBuilder from "@/components/ModularTrackBuilder";
+import Player from "@/components/Player";
+import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
 import { trackPageView } from "@/lib/analytics";
 
-type Mode = "guided" | "freestyle" | "library";
+type Mode = "guided" | "freestyle" | "library" | "player";
 
-const modeHeaders: Record<Mode, { title: string; highlight: string; subtitle: string; quote?: { text: string; author: string } }> = {
+const modeHeaders: Record<string, { title: string; highlight: string; subtitle: string; quote?: { text: string; author: string } }> = {
   guided: {
     title: "Guided",
     highlight: "Identity Blueprint",
@@ -43,6 +45,19 @@ const modeHeaders: Record<Mode, { title: string; highlight: string; subtitle: st
   },
 };
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
+  },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+};
+
 const Index = () => {
   const [mode, setMode] = useState<Mode | null>(null);
   const [recordings, setRecordings] = useState<Record<string, Blob>>({});
@@ -64,10 +79,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-sacred relative overflow-hidden">
       <NeuralNetwork />
+      <OnboardingWalkthrough />
 
       <AnimatePresence mode="wait">
         {!mode ? (
-          <HeroSection key="hero" onStart={(m) => setMode(m)} />
+          <HeroSection key="hero" onStart={(m) => setMode(m as Mode)} />
+        ) : mode === "player" ? (
+          <Player key="player" onBack={handleBack} />
         ) : (
           <motion.div
             key="studio"
@@ -77,23 +95,33 @@ const Index = () => {
             transition={{ duration: 0.6 }}
             className="relative z-10 max-w-2xl mx-auto px-6 py-12 space-y-8"
           >
-            {/* Header */}
-            <div className="text-center space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            {/* Header with stagger */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="text-center space-y-3"
+            >
+              <motion.p variants={staggerItem} className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                 Self-Mastery for Men™
-              </p>
-              <h2 className="font-display text-3xl md:text-4xl text-foreground">
+              </motion.p>
+              <motion.h2 variants={staggerItem} className="font-display text-3xl md:text-4xl text-foreground">
                 {modeHeaders[mode].title}{" "}
                 <span className="text-primary text-glow">{modeHeaders[mode].highlight}</span>
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-lg mx-auto normal-case tracking-normal">
+              </motion.h2>
+              <motion.p variants={staggerItem} className="text-sm text-muted-foreground max-w-lg mx-auto normal-case tracking-normal">
                 {modeHeaders[mode].subtitle}
-              </p>
-            </div>
+              </motion.p>
+            </motion.div>
 
             {/* Authority quote */}
             {modeHeaders[mode].quote && (
-              <div className="text-center px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-center px-4"
+              >
                 <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                   "{modeHeaders[mode].quote!.text}"
                   <br />
@@ -101,12 +129,17 @@ const Index = () => {
                     — {modeHeaders[mode].quote!.author}
                   </span>
                 </p>
-              </div>
+              </motion.div>
             )}
 
-            {/* Pattern Interrupt — Before Recording */}
+            {/* Pattern Interrupt */}
             {(mode === "guided" || mode === "freestyle") && (
-              <div className="text-center px-6 py-6 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="text-center px-6 py-6 space-y-4"
+              >
                 <div className="space-y-2">
                   <p className="text-base text-foreground leading-relaxed normal-case tracking-normal">
                     You already know what you're capable of.
@@ -129,7 +162,6 @@ const Index = () => {
                   </p>
                 </div>
 
-                {/* Maxwell Maltz quote */}
                 <div className="pt-3 border-t border-border/20">
                   <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                     "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
@@ -139,7 +171,7 @@ const Index = () => {
                     </span>
                   </p>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {mode === "guided" ? (
@@ -151,8 +183,12 @@ const Index = () => {
                   onCustomTextsChange={setCustomTexts}
                   onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)}
                 />
-                {/* Authority Quote — Before Track Builder */}
-                <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2"
+                >
                   <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                     "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
                     <br />
@@ -160,14 +196,18 @@ const Index = () => {
                       — Dr. Joe Dispenza, Breaking the Habit of Being Yourself
                     </span>
                   </p>
-                </div>
+                </motion.div>
                 <TrackBuilder recordings={recordings} />
               </>
             ) : mode === "freestyle" ? (
               <>
                 <FreestyleRecorder clips={clips} onClipsChange={setClips} onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)} />
-                {/* Authority Quote — Before Track Builder */}
-                <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2"
+                >
                   <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                     "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
                     <br />
@@ -175,7 +215,7 @@ const Index = () => {
                       — Dr. Joe Dispenza, Breaking the Habit of Being Yourself
                     </span>
                   </p>
-                </div>
+                </motion.div>
                 <FreestyleTrackBuilder clips={clips} />
               </>
             ) : (
@@ -197,7 +237,6 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
