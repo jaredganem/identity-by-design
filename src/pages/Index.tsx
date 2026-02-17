@@ -25,7 +25,7 @@ const modeHeaders: Record<Mode, { title: string; highlight: string; subtitle: st
   freestyle: {
     title: "Custom",
     highlight: "Identity Script",
-    subtitle: "Freestyle recording for men who know their affirmations. Record as many as you want. Build your exact identity code.",
+    subtitle: "Freestyle recording for men who already know their affirmations. Record as many as you want. Build your exact identity code.",
     quote: {
       text: "You will become as small as your controlling desire, or as great as your dominant aspiration.",
       author: "James Allen, As A Man Thinketh",
