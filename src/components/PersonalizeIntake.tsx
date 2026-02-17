@@ -136,6 +136,22 @@ const PersonalizeIntake = ({
       if (error) throw error;
 
       const affirmations: Record<string, string> = data?.affirmations || {};
+
+      // Persist intake answers for pattern analysis & marketing insights
+      const sessionId = sessionStorage.getItem("sid") || crypto.randomUUID();
+      supabase.from("identity_intakes").insert({
+        session_id: sessionId,
+        intake_mode: mode,
+        outcomes: mode === "advanced" ? advancedAnswers.outcomes || null : null,
+        identity_gaps: mode === "advanced" ? advancedAnswers.identity_gaps || null : null,
+        blockers: mode === "advanced" ? advancedAnswers.blockers || null : null,
+        peak_identity: mode === "advanced" ? advancedAnswers.peak_identity || null : null,
+        negative_patterns: mode === "advanced" ? advancedAnswers.negative_patterns || null : null,
+        simple_goals: mode === "simple" ? simpleGoal.trim() : null,
+      }).then(({ error: insertErr }) => {
+        if (insertErr) console.error("Failed to save intake:", insertErr);
+      });
+
       if (Object.keys(affirmations).length > 0) {
         if (onCustomTextsChange) {
           onCustomTextsChange({ ...customTexts, ...affirmations });
