@@ -230,17 +230,35 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
                 </Button>
               </motion.div>
             ) : (
-              <motion.div key="goal-input" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-2">
+              <motion.div key="goal-input" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
                 <p className="text-xs text-muted-foreground normal-case tracking-normal">
-                  What do you want to focus on? (e.g. "confidence and wealth" or "becoming more disciplined")
+                  Pick a theme or type your own focus:
                 </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: "🔥 Unshakeable Confidence", goal: "confidence, self-belief, and inner strength" },
+                    { label: "💰 Wealth & Abundance", goal: "financial success, abundance, and money mastery" },
+                    { label: "⚔️ Discipline & Drive", goal: "discipline, consistency, and relentless drive" },
+                    { label: "💪 Health & Vitality", goal: "physical health, energy, and peak performance" },
+                    { label: "👑 Leadership & Power", goal: "leadership, influence, and commanding presence" },
+                  ].map((theme) => (
+                    <button
+                      key={theme.label}
+                      onClick={() => { setGoalText(theme.goal); handleAiBuildTrack(theme.goal); }}
+                      disabled={aiBuildingTrack}
+                      className="px-3 py-1.5 text-xs rounded-full border border-primary/30 bg-background text-foreground hover:bg-primary/10 hover:border-primary/50 transition-colors disabled:opacity-50"
+                    >
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={goalText}
                     onChange={(e) => setGoalText(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && goalText.trim() && handleAiBuildTrack(goalText)}
-                    placeholder="Type your focus…"
+                    placeholder="Or type your own focus…"
                     autoFocus
                     className="flex-1 h-10 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary"
                   />
