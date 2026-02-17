@@ -155,10 +155,13 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 onClick={() => onStart("freestyle")}
                 className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You already know your affirmations. Let's install them.</span>
                 Custom Identity Script
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                  Freestyle recording. Record as many as you want. Build your exact identity code.
+                  Freestyle recording for men who already know their affirmations. Record as many as you want. Build your exact identity code.
+                </span>
+                <span className="block text-muted-foreground/60 text-xs normal-case tracking-normal font-normal mt-1.5 italic">
+                  Press record → save your clip → rename it → reuse it from your library anytime.
                 </span>
               </button>
 
