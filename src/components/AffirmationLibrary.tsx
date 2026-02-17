@@ -70,10 +70,14 @@ const AffirmationLibrary = ({
     loadItems();
   }, [refreshKey]);
 
-  // Auto-expand all categories on first load
+  // Auto-expand all categories only on initial load
+  const initialExpandDone = useRef(false);
   useEffect(() => {
-    const cats = new Set(items.map((item) => item.category || "Custom"));
-    setExpandedCategories(cats);
+    if (items.length > 0 && !initialExpandDone.current) {
+      const cats = new Set(items.map((item) => item.category || "Custom"));
+      setExpandedCategories(cats);
+      initialExpandDone.current = true;
+    }
   }, [items.length]);
 
   const grouped = items.reduce<Record<string, SavedAffirmation[]>>((acc, item) => {
@@ -125,8 +129,9 @@ const AffirmationLibrary = ({
     try {
       const name = await transcribeClip(item.blob);
       await updateAffirmationName(item.id, name);
+      // Optimistic in-place update instead of full reload
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, name } : i)));
       toast({ title: "Renamed ✓", description: `Now called "${name}"` });
-      await loadItems();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Rename failed", description: e?.message || "Could not transcribe clip." });
     } finally {
