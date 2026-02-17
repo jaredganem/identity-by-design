@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
+import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
 
 interface HeroSectionProps {
@@ -119,7 +120,12 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => setShowModes(true)}
+          onClick={() => {
+            setShowModes(true);
+            setTimeout(() => {
+              document.getElementById("choose-path")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+          }}
           className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
         >
           Start Building Your Identity
@@ -151,6 +157,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.5 }}
+            id="choose-path"
             className="mt-8 w-full max-w-2xl space-y-4"
           >
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
@@ -233,6 +240,9 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
           </p>
         </div>
       </motion.div>
+
+      {/* Free Workshop CTA */}
+      <FreeWorkshopCTA />
 
       {/* ABOUT — Always visible accordion cards at bottom */}
       <motion.div

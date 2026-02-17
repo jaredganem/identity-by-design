@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import NeuralNetwork from "@/components/SacredGeometry";
 import HeroSection from "@/components/HeroSection";
@@ -9,6 +9,7 @@ import FreestyleTrackBuilder from "@/components/FreestyleTrackBuilder";
 import AffirmationLibrary from "@/components/AffirmationLibrary";
 import ModularTrackBuilder from "@/components/ModularTrackBuilder";
 import Footer from "@/components/Footer";
+import { trackPageView } from "@/lib/analytics";
 
 type Mode = "guided" | "freestyle" | "library";
 
@@ -48,6 +49,10 @@ const Index = () => {
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
   const [clips, setClips] = useState<Blob[]>([]);
   const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
+
+  useEffect(() => {
+    trackPageView("/");
+  }, []);
 
   const handleBack = () => {
     setMode(null);
