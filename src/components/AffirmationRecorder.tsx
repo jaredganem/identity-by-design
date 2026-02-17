@@ -168,6 +168,7 @@ const AffirmationRecorder = ({
                 isPersonalized={isPersonalized}
                 onPersonalized={() => { setShowPersonalize(false); setIsPersonalized(true); }}
                 onClose={() => setShowPersonalize(false)}
+                forceMode="simple"
               />
             )}
           </AnimatePresence>

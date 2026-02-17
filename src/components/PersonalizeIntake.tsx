@@ -48,21 +48,27 @@ const ADVANCED_STEPS = [
 type IntakeMode = "choose" | "simple" | "advanced";
 
 interface PersonalizeIntakeProps {
-  customTexts: Record<string, string>;
-  onCustomTextsChange: (texts: Record<string, string>) => void;
+  customTexts?: Record<string, string>;
+  onCustomTextsChange?: (texts: Record<string, string>) => void;
   isPersonalized: boolean;
   onPersonalized: () => void;
   onClose: () => void;
+  /** Force a specific mode — skips the chooser */
+  forceMode?: "simple" | "advanced";
+  /** Called with raw advanced answers for custom script generation */
+  onAdvancedResults?: (answers: Record<string, string>, affirmations: Record<string, string>) => void;
 }
 
 const PersonalizeIntake = ({
-  customTexts,
+  customTexts = {},
   onCustomTextsChange,
   isPersonalized,
   onPersonalized,
   onClose,
+  forceMode,
+  onAdvancedResults,
 }: PersonalizeIntakeProps) => {
-  const [mode, setMode] = useState<IntakeMode>("choose");
+  const [mode, setMode] = useState<IntakeMode>(forceMode || "choose");
   const [simpleGoal, setSimpleGoal] = useState("");
   const [advancedAnswers, setAdvancedAnswers] = useState<Record<string, string>>({});
   const [advancedStep, setAdvancedStep] = useState(0);
@@ -126,7 +132,12 @@ const PersonalizeIntake = ({
 
       const affirmations: Record<string, string> = data?.affirmations || {};
       if (Object.keys(affirmations).length > 0) {
-        onCustomTextsChange({ ...customTexts, ...affirmations });
+        if (onCustomTextsChange) {
+          onCustomTextsChange({ ...customTexts, ...affirmations });
+        }
+        if (onAdvancedResults && mode === "advanced") {
+          onAdvancedResults(advancedAnswers, affirmations);
+        }
         Object.values(affirmations).forEach((text) => captureTranscript(text, { source: "ai_generated" }));
         onPersonalized();
         toast({
