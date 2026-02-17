@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { saveAffirmation } from "@/lib/affirmationLibrary";
 import { AFFIRMATION_CATEGORIES } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -27,6 +28,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [saveCategory, setSaveCategory] = useState("Custom");
   const nextId = useRef(0);
   const [clipItems, setClipItems] = useState<{ id: number; blob: Blob }[]>([]);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const { toast } = useToast();
 
   const updateClips = (items: { id: number; blob: Blob }[]) => {
@@ -34,12 +36,10 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     onClipsChange(items.map((c) => c.blob));
   };
 
-  const CHECKOUT_URL = "https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5";
-
   const handleRecord = useCallback(async () => {
-    // Gate: first record tap redirects to checkout
-    if (!isRecording && clipItems.length === 0) {
-      window.open(CHECKOUT_URL, "_blank");
+    // Gate: first record tap shows lead capture
+    if (!isRecording && !hasLeadCaptured()) {
+      setShowLeadCapture(true);
       return;
     }
     if (isRecording) {
@@ -252,6 +252,15 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
           </button>
         </div>
       )}
+
+      <LeadCaptureGate
+        open={showLeadCapture}
+        onClose={() => setShowLeadCapture(false)}
+        onSuccess={() => {
+          setShowLeadCapture(false);
+          toast({ title: "Welcome aboard 🎯", description: "You're in. Start recording your identity." });
+        }}
+      />
     </div>
   );
 };
