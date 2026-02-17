@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
   "Custom",
+  "__custom_new__",
 ];
 
 interface FreestyleRecorderProps {
@@ -28,6 +29,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [savingId, setSavingId] = useState<number | null>(null);
   const [saveName, setSaveName] = useState("");
   const [saveCategory, setSaveCategory] = useState("Custom");
+  const [customCategoryName, setCustomCategoryName] = useState("");
   const nextId = useRef(0);
   const [clipItems, setClipItems] = useState<{ id: number; blob: Blob; autoName?: string }[]>([]);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
@@ -130,11 +132,12 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
 
   const handleSaveToLibrary = async (item: { id: number; blob: Blob; autoName?: string }) => {
     const name = saveName.trim() || item.autoName || `Clip ${item.id + 1}`;
+    const finalCategory = saveCategory === "__custom_new__" ? (customCategoryName.trim() || "Custom") : saveCategory;
     await saveAffirmation({
       id: `freestyle-${item.id}-${Date.now()}`,
       name,
       text: name,
-      category: saveCategory,
+      category: finalCategory,
       blob: item.blob,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -143,7 +146,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     setSavingId(null);
     setSaveName("");
     setSaveCategory("Custom");
-    toast({ title: "Saved to Library 📚", description: `"${name}" added to ${saveCategory}.` });
+    setCustomCategoryName("");
+    toast({ title: "Saved to Library 📚", description: `"${name}" added to ${finalCategory}.` });
   };
 
   const handleStartOver = () => {
@@ -249,13 +253,31 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                             </div>
                             <select
                               value={saveCategory}
-                              onChange={(e) => setSaveCategory(e.target.value)}
+                              onChange={(e) => {
+                                if (e.target.value === "__custom_new__") {
+                                  setSaveCategory("__custom_new__");
+                                  setCustomCategoryName("");
+                                } else {
+                                  setSaveCategory(e.target.value);
+                                }
+                              }}
                               className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full appearance-none z-50"
                             >
-                              {CATEGORIES.map((cat) => (
+                              {CATEGORIES.filter((c) => c !== "__custom_new__").map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
                               ))}
+                              <option value="__custom_new__">✏️ Custom Category…</option>
                             </select>
+                            {saveCategory === "__custom_new__" && (
+                              <input
+                                type="text"
+                                value={customCategoryName}
+                                onChange={(e) => setCustomCategoryName(e.target.value)}
+                                placeholder="Type your category name…"
+                                className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full mt-1.5"
+                                autoFocus
+                              />
+                            )}
                           </div>
                           <div className="flex gap-2 pt-1">
                             <Button
