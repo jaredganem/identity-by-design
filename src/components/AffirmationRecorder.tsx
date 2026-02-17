@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2, Send, Wand2 } from "lucide-react";
+import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
+import PersonalizeIntake from "@/components/PersonalizeIntake";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -39,66 +40,11 @@ const AffirmationRecorder = ({
   const [aiNaming, setAiNaming] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
-  const [personalizeGoal, setPersonalizeGoal] = useState("");
-  const [personalizing, setPersonalizing] = useState(false);
   const [isPersonalized, setIsPersonalized] = useState(false);
-  const [goalListening, setGoalListening] = useState(false);
   const speech = useSpeechRecognition();
-  const goalSpeech = useSpeechRecognition();
   const { toast } = useToast();
 
-  // Sync goal speech transcript into the textarea
-  const handleGoalMicToggle = useCallback(() => {
-    if (goalListening) {
-      const heard = goalSpeech.stop();
-      setGoalListening(false);
-      // Append transcribed text to existing goal text
-      setPersonalizeGoal(prev => {
-        const spoken = goalSpeech.transcript || heard;
-        if (!spoken) return prev;
-        return prev ? `${prev} ${spoken}` : spoken;
-      });
-    } else {
-      goalSpeech.start();
-      setGoalListening(true);
-    }
-  }, [goalListening, goalSpeech]);
-
-  const handlePersonalize = async () => {
-    // Stop mic if still listening and merge transcript
-    if (goalListening) {
-      const heard = goalSpeech.stop();
-      setGoalListening(false);
-      const spoken = goalSpeech.transcript || heard;
-      if (spoken) {
-        setPersonalizeGoal(prev => prev ? `${prev} ${spoken}` : spoken);
-      }
-    }
-    if (!personalizeGoal.trim() && !goalSpeech.transcript.trim()) return;
-    setPersonalizing(true);
-    try {
-      const goalText = personalizeGoal.trim() || goalSpeech.transcript.trim();
-      const { data, error } = await supabase.functions.invoke("personalize-prompts", {
-        body: { goals: goalText },
-      });
-      if (error) throw error;
-      const affirmations: Record<string, string> = data?.affirmations || {};
-      if (Object.keys(affirmations).length > 0) {
-        onCustomTextsChange({ ...customTexts, ...affirmations });
-        setShowPersonalize(false);
-        setIsPersonalized(true);
-        // Capture AI-generated prompts for trend analysis
-        Object.values(affirmations).forEach(text => captureTranscript(text, { source: "ai_generated" }));
-        // Also capture the raw goals input — pure marketing gold
-        captureTranscript(goalText, { category: "user_goals", source: "ai_generated" });
-        toast({ title: "✨ Prompts personalized", description: "All 12 affirmations have been tailored to your goals. You can still edit any of them." });
-      }
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Personalization failed", description: e?.message || "Try again." });
-    } finally {
-      setPersonalizing(false);
-    }
-  };
+  // (Personalize logic moved to PersonalizeIntake component)
 
   const handleAiName = async (blob: Blob) => {
     setAiNaming(true);
@@ -216,55 +162,13 @@ const AffirmationRecorder = ({
                 </p>
               </motion.div>
             ) : (
-              <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
-                <p className="text-sm font-medium text-foreground normal-case tracking-normal">
-                  ✍️ Type your goals or 🎙️ speak them — AI does the rest
-                </p>
-                <p className="text-xs text-muted-foreground normal-case tracking-normal">
-                  Describe the outcomes, targets, and the man you're becoming:
-                </p>
-                <textarea
-                  value={goalListening ? (personalizeGoal ? `${personalizeGoal} ${goalSpeech.transcript}` : goalSpeech.transcript) : personalizeGoal}
-                  onChange={(e) => setPersonalizeGoal(e.target.value)}
-                  placeholder="e.g. I want to hit 185lbs lean, build my business to $25k/mo, be more present with my wife and kids, and develop unshakeable confidence..."
-                  rows={3}
-                  autoFocus
-                  disabled={goalListening}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary resize-none"
-                />
-                <div className="flex gap-2 flex-wrap">
-                  {goalSpeech.supported && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={goalListening ? "default" : "outline"}
-                      onClick={handleGoalMicToggle}
-                      disabled={personalizing}
-                      className={`h-9 ${goalListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"}`}
-                    >
-                      {goalListening ? <Square className="w-4 h-4 mr-1.5" /> : <Mic className="w-4 h-4 mr-1.5" />}
-                      {goalListening ? "Stop Listening" : "🎙️ Speak Instead"}
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    onClick={handlePersonalize}
-                    disabled={!personalizeGoal.trim() || personalizing}
-                    className="bg-primary text-primary-foreground h-9"
-                  >
-                    {personalizing ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}
-                    {personalizing ? "Creating your prompts…" : "✨ Generate My Affirmations"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPersonalize(false)}
-                    className="h-9 text-muted-foreground"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </motion.div>
+              <PersonalizeIntake
+                customTexts={customTexts}
+                onCustomTextsChange={onCustomTextsChange}
+                isPersonalized={isPersonalized}
+                onPersonalized={() => { setShowPersonalize(false); setIsPersonalized(true); }}
+                onClose={() => setShowPersonalize(false)}
+              />
             )}
           </AnimatePresence>
         </div>
