@@ -26,17 +26,20 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
           <img
             src={jaredPhoto}
             alt="Jared — before and after"
-            className="w-14 h-14 rounded-full object-cover object-right flex-shrink-0"
+            className="w-20 h-20 rounded-lg object-cover object-right flex-shrink-0"
           />
           <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
             In 2019 I was 80lbs overweight, six figures in debt, and hiding in my parents' retirement condo at 32 — lights off after 9pm so the HOA wouldn't find me.
           </p>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-          I wasn't looking for motivation. I'd had plenty of that and it never stuck. I needed something that worked at a deeper level. This tool was the first thing that did.
+          I wasn't looking for motivation. I'd had plenty of that and it never stuck. I needed something that worked at a deeper level. This was the only tool I had at the time.
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-          Everything you're about to build — I've been listening to my own version of it almost every single night for five years.
+          Since then I've developed an entire system around one idea — that the man you know you're capable of being isn't someone you have to become. He's who you already are, just underneath decades of conditioning that was installed before you could even choose.
+        </p>
+        <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal font-medium">
+          The REAL you is the most authentic you. And this system removes what's in the way. That's what we do together.
         </p>
         <p className="text-xs text-primary font-display tracking-[0.1em]">— Jared</p>
 
