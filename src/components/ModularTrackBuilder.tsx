@@ -245,6 +245,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
                     { label: "🦁 Masculinity", goal: "masculine energy, strength, and grounded manhood" },
                     { label: "🚀 Career & Success", goal: "career growth, achievement, and professional excellence" },
                     { label: "🤝 Relationships", goal: "deep relationships, connection, and trust" },
+                    { label: "🙏 Spirituality", goal: "spiritual growth, inner peace, purpose, and connection to something greater" },
                   ].map((theme) => (
                     <button
                       key={theme.label}
