@@ -236,6 +236,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {[
+                    { label: "⭐ Best of Everything", goal: "pick the strongest, most impactful statements across all categories for a complete identity installation" },
                     { label: "🔥 Confidence", goal: "confidence, self-belief, and inner strength" },
                     { label: "💰 Wealth & Abundance", goal: "financial success, abundance, and money mastery" },
                     { label: "⚔️ Discipline & Drive", goal: "discipline, consistency, and relentless drive" },
