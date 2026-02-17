@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
+import { captureTranscript } from "@/lib/transcriptCapture";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -93,6 +94,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       const updated = [...clipItems, newItem];
       updateClips(updated);
       setIsRecording(false);
+      // Capture transcript for trend analysis (anonymous)
+      if (autoName) captureTranscript(autoName, { source: "freestyle" });
       toast({ title: "Clip saved ✓", description: `${updated.length} clip${updated.length > 1 ? "s" : ""} total.` });
     } else {
       try {
