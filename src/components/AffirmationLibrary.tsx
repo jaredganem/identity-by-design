@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Sparkles, Loader2, ChevronDown } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, updateAffirmationName, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
@@ -234,17 +234,6 @@ const AffirmationLibrary = ({
                               : "bg-background border-border/50 hover:border-primary/20"
                           }`}
                         >
-                          {selectable && (
-                            <button
-                              onClick={() => onToggleSelect?.(item)}
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                                isSelected ? "bg-primary border-primary" : "border-muted-foreground"
-                              }`}
-                            >
-                              {isSelected && <Plus className="w-3 h-3 text-primary-foreground rotate-45" />}
-                            </button>
-                          )}
-
                           <button
                             onClick={() => handlePlay(item)}
                             className="flex-shrink-0 w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
@@ -269,24 +258,40 @@ const AffirmationLibrary = ({
                             </p>
                           </div>
 
-                          {!selectable && (
-                            <div className="flex items-center gap-0.5">
+                          <div className="flex items-center gap-0.5">
+                            {selectable && (
                               <button
-                                onClick={() => handleRenameOne(item)}
-                                disabled={isRenaming}
-                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
-                                title="Rename with AI"
+                                onClick={() => onToggleSelect?.(item)}
+                                className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
+                                  isSelected
+                                    ? "text-primary bg-primary/10"
+                                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                }`}
+                                title={isSelected ? "Remove from track" : "Add to track"}
                               >
-                                <Sparkles className="w-3.5 h-3.5" />
+                                {isSelected ? (
+                                  <Check className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5" />
+                                )}
                               </button>
-                              <button
-                                onClick={() => handleDelete(item)}
-                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          )}
+                            )}
+                            <button
+                              onClick={() => handleRenameOne(item)}
+                              disabled={isRenaming}
+                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                              title="Rename with AI"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item)}
+                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
