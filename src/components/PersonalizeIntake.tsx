@@ -19,8 +19,8 @@ const ADVANCED_STEPS = [
   {
     key: "identity_gaps",
     label: "Step 2 of 5",
-    question: "What's your untapped potential?",
-    subtext: "Who do you want to BE that you're not being? What do you want to DO that you're not doing? What do you want to HAVE that you don't have yet?",
+    question: "Who do you want to become?",
+    subtext: "Who do you want to BE that you're not being? What do you want to DO that you're not doing? What do you want to HAVE that you don't have yet? What's your untapped potential?",
     placeholder: "e.g. I want to be the leader my team needs, I want to be disciplined with my health, I want to show up confident in every room...",
     emoji: "🪞",
   },
