@@ -250,6 +250,22 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
 // ─── Helper for future gating ────────────────────────────
 const TIER_RANK: Record<FeatureTier, number> = { free: 0, pro: 1, elite: 2 };
 
+/**
+ * Promo-tier → max unlocked FeatureTier mapping.
+ * "vip_all" / "founders_vip" / "vip" → elite (everything)
+ * "vip_mid"                          → pro
+ * "vip_basic" / "3mo_free" / "6mo_free" → free (must upgrade for more)
+ */
+export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
+  vip: "elite",
+  founders_vip: "elite",
+  vip_all: "elite",
+  vip_mid: "pro",
+  vip_basic: "free",
+  "3mo_free": "free",
+  "6mo_free": "free",
+};
+
 export function canAccess(userTier: FeatureTier, featureId: string): boolean {
   const feature = FEATURE_TIERS.find((f) => f.id === featureId);
   if (!feature) return false;
