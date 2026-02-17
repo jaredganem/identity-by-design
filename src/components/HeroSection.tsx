@@ -226,7 +226,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
           <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
             In 2019 I was 80lbs overweight, six figures in debt, and hiding in a retirement condo at 32. This was the first tool that changed anything.
           </p>
-          <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Jared</p>
+          <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Jared Ganem, Lead Trainer, Self-Mastery for Men™</p>
         </div>
       </motion.div>
 
