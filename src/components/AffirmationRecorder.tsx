@@ -9,6 +9,7 @@ import { saveAffirmation } from "@/lib/affirmationLibrary";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
+import { captureTranscript } from "@/lib/transcriptCapture";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -86,6 +87,10 @@ const AffirmationRecorder = ({
         onCustomTextsChange({ ...customTexts, ...affirmations });
         setShowPersonalize(false);
         setIsPersonalized(true);
+        // Capture AI-generated prompts for trend analysis
+        Object.values(affirmations).forEach(text => captureTranscript(text, { source: "ai_generated" }));
+        // Also capture the raw goals input — pure marketing gold
+        captureTranscript(goalText, { category: "user_goals", source: "ai_generated" });
         toast({ title: "✨ Prompts personalized", description: "All 12 affirmations have been tailored to your goals. You can still edit any of them." });
       }
     } catch (e: any) {
@@ -164,6 +169,8 @@ const AffirmationRecorder = ({
       onRecordingsChange({ ...recordings, [currentSlot.id]: blob });
       if (autoName) {
         setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: autoName }));
+        // Capture transcript for trend analysis (anonymous)
+        captureTranscript(autoName, { category: categoryInfo.category, source: "guided" });
       }
       setIsRecording(false);
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
