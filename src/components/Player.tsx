@@ -10,6 +10,60 @@ interface PlayerProps {
   onBack: () => void;
 }
 
+/* ── Subliminal "Mind Movie" text cycling ── */
+const SubliminalDisplay = ({
+  tracks, currentTrack, isPlaying, subliminalIndex, setSubliminalIndex,
+}: {
+  tracks: SavedAffirmation[];
+  currentTrack: SavedAffirmation | undefined;
+  isPlaying: boolean;
+  subliminalIndex: number;
+  setSubliminalIndex: (fn: (n: number) => number) => void;
+}) => {
+  // Collect all affirmation texts from the playlist
+  const phrases = tracks
+    .map((t) => t.text || t.name)
+    .filter(Boolean);
+
+  // Cycle through phrases while playing
+  useEffect(() => {
+    if (!isPlaying || phrases.length === 0) return;
+    const interval = setInterval(() => {
+      setSubliminalIndex((prev: number) => (prev + 1) % phrases.length);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, [isPlaying, phrases.length, setSubliminalIndex]);
+
+  const displayPhrase = phrases[subliminalIndex % Math.max(phrases.length, 1)] || currentTrack?.name || "Untitled";
+  const displayCategory = currentTrack?.category || "Affirmation";
+
+  return (
+    <div className="text-center max-w-[200px]">
+      {/* Category label */}
+      <motion.p
+        key={displayCategory}
+        className="text-[10px] text-primary uppercase tracking-[0.2em] font-display mb-2 opacity-60"
+      >
+        {displayCategory}
+      </motion.p>
+
+      {/* Subliminal phrase — fades/scales in and out */}
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={subliminalIndex}
+          initial={{ opacity: 0, scale: 0.7, filter: "blur(6px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 1.15, filter: "blur(4px)" }}
+          transition={{ duration: 0.9, ease: "easeInOut" }}
+          className="text-sm text-foreground font-display leading-snug normal-case tracking-normal"
+        >
+          {displayPhrase}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const Player = ({ onBack }: PlayerProps) => {
   const [tracks, setTracks] = useState<SavedAffirmation[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,10 +78,15 @@ const Player = ({ onBack }: PlayerProps) => {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animFrameRef = useRef<number>(0);
+  const [subliminalIndex, setSubliminalIndex] = useState(0);
 
   useEffect(() => {
     getAllAffirmations().then((all) => {
-      if (all.length > 0) setTracks(all);
+      if (all.length > 0) {
+        // Sort newest first
+        const sorted = [...all].sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+        setTracks(sorted);
+      }
     });
   }, []);
 
@@ -229,20 +288,15 @@ const Player = ({ onBack }: PlayerProps) => {
           height={300}
           className="w-full h-full"
         />
-        {/* Center info */}
+      {/* Subliminal mind-movie text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <motion.div
-            animate={{ scale: isPlaying ? [1, 1.05, 1] : 1 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="text-center"
-          >
-            <p className="text-xs text-primary uppercase tracking-[0.2em] font-display mb-1">
-              {currentTrack?.category || "Affirmation"}
-            </p>
-            <p className="text-sm text-foreground font-medium max-w-[180px] truncate normal-case tracking-normal">
-              {currentTrack?.name || "Untitled"}
-            </p>
-          </motion.div>
+          <SubliminalDisplay
+            tracks={tracks}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            subliminalIndex={subliminalIndex}
+            setSubliminalIndex={setSubliminalIndex}
+          />
         </div>
       </div>
 
