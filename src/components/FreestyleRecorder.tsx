@@ -32,6 +32,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [clipItems, setClipItems] = useState<{ id: number; blob: Blob; autoName?: string }[]>([]);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [aiNaming, setAiNaming] = useState(false);
+  const [aiCategorizing, setAiCategorizing] = useState(false);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -45,10 +46,30 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       });
       if (error) throw error;
       setSaveName(data?.name || "Untitled Clip");
+      if (data?.category) setSaveCategory(data.category);
     } catch {
       toast({ variant: "destructive", title: "AI naming failed", description: "Try again or name it manually." });
     } finally {
       setAiNaming(false);
+    }
+  };
+
+  const handleAiCategory = async (blob: Blob) => {
+    setAiCategorizing(true);
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
+      const { data, error } = await supabase.functions.invoke("transcribe-clip", {
+        body: { audioBase64: base64, mimeType: blob.type },
+      });
+      if (error) throw error;
+      if (data?.category) setSaveCategory(data.category);
+      if (data?.name && !saveName.trim()) setSaveName(data.name);
+      toast({ title: "Category detected ✓", description: `Classified as "${data?.category || "Custom"}"` });
+    } catch {
+      toast({ variant: "destructive", title: "AI category failed", description: "Try again or pick manually." });
+    } finally {
+      setAiCategorizing(false);
     }
   };
 
@@ -214,7 +235,18 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                             />
                           </div>
                           <div className="flex flex-col gap-2">
-                            <label className="text-xs text-muted-foreground font-medium">Category</label>
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs text-muted-foreground font-medium">Category</label>
+                              <button
+                                type="button"
+                                onClick={() => handleAiCategory(item.blob)}
+                                disabled={aiCategorizing}
+                                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                              >
+                                {aiCategorizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                {aiCategorizing ? "Classifying…" : "Choose with AI"}
+                              </button>
+                            </div>
                             <select
                               value={saveCategory}
                               onChange={(e) => setSaveCategory(e.target.value)}
