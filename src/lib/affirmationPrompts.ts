@@ -59,12 +59,10 @@ export const AFFIRMATION_CATEGORIES: AffirmationCategory[] = [
   {
     category: "Identity & Character",
     icon: "🛡️",
-    count: 4,
+    count: 2,
     slots: [
       { id: "personal-1", suggestion: "EXAMPLE: I am now the kind of man who does what he says he's going to do. My word is my bond." },
       { id: "personal-2", suggestion: "EXAMPLE: I am now fully congruent — my thoughts, words, and actions are in complete alignment." },
-      { id: "personal-3", suggestion: "EXAMPLE: I am now mentally, emotionally, physically, and spiritually aligned with my highest self." },
-      { id: "personal-4", suggestion: "EXAMPLE: I am now the kind of man who leads by example. I walk my talk and others follow." },
     ],
   },
 ];
