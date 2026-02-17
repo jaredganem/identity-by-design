@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import AdminInsights from "./pages/AdminInsights";
 import NotFound from "./pages/NotFound";
 import InAppBrowserBanner from "./components/InAppBrowserBanner";
+import FeedbackButton from "./components/FeedbackButton";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <InAppBrowserBanner />
+      <FeedbackButton />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
