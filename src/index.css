@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Overpass:wght@300;400;500;600;700;800;900&family=Didact+Gothic&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,66 +6,71 @@
 
 @layer base {
   :root {
-    /* Deep spiritual dark theme */
-    --background: 232 40% 6%;
-    --foreground: 45 30% 90%;
+    /* Self Mastery for Men – JG Brand Palette */
+    --background: 210 29% 12%;          /* JG Black #161F28 */
+    --foreground: 165 7% 76%;           /* JG Victory Silver #BEC6C4 */
 
-    --card: 232 35% 10%;
-    --card-foreground: 45 30% 90%;
+    --card: 201 100% 11%;              /* JG Deep Midnight #00263A */
+    --card-foreground: 165 7% 76%;
 
-    --popover: 232 35% 10%;
-    --popover-foreground: 45 30% 90%;
+    --popover: 201 100% 11%;
+    --popover-foreground: 165 7% 76%;
 
-    /* Gold accent */
-    --primary: 42 78% 55%;
-    --primary-foreground: 232 40% 6%;
+    /* Transformation Turquoise as primary accent */
+    --primary: 195 100% 29%;           /* JG Transformation Turquoise #007096 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 232 30% 16%;
-    --secondary-foreground: 45 20% 80%;
+    --secondary: 210 29% 18%;
+    --secondary-foreground: 165 7% 76%;
 
-    --muted: 232 25% 14%;
-    --muted-foreground: 230 15% 50%;
+    --muted: 201 50% 14%;
+    --muted-foreground: 215 15% 44%;   /* JG Mastered Cobalt #606E81 */
 
-    --accent: 270 35% 25%;
-    --accent-foreground: 45 30% 90%;
+    --accent: 197 90% 55%;             /* JG Peak Cyan #1ABEFF */
+    --accent-foreground: 210 29% 12%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 6 64% 59%;          /* UX Red #DA6254 */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 232 25% 18%;
-    --input: 232 25% 18%;
-    --ring: 42 78% 55%;
+    --success: 140 30% 55%;            /* UX Green #79BE70 */
+
+    --border: 201 40% 16%;
+    --input: 201 40% 16%;
+    --ring: 195 100% 29%;
 
     --radius: 0.75rem;
 
-    /* Custom tokens */
-    --gold: 42 78% 55%;
-    --gold-dim: 42 50% 35%;
-    --gold-glow: 42 90% 65%;
-    --indigo-deep: 232 40% 6%;
-    --indigo-mid: 232 35% 14%;
-    --violet-accent: 270 40% 30%;
-    --sacred-glow: 42 78% 55%;
+    /* Brand tokens */
+    --copper: 31 61% 48%;              /* JG Sturdy Copper #C67D30 */
+    --gold: 38 80% 68%;                /* JG Breakthrough Gold #EFC06E */
+    --gold-dim: 38 50% 40%;
+    --gold-glow: 38 90% 75%;
+    --teal: 195 100% 29%;              /* Transformation Turquoise */
+    --cyan: 197 90% 55%;               /* Peak Cyan */
+    --cobalt: 215 15% 44%;             /* Mastered Cobalt */
+    --midnight: 201 100% 11%;          /* Deep Midnight */
+    --silver: 165 7% 76%;              /* Victory Silver */
 
-    --gradient-sacred: linear-gradient(135deg, hsl(270 35% 20%), hsl(232 40% 10%), hsl(232 40% 6%));
-    --gradient-gold: linear-gradient(135deg, hsl(42 78% 55%), hsl(42 90% 65%));
-    --gradient-card: linear-gradient(145deg, hsl(232 35% 12%), hsl(232 35% 8%));
+    --gradient-sacred: linear-gradient(135deg, hsl(201 100% 11%), hsl(210 29% 12%), hsl(210 29% 8%));
+    --gradient-gold: linear-gradient(135deg, hsl(31 61% 48%), hsl(38 80% 68%));
+    --gradient-teal: linear-gradient(135deg, hsl(195 100% 29%), hsl(197 90% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(201 100% 13%), hsl(201 100% 9%));
 
-    --shadow-glow: 0 0 40px -10px hsl(42 78% 55% / 0.3);
+    --shadow-glow: 0 0 40px -10px hsl(195 100% 29% / 0.4);
     --shadow-card: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
-    --shadow-sacred: 0 0 80px -20px hsl(270 40% 30% / 0.3);
+    --shadow-sacred: 0 0 80px -20px hsl(197 90% 55% / 0.2);
 
-    --font-display: 'Cormorant Garamond', serif;
-    --font-body: 'Inter', sans-serif;
+    --font-display: 'Overpass', sans-serif;
+    --font-body: 'Didact Gothic', sans-serif;
 
-    --sidebar-background: 232 35% 10%;
-    --sidebar-foreground: 45 30% 90%;
-    --sidebar-primary: 42 78% 55%;
-    --sidebar-primary-foreground: 232 40% 6%;
-    --sidebar-accent: 232 30% 16%;
-    --sidebar-accent-foreground: 45 30% 90%;
-    --sidebar-border: 232 25% 18%;
-    --sidebar-ring: 42 78% 55%;
+    --sidebar-background: 201 100% 11%;
+    --sidebar-foreground: 165 7% 76%;
+    --sidebar-primary: 195 100% 29%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 29% 18%;
+    --sidebar-accent-foreground: 165 7% 76%;
+    --sidebar-border: 201 40% 16%;
+    --sidebar-ring: 195 100% 29%;
   }
 }
 
@@ -81,12 +86,14 @@
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 }
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 20px hsl(42 78% 55% / 0.4), 0 0 40px hsl(42 78% 55% / 0.2);
+    text-shadow: 0 0 20px hsl(195 100% 29% / 0.5), 0 0 40px hsl(197 90% 55% / 0.2);
   }
 
   .bg-sacred {
@@ -95,6 +102,10 @@
 
   .bg-gradient-gold {
     background: var(--gradient-gold);
+  }
+
+  .bg-gradient-teal {
+    background: var(--gradient-teal);
   }
 
   .bg-gradient-card {
