@@ -60,7 +60,7 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-0 sm:pb-0"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-0 sm:pb-0 overflow-y-auto"
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
@@ -71,7 +71,7 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="relative w-full max-w-md rounded-2xl sm:rounded-2xl rounded-b-none bg-gradient-card border border-border shadow-card p-8 space-y-6 max-h-[90dvh] overflow-y-auto"
+            className="relative w-full max-w-md rounded-2xl sm:rounded-2xl rounded-b-none bg-gradient-card border border-border shadow-card p-6 sm:p-8 space-y-4 sm:space-y-6 max-h-[85dvh] overflow-y-auto mb-0 sm:mb-auto"
           >
             {/* Close */}
             <button
