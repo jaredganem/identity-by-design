@@ -19,12 +19,15 @@ const PROMO_CODES: Record<string, string> = {
   FREE3: "3mo_free",
   FREE6: "6mo_free",
   FOUNDERSVIP: "founders_vip",
+  VIPALL: "vip_all",       // Free VIP → all tiers forever
+  VIPMID: "vip_mid",       // Free VIP → up to Pro tier forever
+  VIPBASIC: "vip_basic",   // Free VIP → Free tier forever, must upgrade for Pro/Elite
 };
 
 export async function saveLead(firstName: string, email: string, promoCode?: string, lastName?: string) {
   const upperCode = (promoCode || "").trim().toUpperCase();
   const promoTier = PROMO_CODES[upperCode] || null;
-  const isFoundingMember = upperCode === "VIP" || upperCode === "FOUNDERSVIP";
+  const isFoundingMember = ["VIP", "FOUNDERSVIP", "VIPALL"].includes(upperCode);
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, promoTier, ts: Date.now() }));
   await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any);
