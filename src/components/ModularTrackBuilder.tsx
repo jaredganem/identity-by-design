@@ -16,7 +16,7 @@ interface ModularTrackBuilderProps {
 
 const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [selectedItems, setSelectedItems] = useState<SavedAffirmation[]>([]);
-  const [showLibrary, setShowLibrary] = useState(true);
+  // Library is always visible now
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
@@ -166,79 +166,78 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       <div className="text-center">
         <h3 className="font-display text-2xl text-foreground">Build Your Nightly Identity Installation</h3>
         <p className="text-sm text-muted-foreground mt-1 normal-case tracking-normal">
-          Pick identity statements from your library to build a custom installation. Swap, reorder, mix & match.
+          Select statements from your library, then arrange them into your track below.
         </p>
       </div>
 
-      {/* Selected playlist */}
-      {selectedItems.length > 0 && (
-        <div className="p-4 rounded-2xl bg-gradient-card border border-border space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Your installation — {selectedItems.length} statement{selectedItems.length !== 1 ? "s" : ""}
-          </p>
-          <div className="space-y-1.5">
-            {selectedItems.map((item, i) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 border border-border"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <button
-                    onClick={() => moveItem(i, -1)}
-                    disabled={i === 0}
-                    className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    onClick={() => moveItem(i, 1)}
-                    disabled={i === selectedItems.length - 1}
-                    className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                  >
-                    ▼
-                  </button>
-                </div>
-                <span className="text-xs text-muted-foreground w-5">{i + 1}.</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate">{item.name}</p>
-                  <p className="text-xs text-muted-foreground italic truncate">"{item.text}"</p>
-                </div>
-                <button
-                  onClick={() => handleRemove(item.id)}
-                  className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
+      {/* Library picker — always visible on top */}
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+          <Library className="w-3.5 h-3.5" />
+          Your Saved Library
+        </p>
+        <div className="rounded-2xl border border-border bg-secondary/10 p-3">
+          <AffirmationLibrary
+            selectable
+            selectedIds={selectedItems.map((s) => s.id)}
+            onToggleSelect={handleToggleSelect}
+            refreshKey={refreshKey}
+            emptyQuote={{ text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" }}
+            emptyMessage="Record your first identity statement above, then come back here to build."
+          />
         </div>
-      )}
+      </div>
 
-      {/* Library picker */}
-      <div className="space-y-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowLibrary(!showLibrary)}
-          className="border-primary/30 hover:bg-primary/10"
-        >
-          <Library className="w-4 h-4 mr-1.5" />
-          {showLibrary ? "Hide Library" : "Browse Library"}
-        </Button>
-
-        {showLibrary && (
-          <div className="p-4 rounded-2xl border border-border bg-secondary/10">
-            <AffirmationLibrary
-              selectable
-              selectedIds={selectedItems.map((s) => s.id)}
-              onToggleSelect={handleToggleSelect}
-              refreshKey={refreshKey}
-              emptyQuote={{ text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" }}
-              emptyMessage="Record your first identity statement above, then come back here to build."
-            />
-          </div>
-        )}
+      {/* Selected track list */}
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          {selectedItems.length > 0
+            ? `Your Track — ${selectedItems.length} statement${selectedItems.length !== 1 ? "s" : ""}`
+            : "Your Track — select statements above"}
+        </p>
+        <div className="rounded-2xl border border-border bg-gradient-card p-3 min-h-[80px]">
+          {selectedItems.length === 0 ? (
+            <div className="flex items-center justify-center h-16 text-sm text-muted-foreground normal-case tracking-normal">
+              Tap the circles above to add statements to your track
+            </div>
+          ) : (
+            <div className="space-y-1.5 max-h-60 overflow-y-auto">
+              {selectedItems.map((item, i) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 border border-border"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => moveItem(i, -1)}
+                      disabled={i === 0}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      onClick={() => moveItem(i, 1)}
+                      disabled={i === selectedItems.length - 1}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                  <span className="text-xs text-muted-foreground w-5">{i + 1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{item.name}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemove(item.id)}
+                    className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mix controls */}

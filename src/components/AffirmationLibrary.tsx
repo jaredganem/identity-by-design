@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Sparkles, Loader2 } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, updateAffirmationName, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
@@ -38,11 +38,9 @@ async function transcribeClip(blob: Blob): Promise<string> {
   const base64 = btoa(
     new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
   );
-
   const { data, error } = await supabase.functions.invoke("transcribe-clip", {
     body: { audioBase64: base64, mimeType: blob.type },
   });
-
   if (error) throw error;
   return data?.name || "Untitled Clip";
 }
@@ -59,6 +57,7 @@ const AffirmationLibrary = ({
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [renamingIds, setRenamingIds] = useState<Set<string>>(new Set());
   const [renamingAll, setRenamingAll] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -71,6 +70,12 @@ const AffirmationLibrary = ({
     loadItems();
   }, [refreshKey]);
 
+  // Auto-expand all categories on first load
+  useEffect(() => {
+    const cats = new Set(items.map((item) => item.category || "Custom"));
+    setExpandedCategories(cats);
+  }, [items.length]);
+
   const grouped = items.reduce<Record<string, SavedAffirmation[]>>((acc, item) => {
     const cat = item.category || "Custom";
     if (!acc[cat]) acc[cat] = [];
@@ -79,6 +84,15 @@ const AffirmationLibrary = ({
   }, {});
 
   const genericItems = items.filter((item) => GENERIC_NAME_PATTERN.test(item.name));
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  };
 
   const handlePlay = async (item: SavedAffirmation) => {
     if (playingId === item.id) {
@@ -135,7 +149,7 @@ const AffirmationLibrary = ({
         await updateAffirmationName(item.id, name);
         renamed++;
       } catch {
-        // Continue with remaining clips
+        // Continue
       } finally {
         setRenamingIds((prev) => {
           const next = new Set(prev);
@@ -157,15 +171,13 @@ const AffirmationLibrary = ({
         <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
           "{emptyQuote.text}" — {emptyQuote.author}
         </p>
-        <p className="text-xs text-muted-foreground normal-case tracking-normal">
-          {emptyMessage}
-        </p>
+        <p className="text-xs text-muted-foreground normal-case tracking-normal">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Rename All Generic button */}
       {genericItems.length > 0 && (
         <div className="flex justify-end">
@@ -176,100 +188,115 @@ const AffirmationLibrary = ({
             disabled={renamingAll}
             className="border-primary/30 hover:bg-primary/10 text-primary text-xs"
           >
-            {renamingAll ? (
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-            ) : (
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            )}
+            {renamingAll ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
             {renamingAll ? "Renaming..." : `Rename ${genericItems.length} Generic Clip${genericItems.length > 1 ? "s" : ""} with AI`}
           </Button>
         </div>
       )}
 
-      {Object.entries(grouped).map(([category, catItems]) => (
-        <div key={category} className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <span>{CATEGORY_ICONS[category] || "📁"}</span>
-            {category}
-            <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{catItems.length}</span>
-          </h4>
+      {Object.entries(grouped).map(([category, catItems]) => {
+        const isExpanded = expandedCategories.has(category);
+        return (
+          <div key={category} className="rounded-xl border border-border overflow-hidden">
+            {/* Category header — clickable drawer toggle */}
+            <button
+              onClick={() => toggleCategory(category)}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-secondary/30 hover:bg-secondary/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2">
+                <span>{CATEGORY_ICONS[category] || "📁"}</span>
+                <span className="text-sm font-medium text-foreground">{category}</span>
+                <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{catItems.length}</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+            </button>
 
-          <div className="space-y-1.5">
-            {catItems.map((item) => {
-              const isSelected = selectedIds.includes(item.id);
-              const isRenaming = renamingIds.has(item.id);
-              return (
+            {/* Collapsible content — scrollable */}
+            <AnimatePresence>
+              {isExpanded && (
                 <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    isSelected
-                      ? "bg-primary/10 border-primary/40"
-                      : "bg-gradient-card border-border hover:border-primary/20"
-                  }`}
+                  initial={{ height: 0 }}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
                 >
-                  {selectable && (
-                    <button
-                      onClick={() => onToggleSelect?.(item)}
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                        isSelected ? "bg-primary border-primary" : "border-muted-foreground"
-                      }`}
-                    >
-                      {isSelected && <Plus className="w-3 h-3 text-primary-foreground rotate-45" />}
-                    </button>
-                  )}
+                  <div className="max-h-48 overflow-y-auto p-2 space-y-1.5">
+                    {catItems.map((item) => {
+                      const isSelected = selectedIds.includes(item.id);
+                      const isRenaming = renamingIds.has(item.id);
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all ${
+                            isSelected
+                              ? "bg-primary/10 border-primary/40"
+                              : "bg-background border-border/50 hover:border-primary/20"
+                          }`}
+                        >
+                          {selectable && (
+                            <button
+                              onClick={() => onToggleSelect?.(item)}
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                isSelected ? "bg-primary border-primary" : "border-muted-foreground"
+                              }`}
+                            >
+                              {isSelected && <Plus className="w-3 h-3 text-primary-foreground rotate-45" />}
+                            </button>
+                          )}
 
-                  <button
-                    onClick={() => handlePlay(item)}
-                    className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
-                  >
-                    {playingId === item.id ? (
-                      <Pause className="w-3.5 h-3.5 text-primary" />
-                    ) : (
-                      <Play className="w-3.5 h-3.5 text-foreground ml-0.5" />
-                    )}
-                  </button>
+                          <button
+                            onClick={() => handlePlay(item)}
+                            className="flex-shrink-0 w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                          >
+                            {playingId === item.id ? (
+                              <Pause className="w-3 h-3 text-primary" />
+                            ) : (
+                              <Play className="w-3 h-3 text-foreground ml-0.5" />
+                            )}
+                          </button>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {isRenaming ? (
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Transcribing…
-                        </span>
-                      ) : (
-                        item.name
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground italic truncate">"{item.text}"</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {isRenaming ? (
+                                <span className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  Transcribing…
+                                </span>
+                              ) : (
+                                item.name
+                              )}
+                            </p>
+                          </div>
+
+                          {!selectable && (
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                onClick={() => handleRenameOne(item)}
+                                disabled={isRenaming}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                                title="Rename with AI"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(item)}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  {!selectable && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleRenameOne(item)}
-                        disabled={isRenaming}
-                        className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
-                        title="Rename with AI"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item)}
-                        className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
                 </motion.div>
-              );
-            })}
+              )}
+            </AnimatePresence>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
