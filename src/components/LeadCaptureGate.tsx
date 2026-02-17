@@ -16,9 +16,9 @@ export function hasLeadCaptured(): boolean {
 
 const FOUNDING_CODE = "VIP";
 
-export async function saveLead(name: string, email: string, isFoundingMember = false) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, email, founding: isFoundingMember, ts: Date.now() }));
-  await supabase.from("leads").insert({ name, email, is_founding_member: isFoundingMember });
+export async function saveLead(firstName: string, email: string, isFoundingMember = false, lastName?: string) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, ts: Date.now() }));
+  await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember });
 }
 
 interface LeadCaptureGateProps {
@@ -28,7 +28,8 @@ interface LeadCaptureGateProps {
 }
 
 const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [showPromo, setShowPromo] = useState(false);
@@ -37,11 +38,12 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedName = name.trim();
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName) {
-      setError("Enter your name to continue.");
+    if (!trimmedFirst) {
+      setError("Enter your first name to continue.");
       return;
     }
     if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
@@ -52,7 +54,7 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
     const isFounding = promoCode.trim().toUpperCase() === FOUNDING_CODE;
 
     setSubmitting(true);
-    await saveLead(trimmedName, trimmedEmail, isFounding);
+    await saveLead(trimmedFirst, trimmedEmail, isFounding, trimmedLast || undefined);
     setSubmitting(false);
     setError("");
     onSuccess();
@@ -102,19 +104,36 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex gap-3">
+                <div className="flex-1 space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => { setFirstName(e.target.value); setError(""); }}
+                    placeholder="First name"
+                    maxLength={100}
+                    className="w-full h-11 px-4 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Last Name <span className="text-muted-foreground/50 normal-case">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Last name"
+                    maxLength={100}
+                    className="w-full h-11 px-4 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                  />
+                </div>
+              </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => { setName(e.target.value); setError(""); }}
-                  placeholder="Your first name"
-                  maxLength={100}
-                  className="w-full h-11 px-4 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
-                  autoFocus
-                />
               </div>
 
               <div className="space-y-1.5">

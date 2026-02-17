@@ -20,6 +20,7 @@ export type Database = {
           email: string
           id: string
           is_founding_member: boolean
+          last_name: string | null
           name: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           email: string
           id?: string
           is_founding_member?: boolean
+          last_name?: string | null
           name: string
         }
         Update: {
@@ -34,7 +36,35 @@ export type Database = {
           email?: string
           id?: string
           is_founding_member?: boolean
+          last_name?: string | null
           name?: string
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          page: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page?: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
