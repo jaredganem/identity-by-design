@@ -11,21 +11,24 @@ const ADVANCED_STEPS = [
   {
     key: "outcomes",
     label: "Step 1 of 5",
-    question: "What are the biggest outcomes or things you'd like to achieve?",
-    placeholder: "e.g. Build my business to $25k/mo, get to 185lbs lean, be fully present with my family...",
+    question: "What's your ideal life look like — on your terms?",
+    subtext: "Be specific. Be measurable. Put a time frame on it. What are the biggest outcomes you want to achieve?",
+    placeholder: "e.g. Build my business to $25k/mo by Dec 2025, get to 185lbs lean, be fully present with my family every evening...",
     emoji: "🎯",
   },
   {
     key: "identity_gaps",
     label: "Step 2 of 5",
-    question: "Who are you NOT being, what are you NOT doing, or what are you NOT having — that you WANT to be, do, or have?",
+    question: "Who are you NOT being right now?",
+    subtext: "What are you not doing or not having — that you WANT to be, do, or have? Where's the gap between who you are and who you know you could be?",
     placeholder: "e.g. I'm not being the leader my team needs, I'm not taking care of my body, I'm not showing up confident in rooms...",
     emoji: "🪞",
   },
   {
     key: "blockers",
     label: "Step 3 of 5",
-    question: "What are the top 1-3 things in the way stopping you from having those things?",
+    question: "What's in the way?",
+    subtext: "Name the top 1–3 things stopping you. Be honest — beliefs, habits, fears, patterns. Call them out by name.",
     placeholder: "e.g. Self-doubt, procrastination, fear of judgment, lack of discipline...",
     emoji: "🧱",
   },
@@ -33,13 +36,15 @@ const ADVANCED_STEPS = [
     key: "peak_identity",
     label: "Step 4 of 5",
     question: "Who are you when you're at your BEST?",
+    subtext: "Think about your peak moments. How do you carry yourself? How do people experience you? Describe that version of you.",
     placeholder: "e.g. I'm decisive, calm, magnetic. I take action without hesitation. People look to me for direction...",
     emoji: "👑",
   },
   {
     key: "negative_patterns",
     label: "Step 5 of 5",
-    question: "When you're NOT at your best, what shows up? (Anger, frustration, doubt, etc.)",
+    question: "When you're NOT at your best, what shows up?",
+    subtext: "Anger? Doubt? Avoidance? Name the patterns that hijack you so the AI can reframe them into power.",
     placeholder: "e.g. Anger, self-sabotage, overthinking, comparison, laziness, resentment...",
     emoji: "🔥",
   },
@@ -271,6 +276,11 @@ const PersonalizeIntake = ({
           <p className="text-sm font-medium text-foreground normal-case tracking-normal leading-snug">
             {ADVANCED_STEPS[advancedStep].question}
           </p>
+          {ADVANCED_STEPS[advancedStep].subtext && (
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              {ADVANCED_STEPS[advancedStep].subtext}
+            </p>
+          )}
 
           <textarea
             value={currentDisplay}
