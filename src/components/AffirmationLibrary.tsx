@@ -138,29 +138,45 @@ const AffirmationLibrary = ({
     }
   };
 
-  const handleRenameAllGeneric = async () => {
-    if (genericItems.length === 0) return;
+  const handleRenameBatch = async (batch: SavedAffirmation[], label: string) => {
+    if (batch.length === 0) return;
     setRenamingAll(true);
     let renamed = 0;
-    for (const item of genericItems) {
-      setRenamingIds((prev) => new Set(prev).add(item.id));
-      try {
-        const name = await transcribeClip(item.blob);
-        await updateAffirmationName(item.id, name);
-        renamed++;
-      } catch {
-        // Continue
-      } finally {
-        setRenamingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(item.id);
-          return next;
-        });
-      }
+    const BATCH_SIZE = 3;
+
+    for (let i = 0; i < batch.length; i += BATCH_SIZE) {
+      const chunk = batch.slice(i, i + BATCH_SIZE);
+      // Process each chunk in parallel
+      const results = await Promise.allSettled(
+        chunk.map(async (item) => {
+          setRenamingIds((prev) => new Set(prev).add(item.id));
+          try {
+            const name = await transcribeClip(item.blob);
+            await updateAffirmationName(item.id, name);
+            return true;
+          } finally {
+            setRenamingIds((prev) => {
+              const next = new Set(prev);
+              next.delete(item.id);
+              return next;
+            });
+          }
+        })
+      );
+      renamed += results.filter((r) => r.status === "fulfilled" && r.value).length;
+      // Refresh UI between batches so it doesn't freeze
+      await loadItems();
     }
-    await loadItems();
+
     setRenamingAll(false);
-    toast({ title: "Rename complete ✓", description: `${renamed} of ${genericItems.length} clips renamed.` });
+    toast({ title: "Rename complete ✓", description: `${renamed} of ${batch.length} clips renamed.` });
+  };
+
+  const handleRenameAllGeneric = () => handleRenameBatch(genericItems, "all");
+
+  const handleRenameCategoryGeneric = (category: string) => {
+    const catGeneric = (grouped[category] || []).filter((item) => GENERIC_NAME_PATTERN.test(item.name));
+    handleRenameBatch(catGeneric, category);
   };
 
   if (items.length === 0) {
@@ -199,17 +215,33 @@ const AffirmationLibrary = ({
         return (
           <div key={category} className="rounded-xl border border-border overflow-hidden">
             {/* Category header — clickable drawer toggle */}
-            <button
-              onClick={() => toggleCategory(category)}
-              className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-secondary/30 hover:bg-secondary/50 transition-colors text-left"
-            >
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 px-4 py-3 bg-secondary/30">
+              <button
+                onClick={() => toggleCategory(category)}
+                className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+              >
                 <span>{CATEGORY_ICONS[category] || "📁"}</span>
                 <span className="text-sm font-medium text-foreground">{category}</span>
                 <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{catItems.length}</span>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
-            </button>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+              </button>
+              {(() => {
+                const catGeneric = catItems.filter((item) => GENERIC_NAME_PATTERN.test(item.name));
+                if (catGeneric.length === 0) return null;
+                return (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); handleRenameCategoryGeneric(category); }}
+                    disabled={renamingAll}
+                    className="text-xs text-primary hover:bg-primary/10 h-7 px-2"
+                  >
+                    {renamingAll ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                    Rename {catGeneric.length}
+                  </Button>
+                );
+              })()}
+            </div>
 
             {/* Collapsible content — scrollable */}
             <AnimatePresence>
