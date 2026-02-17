@@ -281,6 +281,20 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
             </Button>
           </div>
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />
+
+          <div className="text-center pt-2 border-t border-border/30 mt-2">
+            <p className="text-sm text-foreground font-display tracking-[0.1em]">
+              Do this for 30 days & notice the difference.
+            </p>
+            <a
+              href="https://www.selfmasteryformen.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors normal-case tracking-normal mt-1 inline-block"
+            >
+              Ready to go deeper? →
+            </a>
+          </div>
         </motion.div>
       )}
     </div>
