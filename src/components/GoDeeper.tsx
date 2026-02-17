@@ -16,7 +16,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
     </DialogTrigger>
     <DialogContent className="bg-card border-border/50 max-w-md">
       <DialogHeader>
-        <DialogTitle className="text-lg text-foreground font-display tracking-[0.08em]">
+        <DialogTitle className="text-lg text-foreground font-display tracking-[0.08em] text-center">
           The Surface Layer Is Just The Beginning.
         </DialogTitle>
       </DialogHeader>
@@ -26,7 +26,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
           <img
             src={jaredPhoto}
             alt="Jared — before and after"
-            className="w-20 h-20 rounded-lg object-cover object-right flex-shrink-0"
+            className="w-28 h-20 rounded-lg object-cover flex-shrink-0"
           />
           <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
             In 2019 I was 80lbs overweight, six figures in debt, and hiding in my parents' retirement condo at 32 — lights off after 9pm so the HOA wouldn't find me.
@@ -74,7 +74,7 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
 
         {/* Stay Connected */}
         <div className="space-y-2 pt-2 border-t border-border/50">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-display">Stay Connected</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-display text-center">Stay Connected</p>
           <div className="flex items-center justify-center gap-4 text-sm">
             <a href="https://urlgeni.us/youtube/channel/sVGKLQ" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-accent transition-colors normal-case tracking-normal">YouTube</a>
             <span className="text-border">|</span>
