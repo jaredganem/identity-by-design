@@ -19,8 +19,8 @@ const ADVANCED_STEPS = [
   {
     key: "identity_gaps",
     label: "Step 2 of 5",
-    question: "Who are you NOT being right now?",
-    subtext: "What are you not doing or not having — that you WANT to be, do, or have? Where's the gap between who you are and who you know you could be?",
+    question: "Who is the REAL you — and how do they show up?",
+    subtext: "Who do you want to BE that you're not being? What do you want to DO that you're not doing? What do you want to HAVE that you don't have yet?",
     placeholder: "e.g. I'm not being the leader my team needs, I'm not taking care of my body, I'm not showing up confident in rooms...",
     emoji: "🪞",
   },
