@@ -32,6 +32,7 @@ const AffirmationRecorder = ({
   const [savingToLibrary, setSavingToLibrary] = useState(false);
   const [libraryName, setLibraryName] = useState("");
   const [saveCategory, setSaveCategory] = useState("");
+  const [customCategoryName, setCustomCategoryName] = useState("");
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [spokenNames, setSpokenNames] = useState<Record<string, string>>({});
   const [aiNaming, setAiNaming] = useState(false);
@@ -302,31 +303,51 @@ const AffirmationRecorder = ({
                   </div>
                   <select
                     value={saveCategory}
-                    onChange={(e) => setSaveCategory(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === "__custom_new__") {
+                        setSaveCategory("__custom_new__");
+                        setCustomCategoryName("");
+                      } else {
+                        setSaveCategory(e.target.value);
+                      }
+                    }}
                     className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full appearance-none z-50"
                   >
                     {AFFIRMATION_CATEGORIES.map((c) => (
                       <option key={c.category} value={c.category}>{c.icon} {c.category}</option>
                     ))}
                     <option value="Custom">🎤 Custom</option>
+                    <option value="__custom_new__">✏️ Custom Category…</option>
                   </select>
+                  {saveCategory === "__custom_new__" && (
+                    <input
+                      type="text"
+                      value={customCategoryName}
+                      onChange={(e) => setCustomCategoryName(e.target.value)}
+                      placeholder="Type your category name…"
+                      className="h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary w-full mt-1"
+                      autoFocus
+                    />
+                  )}
                 </div>
                 <div className="flex gap-2 pt-1">
                   <Button
                     size="sm"
                     onClick={async () => {
+                      const finalCategory = saveCategory === "__custom_new__" ? (customCategoryName.trim() || "Custom") : saveCategory;
                       await saveAffirmation({
                         id: `${currentSlot.id}-${Date.now()}`,
                         name: libraryName || displayText.slice(0, 40),
                         text: displayText,
-                        category: saveCategory,
+                        category: finalCategory,
                         blob: recordings[currentSlot.id],
                         createdAt: Date.now(),
                         updatedAt: Date.now(),
                       });
                       onLibraryChanged?.();
                       setSavingToLibrary(false);
-                      toast({ title: "Saved to Library 📚", description: `"${libraryName}" added to ${saveCategory}.` });
+                      setCustomCategoryName("");
+                      toast({ title: "Saved to Library 📚", description: `"${libraryName}" added to ${finalCategory}.` });
                     }}
                     className="bg-primary text-primary-foreground h-8"
                   >
