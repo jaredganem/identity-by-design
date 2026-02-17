@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -132,6 +132,34 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // Check if library has items
+  const [hasLibraryItems, setHasLibraryItems] = useState(false);
+
+  useEffect(() => {
+    const checkLibrary = async () => {
+      const { getAllAffirmations } = await import("@/lib/affirmationLibrary");
+      const items = await getAllAffirmations();
+      setHasLibraryItems(items.length > 0);
+    };
+    checkLibrary();
+  }, [refreshKey]);
+
+  if (!hasLibraryItems && selectedItems.length === 0 && !finalBlob) {
+    return (
+      <div className="text-center py-8 space-y-3">
+        <p className="text-sm text-muted-foreground normal-case tracking-normal">
+          Your library is empty — nothing to build with yet.
+        </p>
+        <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+          "We are what we repeatedly do. Excellence, then, is not an act, but a habit." — Will Durant
+        </p>
+        <p className="text-xs text-primary normal-case tracking-normal">
+          Go record your first statement to get started →
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

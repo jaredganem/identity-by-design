@@ -101,7 +101,7 @@ const Index = () => {
 
             {/* Authority Quote — Before Recording */}
             {(mode === "guided" || mode === "freestyle") && (
-              <div className="text-center px-4">
+              <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10">
                 <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                   "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
                   <br />
@@ -122,7 +122,7 @@ const Index = () => {
                   onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)}
                 />
                 {/* Authority Quote — Before Track Builder */}
-                <div className="text-center px-4">
+                <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2">
                   <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                     "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
                     <br />
@@ -137,7 +137,7 @@ const Index = () => {
               <>
                 <FreestyleRecorder clips={clips} onClipsChange={setClips} onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)} />
                 {/* Authority Quote — Before Track Builder */}
-                <div className="text-center px-4">
+                <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10 my-2">
                   <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
                     "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
                     <br />
@@ -154,7 +154,11 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground mb-4 normal-case tracking-normal">
                     Select your strongest identity statements below. Reorder them. Build a fresh installation every time you level up.
                   </p>
-                  <AffirmationLibrary refreshKey={libraryRefreshKey} />
+                  <AffirmationLibrary
+                    refreshKey={libraryRefreshKey}
+                    emptyQuote={{ text: "The ancestor of every action is a thought.", author: "Ralph Waldo Emerson" }}
+                    emptyMessage="Every installation starts with a single thought. Start here."
+                  />
                 </div>
                 <ModularTrackBuilder refreshKey={libraryRefreshKey} />
               </>

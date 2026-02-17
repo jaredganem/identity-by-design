@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, FolderOpen, Plus } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
@@ -89,7 +89,7 @@ const AffirmationLibrary = ({
   if (items.length === 0) {
     return (
       <div className="text-center py-12 space-y-3">
-        <FolderOpen className="w-10 h-10 text-muted-foreground mx-auto" />
+        <Archive className="w-10 h-10 text-muted-foreground mx-auto" />
         <p className="text-muted-foreground text-sm normal-case tracking-normal">Your Identity Library is empty.</p>
         <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
           "{emptyQuote.text}" — {emptyQuote.author}
