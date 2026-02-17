@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus } from "lucide-react";
+import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus, Sparkles, Shuffle, Send } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
 import AffirmationLibrary from "@/components/AffirmationLibrary";
-import { type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmations, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ModularTrackBuilderProps {
   refreshKey?: number;
@@ -16,7 +17,6 @@ interface ModularTrackBuilderProps {
 
 const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [selectedItems, setSelectedItems] = useState<SavedAffirmation[]>([]);
-  // Library is always visible now
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
@@ -25,6 +25,10 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState("");
+  const [aiMode, setAiMode] = useState<null | "surprise" | "goal">(null);
+  const [goalText, setGoalText] = useState("");
+  const [aiBuildingTrack, setAiBuildingTrack] = useState(false);
+  const [allLibraryItems, setAllLibraryItems] = useState<SavedAffirmation[]>([]);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -138,12 +142,42 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
   useEffect(() => {
     const checkLibrary = async () => {
-      const { getAllAffirmations } = await import("@/lib/affirmationLibrary");
       const items = await getAllAffirmations();
+      setAllLibraryItems(items);
       setHasLibraryItems(items.length > 0);
     };
     checkLibrary();
   }, [refreshKey]);
+
+  const handleAiBuildTrack = async (goal?: string) => {
+    if (allLibraryItems.length === 0) {
+      toast({ variant: "destructive", title: "Library empty", description: "Record some affirmations first." });
+      return;
+    }
+    setAiBuildingTrack(true);
+    try {
+      const itemsSummary = allLibraryItems.map((i) => ({ id: i.id, name: i.name, category: i.category }));
+      const { data, error } = await supabase.functions.invoke("build-track", {
+        body: { items: itemsSummary, goal: goal || "" },
+      });
+      if (error) throw error;
+      const selectedIds: string[] = data?.selectedIds || [];
+      // Map IDs back to full items, preserving AI's order
+      const idToItem = new Map(allLibraryItems.map((i) => [i.id, i]));
+      const ordered = selectedIds.map((id) => idToItem.get(id)).filter(Boolean) as SavedAffirmation[];
+      setSelectedItems(ordered);
+      setAiMode(null);
+      setGoalText("");
+      toast({
+        title: "🤖 AI track built",
+        description: `${ordered.length} statement${ordered.length !== 1 ? "s" : ""} selected${goal ? " based on your goal" : " — a balanced mix"}.`,
+      });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "AI track failed", description: e?.message || "Try again." });
+    } finally {
+      setAiBuildingTrack(false);
+    }
+  };
 
   if (!hasLibraryItems && selectedItems.length === 0 && !finalBlob) {
     return (
@@ -169,6 +203,73 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
           Select statements from your library, then arrange them into your track below.
         </p>
       </div>
+
+      {/* AI Track Builder */}
+      {hasLibraryItems && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+          <AnimatePresence mode="wait">
+            {!aiMode ? (
+              <motion.div key="buttons" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleAiBuildTrack()}
+                  disabled={aiBuildingTrack}
+                  className="flex-1 border-primary/30 hover:bg-primary/10 text-primary"
+                >
+                  {aiBuildingTrack ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Shuffle className="w-4 h-4 mr-2" />}
+                  Surprise Me
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setAiMode("goal")}
+                  disabled={aiBuildingTrack}
+                  className="flex-1 border-primary/30 hover:bg-primary/10 text-primary"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Tell AI Your Focus
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div key="goal-input" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-2">
+                <p className="text-xs text-muted-foreground normal-case tracking-normal">
+                  What do you want to focus on? (e.g. "confidence and wealth" or "becoming more disciplined")
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={goalText}
+                    onChange={(e) => setGoalText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && goalText.trim() && handleAiBuildTrack(goalText)}
+                    placeholder="Type your focus…"
+                    autoFocus
+                    className="flex-1 h-10 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleAiBuildTrack(goalText)}
+                    disabled={!goalText.trim() || aiBuildingTrack}
+                    className="bg-primary text-primary-foreground h-10 px-4"
+                  >
+                    {aiBuildingTrack ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setAiMode(null); setGoalText(""); }}
+                    className="h-10 text-muted-foreground"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">
+            <Sparkles className="w-3 h-3 inline mr-1" />
+            Let AI build your track for you
+          </p>
+        </div>
+      )}
 
       {/* Library picker — always visible on top */}
       <div className="space-y-2">
