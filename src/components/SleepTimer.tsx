@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const TIMER_OPTIONS = [
   { label: "15 min", minutes: 15 },
+  { label: "20 min", minutes: 20 },
   { label: "30 min", minutes: 30 },
   { label: "1 hr", minutes: 60 },
   { label: "2 hr", minutes: 120 },
@@ -95,8 +96,8 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
 
   return (
     <div className="space-y-3">
-      <div>
-        <p className="text-sm font-display font-bold text-foreground tracking-[0.08em] flex items-center gap-1.5">
+      <div className="text-center">
+        <p className="text-sm font-display font-bold text-foreground tracking-[0.08em] flex items-center justify-center gap-1.5">
           <Moon className="w-4 h-4 text-primary" /> Set It. Forget It. Wake Up Different.
         </p>
         <p className="text-xs text-muted-foreground mt-1 normal-case tracking-normal">Session Timer</p>
