@@ -34,7 +34,14 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     onClipsChange(items.map((c) => c.blob));
   };
 
+  const CHECKOUT_URL = "https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5";
+
   const handleRecord = useCallback(async () => {
+    // Gate: first record tap redirects to checkout
+    if (!isRecording && clipItems.length === 0) {
+      window.open(CHECKOUT_URL, "_blank");
+      return;
+    }
     if (isRecording) {
       const blob = await audioEngine.stopRecording();
       const newItem = { id: nextId.current++, blob };
