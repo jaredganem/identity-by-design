@@ -83,10 +83,23 @@ const Player = ({ onBack }: PlayerProps) => {
   const [muted, setMuted] = useState(false);
   const prevVolume = useRef(1);
 
+  // Cleanup audio on unmount — stop playback when navigating away
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     getAllAffirmations().then((all) => {
       if (all.length > 0) {
-        // Sort newest first
         const sorted = [...all].sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
         setTracks(sorted);
       }
