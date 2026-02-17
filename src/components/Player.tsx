@@ -350,7 +350,32 @@ const Player = ({ onBack }: PlayerProps) => {
         </button>
       </div>
 
-      {/* Playlist */}
+      {/* Download button */}
+      {currentTrack && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-center"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (!currentTrack) return;
+              const url = URL.createObjectURL(currentTrack.blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${currentTrack.name || "affirmation"}.webm`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="border-primary/30 text-primary hover:bg-primary/10 gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download This Track
+          </Button>
+        </motion.div>
+      )}
       <AnimatePresence>
         {showPlaylist && (
           <motion.div
