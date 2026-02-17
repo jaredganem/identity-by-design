@@ -277,6 +277,9 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                   <p className="text-foreground font-medium">
                     Not motivation. Not willpower. Unconscious reprogramming.
                   </p>
+                  <p>
+                    This tool is designed to support the personal development work you're already doing — not replace it. It's a conditioning tool that works on the unconscious level to reduce internal resistance and align your nervous system with the outcomes you're pursuing. Used consistently, it's one of the most powerful supplements to any growth journey.
+                  </p>
                   <div className="pt-3 border-t border-border/50">
                     <p className="italic text-foreground">
                       "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
