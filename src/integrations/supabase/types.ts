@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_intakes: {
+        Row: {
+          blockers: string | null
+          created_at: string
+          id: string
+          identity_gaps: string | null
+          intake_mode: string
+          negative_patterns: string | null
+          outcomes: string | null
+          peak_identity: string | null
+          session_id: string
+          simple_goals: string | null
+        }
+        Insert: {
+          blockers?: string | null
+          created_at?: string
+          id?: string
+          identity_gaps?: string | null
+          intake_mode?: string
+          negative_patterns?: string | null
+          outcomes?: string | null
+          peak_identity?: string | null
+          session_id: string
+          simple_goals?: string | null
+        }
+        Update: {
+          blockers?: string | null
+          created_at?: string
+          id?: string
+          identity_gaps?: string | null
+          intake_mode?: string
+          negative_patterns?: string | null
+          outcomes?: string | null
+          peak_identity?: string | null
+          session_id?: string
+          simple_goals?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
