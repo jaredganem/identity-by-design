@@ -7,6 +7,7 @@ import { saveAffirmation } from "@/lib/affirmationLibrary";
 import { AFFIRMATION_CATEGORIES } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -27,11 +28,12 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [saveName, setSaveName] = useState("");
   const [saveCategory, setSaveCategory] = useState("Custom");
   const nextId = useRef(0);
-  const [clipItems, setClipItems] = useState<{ id: number; blob: Blob }[]>([]);
+  const [clipItems, setClipItems] = useState<{ id: number; blob: Blob; autoName?: string }[]>([]);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+  const speech = useSpeechRecognition();
   const { toast } = useToast();
 
-  const updateClips = (items: { id: number; blob: Blob }[]) => {
+  const updateClips = (items: { id: number; blob: Blob; autoName?: string }[]) => {
     setClipItems(items);
     onClipsChange(items.map((c) => c.blob));
   };
@@ -43,8 +45,9 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       return;
     }
     if (isRecording) {
+      const autoName = speech.stop();
       const blob = await audioEngine.stopRecording();
-      const newItem = { id: nextId.current++, blob };
+      const newItem = { id: nextId.current++, blob, autoName };
       const updated = [...clipItems, newItem];
       updateClips(updated);
       setIsRecording(false);
@@ -52,6 +55,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     } else {
       try {
         await audioEngine.startRecording();
+        speech.start();
         setIsRecording(true);
       } catch {
         toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
@@ -84,8 +88,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     }, buffer.duration * 1000);
   };
 
-  const handleSaveToLibrary = async (item: { id: number; blob: Blob }) => {
-    const name = saveName.trim() || `Clip ${item.id + 1}`;
+  const handleSaveToLibrary = async (item: { id: number; blob: Blob; autoName?: string }) => {
+    const name = saveName.trim() || item.autoName || `Clip ${item.id + 1}`;
     await saveAffirmation({
       id: `freestyle-${item.id}-${Date.now()}`,
       name,
@@ -128,7 +132,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                 >
                   <div className="flex items-center gap-2 p-3">
                     <GripVertical className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
-                    <span className="text-sm font-medium text-foreground flex-1">Clip {i + 1}</span>
+                    <span className="text-sm font-medium text-foreground flex-1">{item.autoName || `Clip ${i + 1}`}</span>
                     <button
                       onClick={() => handlePlayClip(i)}
                       className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -138,7 +142,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                     <button
                       onClick={() => {
                         setSavingId(savingId === item.id ? null : item.id);
-                        setSaveName(`Clip ${i + 1}`);
+                        setSaveName(item.autoName || `Clip ${i + 1}`);
                         setSaveCategory("Custom");
                       }}
                       className={`p-2 rounded-lg transition-colors ${
