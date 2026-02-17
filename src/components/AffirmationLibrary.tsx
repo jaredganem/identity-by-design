@@ -213,28 +213,36 @@ const AffirmationLibrary = ({
     const flags: { item: SavedAffirmation; reason: string }[] = [];
     const flaggedIds = new Set<string>();
 
-    // Exact duplicates (same name)
+    // Exact duplicates (same name) — flag the OLDER one, keep the newest
     const seenNames = new Map<string, SavedAffirmation>();
     for (const item of items) {
       const nameKey = item.name.toLowerCase().trim();
-      if (seenNames.has(nameKey)) {
-        if (!flaggedIds.has(item.id)) {
-          flags.push({ item, reason: "Duplicate" });
-          flaggedIds.add(item.id);
+      const existing = seenNames.get(nameKey);
+      if (existing) {
+        // Flag whichever is older
+        const older = existing.createdAt < item.createdAt ? existing : item;
+        const newer = existing.createdAt < item.createdAt ? item : existing;
+        if (!flaggedIds.has(older.id)) {
+          flags.push({ item: older, reason: "Duplicate" });
+          flaggedIds.add(older.id);
         }
+        seenNames.set(nameKey, newer); // keep tracking the newest
       } else {
         seenNames.set(nameKey, item);
       }
     }
 
-    // Similar goals (shared numbers/phrases like "180lbs", "30k/mo")
+    // Similar goals — flag the OLDER one, keep the newest
     for (let i = 0; i < items.length; i++) {
       if (flaggedIds.has(items[i].id)) continue;
       for (let j = i + 1; j < items.length; j++) {
         if (flaggedIds.has(items[j].id)) continue;
         if (isSimilar(items[i], items[j])) {
-          flags.push({ item: items[j], reason: "Similar goal" });
-          flaggedIds.add(items[j].id);
+          const older = items[i].createdAt <= items[j].createdAt ? items[i] : items[j];
+          if (!flaggedIds.has(older.id)) {
+            flags.push({ item: older, reason: "Similar goal" });
+            flaggedIds.add(older.id);
+          }
         }
       }
     }
