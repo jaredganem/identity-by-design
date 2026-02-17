@@ -245,7 +245,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
               <br />
               Put your headphones in.
               <br />
-              Set the timer for 20 minutes.
+              Set the timer for 30 minutes.
               <br />
               Close your eyes as you drift off.
               <br />
@@ -273,10 +273,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
           <div className="text-center pt-3 border-t border-border/30 mt-2 space-y-2">
             <p className="text-foreground font-display text-lg font-bold tracking-[0.08em]">
-              Do this for 30 days.
-            </p>
-            <p className="text-xs text-muted-foreground normal-case tracking-normal">
-              Then tell me what changed.
+              Do this for 30 Days & Notice the Difference.
             </p>
             <p className="text-xs text-primary font-display tracking-[0.1em]">— Jared</p>
             <GoDeeper className="mt-2" />
