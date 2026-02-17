@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
 interface HeroSectionProps {
   onStart: (mode: "guided" | "freestyle" | "library") => void;
@@ -11,23 +11,23 @@ const steps = [
     number: "01",
     title: "Write Your Identity Code",
     description:
-      "Write 2–5 \"I am\" statements in each major life category: Health, Wealth, Relationships, Career/Mission, and Personal Character. State them in the positive, present tense — as if it's already done. Example: \"I am now 180 lbs at 10% body fat by January 1st.\"",
+      'Write 2–5 "I am now…" statements in each major life category: Health, Wealth, Relationships, Career/Mission, and Personal Character. State them in the positive, present tense — as if it\'s already done.',
   },
   {
     number: "02",
     title: "Record in Your Own Voice",
     description:
-      "Record each statement first in first person (\"I am now…\") then again in third person (\"[Your name] is now…\"). Your brain accepts your own voice like a sponge — it bypasses the resistance you'd feel from a stranger's voice.",
+      'Record each statement first in first person ("I am now…") then again in third person ("[Your name] is now…"). Your brain accepts your own voice like a sponge — bypassing the resistance you\'d feel from a stranger\'s voice.',
   },
   {
     number: "03",
     title: "Layer Over 417 Hz",
     description:
-      "The app layers your voice over a 417 Hz frequency — known to heal, balance, and promote change. It puts your brain into that sweet spot between awake and asleep where you're most open to suggestion.",
+      "The app layers your voice over a 417 Hz frequency — known to heal, balance, and promote change. It puts your brain into that sweet spot between awake and asleep.",
   },
   {
     number: "04",
-    title: "Add Reverb & Set Your Loop",
+    title: "Add Depth & Set Your Loop",
     description:
       "Bring your voice volume down, add a slight echo so it sounds spacey and trance-like. Set how many times your affirmations loop — 20 to 30 minutes is the sweet spot.",
   },
@@ -35,13 +35,17 @@ const steps = [
     number: "05",
     title: "Fall Asleep & Transform",
     description:
-      "Listen as you drift off to sleep. Set the sleep timer so it doesn't interrupt your REM cycle. Within days, your internal dialogue starts mimicking what you recorded. Within weeks, the things you've been forcing start happening naturally.",
+      "Listen as you drift off to sleep. Set the session timer so it doesn't interrupt your REM cycle. Within days, your internal dialogue starts mimicking what you recorded.",
   },
 ];
 
 const HeroSection = ({ onStart }: HeroSectionProps) => {
-  const [showGuide, setShowGuide] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCards, setShowCards] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  const toggleCard = (id: string) => {
+    setExpandedCard(expandedCard === id ? null : id);
+  };
 
   return (
     <motion.div
@@ -75,7 +79,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.65 }}
-        className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-6"
+        className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-8"
       >
         Unconscious Autopilot Installer
       </motion.p>
@@ -84,39 +88,36 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="text-foreground max-w-2xl text-lg md:text-xl font-medium leading-relaxed mb-4"
+        className="text-muted-foreground max-w-xl text-base leading-relaxed mb-10"
       >
-        Finally. A tool that rewires your unconscious identity overnight — in your own voice.
+        Your custom unconscious reprogramming system. Script, record, and install your new identity — in your own voice, while you sleep.
       </motion.p>
 
-      <motion.p
+      {/* Napoleon Hill — Featured Quote */}
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.95 }}
-        className="text-muted-foreground max-w-xl text-base leading-relaxed mb-4"
+        className="max-w-lg mb-10 px-6 py-5 rounded-2xl border border-primary/30 bg-primary/5"
       >
-        Most men know exactly who they're capable of being. Something keeps stopping them. This installs the new version at the only level where change actually sticks — the unconscious.
-      </motion.p>
-
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.05 }}
-        className="text-sm text-primary font-medium mb-10 italic"
-      >
-        The exact tool I used to lose 80lbs, eliminate six figures of debt, and completely rebuild my life — in less than 18 months.
-      </motion.p>
+        <p className="text-sm text-foreground italic leading-relaxed">
+          "Any idea, plan, or purpose may be placed in the mind through repetition of thought."
+        </p>
+        <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">
+          — Napoleon Hill, Think and Grow Rich
+        </p>
+      </motion.div>
 
       {/* CTA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
+        transition={{ delay: 1.1, duration: 0.5 }}
       >
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => setShowOnboarding(true)}
+          onClick={() => setShowCards(true)}
           className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
         >
           Start Building Your Identity
@@ -124,188 +125,213 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         </motion.button>
       </motion.div>
 
-      {/* How This Works */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="mt-12 w-full max-w-xl"
-      >
-        <button
-          onClick={() => setShowGuide(!showGuide)}
-          className="flex items-center justify-center gap-2 mx-auto text-sm uppercase tracking-[0.2em] text-primary hover:text-foreground transition-colors"
-        >
-          How This Works
-          <ChevronDown
-            className={`w-4 h-4 transition-transform duration-300 ${showGuide ? "rotate-180" : ""}`}
-          />
-        </button>
-
-        <AnimatePresence>
-          {showGuide && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-6 space-y-4">
-                {steps.map((step, i) => (
+      {/* 3 Inline Cards */}
+      <AnimatePresence>
+        {showCards && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.5 }}
+            className="mt-10 w-full max-w-2xl space-y-4"
+          >
+            {/* Card 1: Why Do This? */}
+            <div className="rounded-2xl bg-gradient-card border border-border overflow-hidden">
+              <button
+                onClick={() => toggleCard("why")}
+                className="w-full p-5 flex items-center justify-between text-left"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">01</p>
+                  <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">Why Do This?</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The relevance. Why this matters.</p>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "why" ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {expandedCard === "why" && (
                   <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="bg-gradient-card border border-border rounded-2xl p-5 text-left"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
                   >
-                    <div className="flex items-start gap-4">
-                      <span className="text-primary font-display font-bold text-lg leading-none mt-0.5">
-                        {step.number}
-                      </span>
-                      <div>
-                        <h3 className="font-display font-bold text-sm text-foreground mb-1.5 tracking-[0.1em]">
-                          {step.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed normal-case tracking-normal">
-                          {step.description}
+                    <div className="px-5 pb-5 space-y-4 text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
+                      <p>
+                        Your unconscious mind is running your life on autopilot. Right now. 24/7.
+                        Most of that programming was installed before you were 7. You didn't choose it. But it's choosing your results.
+                      </p>
+                      <p>
+                        Have you ever tried affirmations and felt like you were lying to yourself?
+                        Or listened to someone else's hypnosis audio and couldn't quite… trust it?
+                      </p>
+                      <p className="text-foreground font-medium">
+                        There's a reason. Your unconscious mind already has a voice. YOUR voice.
+                        And it's been running on programming you never chose.
+                      </p>
+                      <p>This tool lets you take that back.</p>
+                      <div className="pt-3 border-t border-border/50">
+                        <p className="italic text-foreground">
+                          "The subconscious mind makes no distinction between constructive and destructive thought impulses. It works with the material we feed it through our thought impulses."
                         </p>
+                        <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Napoleon Hill</p>
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                )}
+              </AnimatePresence>
+            </div>
 
-                <p className="text-xs text-muted-foreground text-center pt-2 italic normal-case tracking-normal">
-                  "Your brain can't tell the difference between what's real and what's imagined.
-                  Within a week, your internal dialogue starts mimicking what you recorded."
-                  <br />
-                  <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Jared Ganem</span>
-                </p>
-
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
-                    "Any idea, plan, or purpose may be placed in the mind through repetition of thought.
-                    The principle of autosuggestion voluntarily reaches the subconscious mind and influences it with these thoughts."
-                    <br />
-                    <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Napoleon Hill, Think and Grow Rich</span>
-                  </p>
+            {/* Card 2: What This Is */}
+            <div className="rounded-2xl bg-gradient-card border border-border overflow-hidden">
+              <button
+                onClick={() => toggleCard("what")}
+                className="w-full p-5 flex items-center justify-between text-left"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">02</p>
+                  <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">What This Is</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The tool. What you're building.</p>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Onboarding Modal */}
-      <AnimatePresence>
-        {showOnboarding && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
-            onClick={() => setShowOnboarding(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 40, scale: 0.95 }}
-              transition={{ duration: 0.4 }}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-lg w-full max-h-[85vh] overflow-y-auto rounded-2xl bg-gradient-card border border-border p-8 space-y-6 shadow-card"
-            >
-              <div className="text-center">
-                <p className="text-xs uppercase tracking-[0.3em] text-primary mb-2">Welcome to</p>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
-                  Identity by Design<span className="text-primary text-sm align-super ml-0.5">™</span>
-                </h2>
-              </div>
-
-              <div className="space-y-4 text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-                <p>
-                  Your unconscious mind is running your life on autopilot.<br />
-                  Right now. 24/7.
-                </p>
-                <p>
-                  Most of that programming was installed before you were 7.
-                  You didn't choose it. But it's choosing your results.
-                </p>
-                <p className="text-foreground font-medium">
-                  This tool lets you override it.
-                </p>
-                <p>
-                  In your own voice.<br />
-                  While you sleep.<br />
-                  Using the exact method I used to lose 80lbs, eliminate six figures of debt, and rebuild my entire life from scratch.
-                </p>
-                <p>
-                  Not motivation. Not willpower.<br />
-                  <span className="text-primary font-medium">Unconscious reprogramming.</span>
-                </p>
-
-                <div className="border-t border-border/50 pt-4">
-                  <p className="text-foreground font-medium mb-3">Here's what you're going to do:</p>
-                  <div className="space-y-2 text-sm">
-                    <p>→ Write 2-5 "I AM" statements in each life category</p>
-                    <p>→ Record them in your voice (first person + third person)</p>
-                    <p>→ Add the 417Hz frequency behind it</p>
-                    <p>→ Fall asleep listening for 20-30 minutes</p>
-                    <p>→ Repeat nightly</p>
-                  </div>
-                </div>
-
-                <p className="text-center text-foreground font-medium pt-2">
-                  Do this for 30 days. Then tell me what changed.
-                </p>
-
-                <div className="pt-2 border-t border-border/50">
-                  <p className="text-xs italic text-center">
-                    "Any idea, plan, or purpose may be placed in the mind through repetition of thought."
-                    <br />
-                    <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Napoleon Hill, Think and Grow Rich</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-center space-y-4 pt-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Choose your path</p>
-                
-                <div className="space-y-3">
-                  <button
-                    onClick={() => { setShowOnboarding(false); onStart("guided"); }}
-                    className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "what" ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {expandedCard === "what" && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
                   >
-                    <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
-                    Guided Identity Blueprint
-                    <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
-                      A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
-                    </span>
-                  </button>
+                    <div className="px-5 pb-5 space-y-4 text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
+                      <p>
+                        This is an unconscious conditioning tool. You're going to create an audio file
+                        of your own voice — your new internal dialogue — layered over a 417Hz frequency
+                        that primes your brain for change.
+                      </p>
+                      <p>
+                        Record your identity statements in first person ("I am now…") and third person
+                        ("[Your name] is now…"). Your brain accepts your own voice without resistance —
+                        it sounds like the voice you already think with.
+                      </p>
+                      <p className="text-foreground font-medium">
+                        Not motivation. Not willpower. Unconscious reprogramming.
+                      </p>
+                      <div className="pt-3 border-t border-border/50">
+                        <p className="italic text-foreground">
+                          "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
+                        </p>
+                        <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Maxwell Maltz, Psycho-Cybernetics</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  <button
-                    onClick={() => { setShowOnboarding(false); onStart("freestyle"); }}
-                    className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
-                  >
-                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
-                    Custom Identity Script
-                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                      Freestyle recording for men who know their affirmations. Record as many as you want.
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => { setShowOnboarding(false); onStart("library"); }}
-                    className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
-                  >
-                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
-                    Identity Library
-                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                      All your saved identity statements. Mix, match, and build custom sessions from what's working.
-                    </span>
-                  </button>
+            {/* Card 3: How This Works */}
+            <div className="rounded-2xl bg-gradient-card border border-border overflow-hidden">
+              <button
+                onClick={() => toggleCard("how")}
+                className="w-full p-5 flex items-center justify-between text-left"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">03</p>
+                  <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">How This Works</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The steps. What you're going to do.</p>
                 </div>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "how" ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {expandedCard === "how" && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 space-y-3">
+                      {steps.map((step, i) => (
+                        <motion.div
+                          key={step.number}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.08 }}
+                          className="flex items-start gap-3"
+                        >
+                          <span className="text-primary font-display font-bold text-sm leading-none mt-1 flex-shrink-0">
+                            {step.number}
+                          </span>
+                          <div>
+                            <h4 className="font-display font-bold text-sm text-foreground tracking-[0.05em]">
+                              {step.title}
+                            </h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed mt-0.5 normal-case tracking-normal">
+                              {step.description}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                      <div className="pt-3 border-t border-border/50 mt-3">
+                        <p className="text-xs italic text-muted-foreground normal-case tracking-normal">
+                          "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
+                        </p>
+                        <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Dr. Joe Dispenza, Breaking the Habit of Being Yourself</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* 30-Day Challenge CTA */}
+            <div className="pt-4 space-y-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
+                Choose your path
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => onStart("guided")}
+                  className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
+                >
+                  <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
+                  Guided Identity Blueprint
+                  <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
+                    A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => onStart("freestyle")}
+                  className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+                >
+                  <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
+                  Custom Identity Script
+                  <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                    Freestyle recording. Record as many as you want. Build your exact identity code.
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => onStart("library")}
+                  className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+                >
+                  <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
+                  Identity Library
+                  <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                    Mix, match, and build custom sessions from what's working.
+                  </span>
+                </button>
               </div>
-            </motion.div>
+
+              <p className="text-center text-foreground font-display text-sm tracking-[0.1em] pt-2">
+                Do this for 30 days. Then tell me what changed.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

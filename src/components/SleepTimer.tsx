@@ -98,6 +98,9 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
       <p className="text-xs text-muted-foreground flex items-center gap-1.5">
         <Moon className="w-3.5 h-3.5" /> Session Timer <span className="italic normal-case tracking-normal">(Set It. Forget It. Wake Up Different.)</span>
       </p>
+      <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+        "The reason why people have so many problems is because they're out of rapport with their unconscious mind." — Milton Erickson
+      </p>
       <div className="flex gap-2">
         {TIMER_OPTIONS.map((opt) => (
           <Button
