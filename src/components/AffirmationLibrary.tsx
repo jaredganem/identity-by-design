@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, updateAffirmationName, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
@@ -58,6 +58,8 @@ const AffirmationLibrary = ({
   const [renamingIds, setRenamingIds] = useState<Set<string>>(new Set());
   const [renamingAll, setRenamingAll] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [showCleanup, setShowCleanup] = useState(false);
+  const [cleanupSelection, setCleanupSelection] = useState<Set<string>>(new Set());
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -183,6 +185,57 @@ const AffirmationLibrary = ({
     const catGeneric = (grouped[category] || []).filter((item) => GENERIC_NAME_PATTERN.test(item.name));
     handleRenameBatch(catGeneric, category);
   };
+  // Cleanup detection
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const flaggedItems = useMemo(() => {
+    const now = Date.now();
+    const flags: { item: SavedAffirmation; reason: string }[] = [];
+    const seen = new Map<string, SavedAffirmation>();
+
+    for (const item of items) {
+      const dupeKey = `${item.name.toLowerCase().trim()}|${item.blob.size}`;
+      if (seen.has(dupeKey)) {
+        flags.push({ item, reason: "Duplicate" });
+      } else {
+        seen.set(dupeKey, item);
+      }
+
+      if (now - item.createdAt > THIRTY_DAYS) {
+        if (!flags.find((f) => f.item.id === item.id)) {
+          flags.push({ item, reason: "Older than 30 days" });
+        }
+      }
+    }
+    return flags;
+  }, [items]);
+
+  const handleCleanupToggle = (id: string) => {
+    setCleanupSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleCleanupSelectAll = () => {
+    if (cleanupSelection.size === flaggedItems.length) {
+      setCleanupSelection(new Set());
+    } else {
+      setCleanupSelection(new Set(flaggedItems.map((f) => f.item.id)));
+    }
+  };
+
+  const handleCleanupDelete = async () => {
+    const toDelete = Array.from(cleanupSelection);
+    for (const id of toDelete) {
+      await deleteAffirmation(id);
+    }
+    setItems((prev) => prev.filter((i) => !cleanupSelection.has(i.id)));
+    toast({ title: "Cleanup complete ✓", description: `${toDelete.length} clip${toDelete.length > 1 ? "s" : ""} removed.` });
+    setCleanupSelection(new Set());
+    setShowCleanup(false);
+  };
 
   if (items.length === 0) {
     return (
@@ -214,6 +267,77 @@ const AffirmationLibrary = ({
           </Button>
         </div>
       )}
+
+      {/* Cleanup button */}
+      {flaggedItems.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setShowCleanup(!showCleanup); setCleanupSelection(new Set()); }}
+            className="border-destructive/30 hover:bg-destructive/10 text-destructive text-xs"
+          >
+            <Eraser className="w-3.5 h-3.5 mr-1.5" />
+            Clean Up ({flaggedItems.length} flagged)
+          </Button>
+        </div>
+      )}
+
+      {/* Cleanup panel */}
+      <AnimatePresence>
+        {showCleanup && flaggedItems.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden rounded-xl border border-destructive/20 bg-destructive/5"
+          >
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-foreground">Flagged Clips</p>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={handleCleanupSelectAll} className="text-xs h-7 px-2">
+                    {cleanupSelection.size === flaggedItems.length ? "Deselect All" : "Select All"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleCleanupDelete}
+                    disabled={cleanupSelection.size === 0}
+                    className="text-xs h-7 px-3"
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Delete {cleanupSelection.size > 0 ? `(${cleanupSelection.size})` : ""}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {flaggedItems.map(({ item, reason }) => (
+                  <label
+                    key={item.id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive/10 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={cleanupSelection.has(item.id)}
+                      onChange={() => handleCleanupToggle(item.id)}
+                      className="rounded border-muted-foreground"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground truncate">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.category || "Custom"}</p>
+                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive whitespace-nowrap">
+                      {reason}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {Object.entries(grouped).map(([category, catItems]) => {
         const isExpanded = expandedCategories.has(category);
