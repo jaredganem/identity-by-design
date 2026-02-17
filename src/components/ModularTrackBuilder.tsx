@@ -236,11 +236,14 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { label: "🔥 Unshakeable Confidence", goal: "confidence, self-belief, and inner strength" },
+                    { label: "🔥 Confidence", goal: "confidence, self-belief, and inner strength" },
                     { label: "💰 Wealth & Abundance", goal: "financial success, abundance, and money mastery" },
                     { label: "⚔️ Discipline & Drive", goal: "discipline, consistency, and relentless drive" },
                     { label: "💪 Health & Vitality", goal: "physical health, energy, and peak performance" },
                     { label: "👑 Leadership & Power", goal: "leadership, influence, and commanding presence" },
+                    { label: "🦁 Masculinity", goal: "masculine energy, strength, and grounded manhood" },
+                    { label: "🚀 Career & Success", goal: "career growth, achievement, and professional excellence" },
+                    { label: "🤝 Relationships", goal: "deep relationships, connection, and trust" },
                   ].map((theme) => (
                     <button
                       key={theme.label}
