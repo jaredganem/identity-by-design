@@ -51,7 +51,14 @@ const AffirmationRecorder = ({
     count += cat.slots.length;
   }
 
+  const CHECKOUT_URL = "https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5";
+
   const handleRecord = useCallback(async () => {
+    // Gate: first record tap redirects to checkout
+    if (!isRecording && Object.keys(recordings).length === 0) {
+      window.open(CHECKOUT_URL, "_blank");
+      return;
+    }
     if (isRecording) {
       const blob = await audioEngine.stopRecording();
       onRecordingsChange({ ...recordings, [currentSlot.id]: blob });

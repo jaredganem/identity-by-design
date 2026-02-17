@@ -158,24 +158,20 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             </p>
 
             <div className="space-y-3">
-              <a
-                href="https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
+              <button
+                onClick={() => onStart("guided")}
+                className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
               >
                 <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
                 Guided Identity Blueprint
                 <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
                   A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
                 </span>
-              </a>
+              </button>
 
-              <a
-                href="https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+              <button
+                onClick={() => onStart("freestyle")}
+                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You already know your affirmations. Let's install them.</span>
                 Custom Identity Script
@@ -185,20 +181,18 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <span className="block text-muted-foreground/60 text-xs normal-case tracking-normal font-normal mt-1.5 italic">
                   Press record → save your clip → rename it → reuse it from your library anytime.
                 </span>
-              </a>
+              </button>
 
-              <a
-                href="https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+              <button
+                onClick={() => onStart("library")}
+                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
                 Identity Library
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
                   Mix, match, and build custom sessions from what's working.
                 </span>
-              </a>
+              </button>
             </div>
 
             <div className="text-center pt-4 space-y-1">
