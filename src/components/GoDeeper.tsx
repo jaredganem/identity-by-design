@@ -29,17 +29,17 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
             className="w-28 h-20 rounded-lg object-cover flex-shrink-0"
           />
           <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-            In 2019 I was 80lbs overweight, six figures in debt, and hiding in my parents' retirement condo at 32 — lights off after 9pm so the HOA wouldn't find me.
+            I knew every personal development technique in the world — but something was still holding me back. At one point I had what many would consider a dream life, but inside I knew I wasn't living my full potential.
           </p>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-          I wasn't looking for motivation. I'd had plenty of that and it never stuck. I needed something that worked at a deeper level. This was the only tool I had at the time.
+          Then in 2019, I hit my version of rock bottom — 80lbs overweight, six figures in debt, hiding in a retirement condo at 32. I wasn't looking for more motivation. I needed something that worked at a deeper level. This was the only tool I had at the time.
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
-          Since then I've developed an entire system around one idea — that the man you know you're capable of being isn't someone you have to become. He's who you already are, just underneath decades of conditioning that was installed before you could even choose.
+          Since then, I've gotten into the best shape of my life, built a six-figure business, and completely transformed my relationships. But the real shift wasn't external — it was who I became on the inside.
         </p>
         <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal font-medium">
-          The REAL you is the most authentic you. And this system removes what's in the way. That's what we do together.
+          The man you know you're capable of being isn't someone you have to become. He's who you already are — just underneath decades of conditioning installed before you could choose. This system removes what's in the way. That's what we do together.
         </p>
         <p className="text-xs text-primary font-display tracking-[0.1em]">— Jared</p>
 
