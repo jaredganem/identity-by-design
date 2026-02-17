@@ -89,6 +89,14 @@ const FreeWorkshopCTA = () => {
             >
               Subscribe for More on YouTube →
             </a>
+            <a
+              href="https://youtu.be/K77Gj-aKe-U"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mt-2 text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2 normal-case tracking-normal"
+            >
+              Watch on YouTube instead
+            </a>
           </div>
         </DialogContent>
       </Dialog>
