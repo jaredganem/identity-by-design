@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { Mic, Square, Trash2, Play, Pause, Plus, GripVertical, BookmarkPlus, X, Check, Sparkles, Loader2 } from "lucide-react";
+import { Mic, Square, Trash2, Play, Pause, Plus, GripVertical, BookmarkPlus, X, Check, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
 import { saveAffirmation } from "@/lib/affirmationLibrary";
@@ -10,6 +10,7 @@ import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
+import PersonalizeIntake from "@/components/PersonalizeIntake";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -36,6 +37,9 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [aiNaming, setAiNaming] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
+  const [showDeepDive, setShowDeepDive] = useState(false);
+  const [deepDiveComplete, setDeepDiveComplete] = useState(false);
+  const [generatedAffirmations, setGeneratedAffirmations] = useState<Record<string, string>>({});
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -161,6 +165,54 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
 
   return (
     <div className="space-y-6">
+      {/* Deep Dive AI Personalization */}
+      {clipItems.length === 0 && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+          <AnimatePresence mode="wait">
+            {!showDeepDive ? (
+              <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeepDive(true)}
+                  className="border-primary/30 hover:bg-primary/10 text-primary"
+                >
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  {deepDiveComplete ? "Redo Deep Dive" : "🧠 Deep Dive — AI Identity Interview"}
+                </Button>
+                <p className="text-xs text-muted-foreground normal-case tracking-normal text-center">
+                  Answer 5 identity questions — AI crafts your custom affirmation script
+                </p>
+              </motion.div>
+            ) : (
+              <PersonalizeIntake
+                isPersonalized={deepDiveComplete}
+                onPersonalized={() => { setShowDeepDive(false); setDeepDiveComplete(true); }}
+                onClose={() => setShowDeepDive(false)}
+                forceMode="advanced"
+                onAdvancedResults={(_answers, affirmations) => {
+                  setGeneratedAffirmations(affirmations);
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Generated affirmations as recording prompts */}
+      {deepDiveComplete && Object.keys(generatedAffirmations).length > 0 && clipItems.length === 0 && (
+        <div className="rounded-xl border border-border bg-gradient-card p-4 space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-primary font-medium">Your AI-Generated Identity Script</p>
+          <p className="text-xs text-muted-foreground normal-case tracking-normal">
+            Read these aloud as you record your clips:
+          </p>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {Object.entries(generatedAffirmations).map(([key, text]) => (
+              <p key={key} className="text-sm text-foreground italic">"{text}"</p>
+            ))}
+          </div>
+        </div>
+      )}
+
       {clipItems.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
