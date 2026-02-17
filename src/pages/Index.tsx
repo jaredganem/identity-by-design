@@ -99,6 +99,19 @@ const Index = () => {
               </div>
             )}
 
+            {/* Authority Quote — Before Recording */}
+            {(mode === "guided" || mode === "freestyle") && (
+              <div className="text-center px-4">
+                <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+                  "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
+                  <br />
+                  <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">
+                    — Maxwell Maltz, Psycho-Cybernetics
+                  </span>
+                </p>
+              </div>
+            )}
+
             {mode === "guided" ? (
               <>
                 <AffirmationRecorder
@@ -108,11 +121,31 @@ const Index = () => {
                   onCustomTextsChange={setCustomTexts}
                   onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)}
                 />
+                {/* Authority Quote — Before Track Builder */}
+                <div className="text-center px-4">
+                  <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+                    "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
+                    <br />
+                    <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">
+                      — Dr. Joe Dispenza, Breaking the Habit of Being Yourself
+                    </span>
+                  </p>
+                </div>
                 <TrackBuilder recordings={recordings} />
               </>
             ) : mode === "freestyle" ? (
               <>
                 <FreestyleRecorder clips={clips} onClipsChange={setClips} onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)} />
+                {/* Authority Quote — Before Track Builder */}
+                <div className="text-center px-4">
+                  <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+                    "When you change your thoughts, you change your brain chemistry — and your body begins to believe it's living in a new reality. Repetition of new thought and emotion is how we install a new program into the unconscious."
+                    <br />
+                    <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">
+                      — Dr. Joe Dispenza, Breaking the Habit of Being Yourself
+                    </span>
+                  </p>
+                </div>
                 <FreestyleTrackBuilder clips={clips} />
               </>
             ) : (

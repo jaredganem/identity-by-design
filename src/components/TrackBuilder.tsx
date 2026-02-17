@@ -267,10 +267,12 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
         >
           <h4 className="font-display text-xl text-foreground text-center">Your Installation is Ready 🎧</h4>
           <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
-            "First comes thought; then organization of that thought into ideas and plans; then transformation of those plans into reality." — Napoleon Hill
+            "Until you make the unconscious conscious, it will direct your life and you will call it fate."
+            <br />
+            <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Carl Jung</span>
           </p>
           <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">
-            Your installation is built. The thought is recorded. The plan is set. Tonight, the transformation begins.
+            Your installation is built. The thought is recorded. Tonight, the transformation begins.
           </p>
           
           <div className="flex gap-3">
