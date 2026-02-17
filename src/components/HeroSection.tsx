@@ -222,7 +222,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">01</p>
               <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">Why Do This?</h3>
-              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The relevance. Why this matters.</p>
+              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">Because willpower alone has never been enough</p>
             </div>
             <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "why" ? "rotate-180" : ""}`} />
           </button>
@@ -270,7 +270,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">02</p>
               <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">What This Is</h3>
-              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The tool. What you're building.</p>
+              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">Your identity, installed in your own voice</p>
             </div>
             <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "what" ? "rotate-180" : ""}`} />
           </button>
@@ -321,7 +321,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-primary mb-1">03</p>
               <h3 className="font-display font-bold text-lg text-foreground tracking-[0.05em]">How This Works</h3>
-              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">The steps. What you're going to do.</p>
+              <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">Simpler than you'd expect. More powerful than you'd believe.</p>
             </div>
             <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${expandedCard === "how" ? "rotate-180" : ""}`} />
           </button>
