@@ -94,12 +94,15 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Moon className="w-3.5 h-3.5" /> Session Timer <span className="italic normal-case tracking-normal">(Set It. Forget It. Wake Up Different.)</span>
-      </p>
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-display font-bold text-foreground tracking-[0.08em] flex items-center gap-1.5">
+          <Moon className="w-4 h-4 text-primary" /> Set It. Forget It. Wake Up Different.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1 normal-case tracking-normal">Session Timer</p>
+      </div>
       <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
-        "The reason why people have so many problems is because they're out of rapport with their unconscious mind." — Milton Erickson
+        "The reason why people have so many problems is because they're out of rapport with their unconscious mind." — Milton H. Erickson
       </p>
       <div className="flex gap-2">
         {TIMER_OPTIONS.map((opt) => (

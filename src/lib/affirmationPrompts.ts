@@ -16,7 +16,7 @@ export const AFFIRMATION_CATEGORIES: AffirmationCategory[] = [
     icon: "💪",
     count: 2,
     slots: [
-      { id: "health-1", suggestion: "EXAMPLE: I am now 180 lbs at 10% body fat by [date]. I prioritize my health and wellness every single day." },
+      { id: "health-1", suggestion: "EXAMPLE: I am now 180 lbs at 10% body fat by January 1, 2026. I prioritize my health and wellness every single day." },
       { id: "health-2", suggestion: "EXAMPLE: I am now the kind of man who treats his body like a weapon. I train hard, eat clean, and recover smart." },
     ],
   },

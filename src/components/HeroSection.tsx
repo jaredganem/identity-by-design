@@ -194,12 +194,17 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
               </button>
             </div>
 
-            <p className="text-center text-foreground font-display text-sm tracking-[0.1em] pt-2">
-              Do this for 30 days. Then tell me what changed.
-            </p>
-            <p className="text-center pt-1">
+            <div className="text-center pt-4 space-y-1">
+              <p className="text-foreground font-display text-lg md:text-xl font-bold tracking-[0.08em]">
+                Take the 30-Day Challenge.
+              </p>
+              <p className="text-sm text-muted-foreground normal-case tracking-normal">
+                Do this for 30 days & notice what's changed.
+              </p>
+            </div>
+            <div className="text-center pt-3">
               <GoDeeper />
-            </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

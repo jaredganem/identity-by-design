@@ -256,7 +256,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
         </Button>
 
         {!allRecorded && (
-          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record all 12 affirmations above to build your installation.</p>
+          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record all 12 statements to unlock your identity installation.</p>
         )}
       </div>
 
