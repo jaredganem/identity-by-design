@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { saveAffirmation } from "@/lib/affirmationLibrary";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -31,6 +32,8 @@ const AffirmationRecorder = ({
   const [libraryName, setLibraryName] = useState("");
   const [saveCategory, setSaveCategory] = useState("");
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+  const [spokenNames, setSpokenNames] = useState<Record<string, string>>({});
+  const speech = useSpeechRecognition();
   const { toast } = useToast();
 
   const currentSlot = allSlots[currentIndex];
@@ -60,13 +63,18 @@ const AffirmationRecorder = ({
       return;
     }
     if (isRecording) {
+      const autoName = speech.stop();
       const blob = await audioEngine.stopRecording();
       onRecordingsChange({ ...recordings, [currentSlot.id]: blob });
+      if (autoName) {
+        setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: autoName }));
+      }
       setIsRecording(false);
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
     } else {
       try {
         await audioEngine.startRecording();
+        speech.start();
         setIsRecording(true);
       } catch {
         toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
@@ -206,7 +214,7 @@ const AffirmationRecorder = ({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setLibraryName(displayText.slice(0, 40));
+                  setLibraryName(spokenNames[currentSlot.id] || displayText.slice(0, 40));
                   setSaveCategory(categoryInfo.category);
                   setSavingToLibrary(true);
                 }}
