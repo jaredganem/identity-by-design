@@ -79,7 +79,7 @@ const Player = ({ onBack }: PlayerProps) => {
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const [subliminalIndex, setSubliminalIndex] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(0.5);
   const [muted, setMuted] = useState(false);
   const prevVolume = useRef(1);
 
@@ -354,7 +354,7 @@ const Player = ({ onBack }: PlayerProps) => {
       </div>
 
       {/* Volume control */}
-      <div className="flex items-center justify-center gap-3 px-4">
+      <div className="flex items-center justify-end gap-3 px-4">
         <button
           onClick={() => {
             if (muted) {
