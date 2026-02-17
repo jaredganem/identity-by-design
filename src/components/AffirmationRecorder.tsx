@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2 } from "lucide-react";
+import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2, Send, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
@@ -37,8 +37,34 @@ const AffirmationRecorder = ({
   const [spokenNames, setSpokenNames] = useState<Record<string, string>>({});
   const [aiNaming, setAiNaming] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
+  const [showPersonalize, setShowPersonalize] = useState(false);
+  const [personalizeGoal, setPersonalizeGoal] = useState("");
+  const [personalizing, setPersonalizing] = useState(false);
+  const [isPersonalized, setIsPersonalized] = useState(false);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
+
+  const handlePersonalize = async () => {
+    if (!personalizeGoal.trim()) return;
+    setPersonalizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("personalize-prompts", {
+        body: { goals: personalizeGoal },
+      });
+      if (error) throw error;
+      const affirmations: Record<string, string> = data?.affirmations || {};
+      if (Object.keys(affirmations).length > 0) {
+        onCustomTextsChange({ ...customTexts, ...affirmations });
+        setShowPersonalize(false);
+        setIsPersonalized(true);
+        toast({ title: "✨ Prompts personalized", description: "All 12 affirmations have been tailored to your goals. You can still edit any of them." });
+      }
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Personalization failed", description: e?.message || "Try again." });
+    } finally {
+      setPersonalizing(false);
+    }
+  };
 
   const handleAiName = async (blob: Blob) => {
     setAiNaming(true);
@@ -135,6 +161,62 @@ const AffirmationRecorder = ({
 
   return (
     <div className="space-y-6">
+      {/* Personalize with AI */}
+      {totalRecorded === 0 && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+          <AnimatePresence mode="wait">
+            {!showPersonalize ? (
+              <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPersonalize(true)}
+                  className="border-primary/30 hover:bg-primary/10 text-primary"
+                >
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  {isPersonalized ? "Re-personalize with AI" : "Personalize Prompts with AI"}
+                </Button>
+                <p className="text-xs text-muted-foreground normal-case tracking-normal text-center">
+                  Tell AI your goals and it'll write all 12 affirmations for you
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+                <p className="text-xs text-muted-foreground normal-case tracking-normal">
+                  Describe your goals, targets, and the man you're becoming:
+                </p>
+                <textarea
+                  value={personalizeGoal}
+                  onChange={(e) => setPersonalizeGoal(e.target.value)}
+                  placeholder="e.g. I want to hit 185lbs lean, build my business to $25k/mo, be more present with my wife and kids, and develop unshakeable confidence..."
+                  rows={3}
+                  autoFocus
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary resize-none"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handlePersonalize}
+                    disabled={!personalizeGoal.trim() || personalizing}
+                    className="bg-primary text-primary-foreground h-9"
+                  >
+                    {personalizing ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}
+                    {personalizing ? "Creating your prompts…" : "Generate My Affirmations"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPersonalize(false)}
+                    className="h-9 text-muted-foreground"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       {/* Progress */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{categoryInfo.icon} {categoryInfo.category} — {slotInCategory}/{slotsInCategory}</span>
