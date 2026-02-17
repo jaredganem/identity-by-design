@@ -133,7 +133,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         className="mt-4 text-center"
       >
         <a
-          href="https://urlgeni.us/youtube/MyhDtU"
+          href="https://urlgeni.us/youtube/uudPnV"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors normal-case tracking-normal"
