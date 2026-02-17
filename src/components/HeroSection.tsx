@@ -133,12 +133,12 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         className="mt-4 text-center"
       >
         <a
-          href="https://youtu.be/4jbeIorpN8Y"
+          href="https://urlgeni.us/youtube/MyhDtU"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-muted-foreground hover:text-primary transition-colors normal-case tracking-normal"
+          className="inline-flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors normal-case tracking-normal"
         >
-          🎓 New to autosuggestion? Watch the tutorial video here
+          🎓 New to autosuggestion? <span className="underline underline-offset-2">Watch the tutorial video</span>
         </a>
       </motion.p>
 
