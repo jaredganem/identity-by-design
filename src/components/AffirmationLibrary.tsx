@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllAffirmations, deleteAffirmation, updateAffirmationName, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmations, deleteAffirmation, updateAffirmationName, renameCategory, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +60,8 @@ const AffirmationLibrary = ({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [showCleanup, setShowCleanup] = useState(false);
   const [cleanupSelection, setCleanupSelection] = useState<Set<string>>(new Set());
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -185,6 +187,24 @@ const AffirmationLibrary = ({
     const catGeneric = (grouped[category] || []).filter((item) => GENERIC_NAME_PATTERN.test(item.name));
     handleRenameBatch(catGeneric, category);
   };
+
+  const handleRenameCategory = async (oldName: string) => {
+    const newName = editCategoryName.trim();
+    if (!newName || newName === oldName) {
+      setEditingCategory(null);
+      return;
+    }
+    const count = await renameCategory(oldName, newName);
+    setItems((prev) => prev.map((i) => i.category === oldName ? { ...i, category: newName } : i));
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(oldName)) { next.delete(oldName); next.add(newName); }
+      return next;
+    });
+    setEditingCategory(null);
+    toast({ title: "Category renamed ✓", description: `${count} clip${count > 1 ? "s" : ""} moved to "${newName}".` });
+  };
+
   // Cleanup detection
   const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
@@ -395,15 +415,44 @@ const AffirmationLibrary = ({
           <div key={category} className="rounded-xl border border-border overflow-hidden">
             {/* Category header — clickable drawer toggle */}
             <div className="flex items-center justify-between gap-2 px-4 py-3 bg-secondary/30">
-              <button
-                onClick={() => toggleCategory(category)}
-                className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
-              >
-                <span>{CATEGORY_ICONS[category] || "📁"}</span>
-                <span className="text-sm font-medium text-foreground">{category}</span>
-                <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{catItems.length}</span>
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
-              </button>
+              {editingCategory === category ? (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleRenameCategory(category); }}
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <span>{CATEGORY_ICONS[category] || "📁"}</span>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editCategoryName}
+                    onChange={(e) => setEditCategoryName(e.target.value)}
+                    onBlur={() => handleRenameCategory(category)}
+                    className="h-7 px-2 text-sm rounded border border-primary bg-background text-foreground focus:outline-none w-full max-w-[200px]"
+                  />
+                </form>
+              ) : (
+                <button
+                  onClick={() => toggleCategory(category)}
+                  className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+                >
+                  <span>{CATEGORY_ICONS[category] || "📁"}</span>
+                  <span className="text-sm font-medium text-foreground">{category}</span>
+                  <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-muted-foreground">{catItems.length}</span>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+              )}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingCategory(category);
+                    setEditCategoryName(category);
+                  }}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  title="Rename category"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
               {(() => {
                 const catGeneric = catItems.filter((item) => GENERIC_NAME_PATTERN.test(item.name));
                 if (catGeneric.length === 0) return null;
@@ -420,6 +469,7 @@ const AffirmationLibrary = ({
                   </Button>
                 );
               })()}
+              </div>
             </div>
 
             {/* Collapsible content — scrollable */}

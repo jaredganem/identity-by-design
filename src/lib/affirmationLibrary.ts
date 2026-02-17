@@ -90,3 +90,25 @@ export async function getAffirmationsByCategory(category: string): Promise<Saved
     request.onerror = () => reject(request.error);
   });
 }
+
+export async function renameCategory(oldName: string, newName: string): Promise<number> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const index = store.index("category");
+    const request = index.getAll(oldName);
+    let count = 0;
+    request.onsuccess = () => {
+      const items = request.result;
+      for (const item of items) {
+        item.category = newName;
+        item.updatedAt = Date.now();
+        store.put(item);
+        count++;
+      }
+    };
+    tx.oncomplete = () => resolve(count);
+    tx.onerror = () => reject(tx.error);
+  });
+}
