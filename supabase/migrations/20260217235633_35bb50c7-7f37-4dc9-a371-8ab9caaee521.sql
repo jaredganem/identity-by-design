@@ -1,0 +1,1 @@
+ALTER TABLE public.feedback ADD COLUMN name TEXT, ADD COLUMN email TEXT;
