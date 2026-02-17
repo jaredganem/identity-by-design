@@ -17,18 +17,18 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       transition={{ delay: 0.3 }}
       className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
     >
-      Better Life Hypnosis &amp; Meditations
+      Self Mastery for Men™
     </motion.p>
 
     <motion.h1
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, duration: 0.8 }}
-      className="font-display text-5xl md:text-7xl font-light text-foreground mb-4 leading-tight"
+      className="font-display text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight tracking-[0.06em]"
     >
-      Speak Your
+      Command
       <br />
-      <span className="text-primary text-glow font-medium">Truth</span>
+      <span className="text-primary text-glow">Your Mind</span>
     </motion.h1>
 
     <motion.p
@@ -37,9 +37,8 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
       transition={{ delay: 0.8 }}
       className="text-muted-foreground max-w-md text-base leading-relaxed mb-10"
     >
-      Record personalized affirmations with ethereal reverb, layered over
-      sacred 417 Hz frequencies. Fall asleep to the sound of your own
-      transformation.
+      Record powerful affirmations in your own voice, layered over
+      417 Hz frequencies. Reprogram your subconscious while you sleep.
     </motion.p>
 
     <motion.div
@@ -52,7 +51,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => onStart("guided")}
-        className="px-10 py-4 rounded-full bg-primary text-primary-foreground font-body font-medium text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)] transition-shadow duration-500"
+        className="px-10 py-4 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
       >
         Guided Journey
       </motion.button>
@@ -60,7 +59,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => onStart("freestyle")}
-        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-body font-medium text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
+        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
       >
         Create Your Own
       </motion.button>
@@ -68,7 +67,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.97 }}
         onClick={() => onStart("library")}
-        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-body font-medium text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
+        className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
       >
         My Library
       </motion.button>
@@ -82,7 +81,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => (
     >
       <span className="text-primary">Guided</span> walks you through 12 curated affirmations.{" "}
       <span className="text-primary">Create Your Own</span> lets you record freely.{" "}
-      <span className="text-primary">My Library</span> lets you mix & match saved recordings into new tracks.
+      <span className="text-primary">My Library</span> lets you mix &amp; match saved recordings into new tracks.
     </motion.p>
   </motion.div>
 );

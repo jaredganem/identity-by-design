@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Cormorant Garamond", "serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Overpass", "sans-serif"],
+        body: ["Didact Gothic", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -55,6 +55,21 @@ export default {
           DEFAULT: "hsl(var(--gold))",
           dim: "hsl(var(--gold-dim))",
           glow: "hsl(var(--gold-glow))",
+        },
+        copper: {
+          DEFAULT: "hsl(var(--copper))",
+        },
+        teal: {
+          DEFAULT: "hsl(var(--teal))",
+        },
+        cyan: {
+          DEFAULT: "hsl(var(--cyan))",
+        },
+        cobalt: {
+          DEFAULT: "hsl(var(--cobalt))",
+        },
+        silver: {
+          DEFAULT: "hsl(var(--silver))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

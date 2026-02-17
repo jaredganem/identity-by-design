@@ -44,7 +44,7 @@ const Index = () => {
             {/* Header */}
             <div className="text-center">
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-2">
-                Better Life Hypnosis &amp; Meditations
+                Self Mastery for Men™
               </p>
               <h2 className="font-display text-3xl md:text-4xl text-foreground">
                 {mode === "guided" ? (
