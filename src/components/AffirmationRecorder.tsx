@@ -41,15 +41,44 @@ const AffirmationRecorder = ({
   const [personalizeGoal, setPersonalizeGoal] = useState("");
   const [personalizing, setPersonalizing] = useState(false);
   const [isPersonalized, setIsPersonalized] = useState(false);
+  const [goalListening, setGoalListening] = useState(false);
   const speech = useSpeechRecognition();
+  const goalSpeech = useSpeechRecognition();
   const { toast } = useToast();
 
+  // Sync goal speech transcript into the textarea
+  const handleGoalMicToggle = useCallback(() => {
+    if (goalListening) {
+      const heard = goalSpeech.stop();
+      setGoalListening(false);
+      // Append transcribed text to existing goal text
+      setPersonalizeGoal(prev => {
+        const spoken = goalSpeech.transcript || heard;
+        if (!spoken) return prev;
+        return prev ? `${prev} ${spoken}` : spoken;
+      });
+    } else {
+      goalSpeech.start();
+      setGoalListening(true);
+    }
+  }, [goalListening, goalSpeech]);
+
   const handlePersonalize = async () => {
-    if (!personalizeGoal.trim()) return;
+    // Stop mic if still listening and merge transcript
+    if (goalListening) {
+      const heard = goalSpeech.stop();
+      setGoalListening(false);
+      const spoken = goalSpeech.transcript || heard;
+      if (spoken) {
+        setPersonalizeGoal(prev => prev ? `${prev} ${spoken}` : spoken);
+      }
+    }
+    if (!personalizeGoal.trim() && !goalSpeech.transcript.trim()) return;
     setPersonalizing(true);
     try {
+      const goalText = personalizeGoal.trim() || goalSpeech.transcript.trim();
       const { data, error } = await supabase.functions.invoke("personalize-prompts", {
-        body: { goals: personalizeGoal },
+        body: { goals: goalText },
       });
       if (error) throw error;
       const affirmations: Record<string, string> = data?.affirmations || {};
@@ -185,13 +214,27 @@ const AffirmationRecorder = ({
                   Describe your goals, targets, and the man you're becoming:
                 </p>
                 <textarea
-                  value={personalizeGoal}
+                  value={goalListening ? (personalizeGoal ? `${personalizeGoal} ${goalSpeech.transcript}` : goalSpeech.transcript) : personalizeGoal}
                   onChange={(e) => setPersonalizeGoal(e.target.value)}
                   placeholder="e.g. I want to hit 185lbs lean, build my business to $25k/mo, be more present with my wife and kids, and develop unshakeable confidence..."
                   rows={3}
                   autoFocus
+                  disabled={goalListening}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary resize-none"
                 />
+                {goalSpeech.supported && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={goalListening ? "default" : "outline"}
+                    onClick={handleGoalMicToggle}
+                    disabled={personalizing}
+                    className={`h-9 ${goalListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "border-primary/30 text-primary hover:bg-primary/10"}`}
+                  >
+                    {goalListening ? <Square className="w-4 h-4 mr-1.5" /> : <Mic className="w-4 h-4 mr-1.5" />}
+                    {goalListening ? "Stop Listening" : "Speak Your Goals"}
+                  </Button>
+                )}
                 <div className="flex gap-2">
                   <Button
                     size="sm"
