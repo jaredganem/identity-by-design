@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
+import GoDeeper from "@/components/GoDeeper";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -260,14 +261,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <p className="text-sm text-foreground font-display tracking-[0.1em]">
               Do this for 30 days & notice the difference.
             </p>
-            <a
-              href="https://www.selfmasteryformen.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors normal-case tracking-normal mt-1 inline-block"
-            >
-              Ready to go deeper? →
-            </a>
+            <GoDeeper className="mt-1" />
           </div>
         </motion.div>
       )}
