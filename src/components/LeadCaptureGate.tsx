@@ -14,11 +14,20 @@ export function hasLeadCaptured(): boolean {
   }
 }
 
-const FOUNDING_CODE = "VIP";
+const PROMO_CODES: Record<string, string> = {
+  VIP: "vip",
+  FREE3: "3mo_free",
+  FREE6: "6mo_free",
+  FOUNDERSVIP: "founders_vip",
+};
 
-export async function saveLead(firstName: string, email: string, isFoundingMember = false, lastName?: string) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, ts: Date.now() }));
-  await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember });
+export async function saveLead(firstName: string, email: string, promoCode?: string, lastName?: string) {
+  const upperCode = (promoCode || "").trim().toUpperCase();
+  const promoTier = PROMO_CODES[upperCode] || null;
+  const isFoundingMember = upperCode === "VIP" || upperCode === "FOUNDERSVIP";
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, promoTier, ts: Date.now() }));
+  await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any);
 }
 
 interface LeadCaptureGateProps {
@@ -51,10 +60,8 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
       return;
     }
 
-    const isFounding = promoCode.trim().toUpperCase() === FOUNDING_CODE;
-
     setSubmitting(true);
-    await saveLead(trimmedFirst, trimmedEmail, isFounding, trimmedLast || undefined);
+    await saveLead(trimmedFirst, trimmedEmail, promoCode, trimmedLast || undefined);
     setSubmitting(false);
     setError("");
     onSuccess();
