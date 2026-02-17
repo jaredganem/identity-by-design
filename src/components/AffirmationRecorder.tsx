@@ -6,6 +6,7 @@ import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { saveAffirmation } from "@/lib/affirmationLibrary";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -29,6 +30,7 @@ const AffirmationRecorder = ({
   const [savingToLibrary, setSavingToLibrary] = useState(false);
   const [libraryName, setLibraryName] = useState("");
   const [saveCategory, setSaveCategory] = useState("");
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const { toast } = useToast();
 
   const currentSlot = allSlots[currentIndex];
@@ -51,12 +53,10 @@ const AffirmationRecorder = ({
     count += cat.slots.length;
   }
 
-  const CHECKOUT_URL = "https://selfmasteryformen.lemonsqueezy.com/checkout/buy/670b180b-70a0-4f8a-8bb6-50bafd125fe5";
-
   const handleRecord = useCallback(async () => {
-    // Gate: first record tap redirects to checkout
-    if (!isRecording && Object.keys(recordings).length === 0) {
-      window.open(CHECKOUT_URL, "_blank");
+    // Gate: first record tap shows lead capture
+    if (!isRecording && !hasLeadCaptured()) {
+      setShowLeadCapture(true);
       return;
     }
     if (isRecording) {
@@ -318,6 +318,15 @@ const AffirmationRecorder = ({
           />
         ))}
       </div>
+
+      <LeadCaptureGate
+        open={showLeadCapture}
+        onClose={() => setShowLeadCapture(false)}
+        onSuccess={() => {
+          setShowLeadCapture(false);
+          toast({ title: "Welcome aboard 🎯", description: "You're in. Start recording your identity." });
+        }}
+      />
     </div>
   );
 };
