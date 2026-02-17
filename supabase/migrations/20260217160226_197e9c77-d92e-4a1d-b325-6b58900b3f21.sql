@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN is_founding_member boolean NOT NULL DEFAULT false;

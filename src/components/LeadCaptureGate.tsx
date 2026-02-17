@@ -14,9 +14,11 @@ export function hasLeadCaptured(): boolean {
   }
 }
 
-export async function saveLead(name: string, email: string) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, email, ts: Date.now() }));
-  await supabase.from("leads").insert({ name, email });
+const FOUNDING_CODE = "VIP";
+
+export async function saveLead(name: string, email: string, isFoundingMember = false) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, email, founding: isFoundingMember, ts: Date.now() }));
+  await supabase.from("leads").insert({ name, email, is_founding_member: isFoundingMember });
 }
 
 interface LeadCaptureGateProps {
@@ -28,8 +30,9 @@ interface LeadCaptureGateProps {
 const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [showPromo, setShowPromo] = useState(false);
   const [error, setError] = useState("");
-
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,8 +49,10 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
       return;
     }
 
+    const isFounding = promoCode.trim().toUpperCase() === FOUNDING_CODE;
+
     setSubmitting(true);
-    await saveLead(trimmedName, trimmedEmail);
+    await saveLead(trimmedName, trimmedEmail, isFounding);
     setSubmitting(false);
     setError("");
     onSuccess();
@@ -125,6 +130,31 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
                   className="w-full h-11 px-4 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                 />
               </div>
+
+              {/* Promo code toggle */}
+              {!showPromo ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPromo(true)}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2"
+                >
+                  Have a promo code?
+                </button>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Promo Code
+                  </label>
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Enter code"
+                    maxLength={50}
+                    className="w-full h-11 px-4 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                  />
+                </div>
+              )}
 
               {error && (
                 <p className="text-xs text-destructive">{error}</p>
