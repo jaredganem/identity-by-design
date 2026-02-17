@@ -180,16 +180,6 @@ const Index = () => {
               </>
             ) : (
               <>
-                <div className="p-4 rounded-2xl bg-gradient-card border border-border">
-                  <p className="text-sm text-muted-foreground mb-4 normal-case tracking-normal">
-                    Select your strongest identity statements below. Reorder them. Build a fresh installation every time you level up.
-                  </p>
-                  <AffirmationLibrary
-                    refreshKey={libraryRefreshKey}
-                    emptyQuote={{ text: "The ancestor of every action is a thought.", author: "Ralph Waldo Emerson" }}
-                    emptyMessage="Every installation starts with a single thought. Start here."
-                  />
-                </div>
                 <ModularTrackBuilder refreshKey={libraryRefreshKey} />
               </>
             )}
