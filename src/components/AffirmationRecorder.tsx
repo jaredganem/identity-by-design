@@ -145,6 +145,12 @@ const AffirmationRecorder = ({
 
       {/* Record button */}
       <div className="flex flex-col items-center gap-3">
+        {!hasRecording && !isRecording && (
+          <p className="text-xs text-muted-foreground italic text-center normal-case tracking-normal max-w-xs">
+            Speak it the way the man you're becoming would say it.
+          </p>
+        )}
+
         {hasRecording && !isRecording ? (
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">

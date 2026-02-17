@@ -295,12 +295,29 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-6 rounded-2xl bg-gradient-card border border-primary/30 shadow-glow space-y-4"
+          className="p-6 rounded-2xl bg-gradient-card border border-primary/30 shadow-glow space-y-5"
         >
-          <h4 className="font-display text-xl text-foreground text-center">Your Installation is Ready 🎧</h4>
-          <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
-            "Whatever we plant in our subconscious mind and nourish with repetition and emotion will one day become reality." — Earl Nightingale
-          </p>
+          <h4 className="font-display text-2xl text-foreground text-center tracking-[0.06em]">Your Installation Is Ready.</h4>
+
+          <div className="text-center space-y-3 py-2">
+            <p className="text-sm text-muted-foreground normal-case tracking-normal leading-relaxed">
+              Tonight:
+              <br />
+              Put your headphones in.
+              <br />
+              Set the timer for 20 minutes.
+              <br />
+              Close your eyes as you drift off.
+              <br />
+              Let your own voice do the rest.
+            </p>
+            <p className="text-sm text-foreground normal-case tracking-normal leading-relaxed mt-4">
+              Tomorrow you'll wake up the same man.
+              <br />
+              But something will have shifted underneath.
+            </p>
+          </div>
+
           <div className="flex gap-3">
             <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
               {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
@@ -313,11 +330,15 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
           </div>
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />
 
-          <div className="text-center pt-2 border-t border-border/30 mt-2">
-            <p className="text-sm text-foreground font-display tracking-[0.1em]">
-              Do this for 30 days & notice the difference.
+          <div className="text-center pt-3 border-t border-border/30 mt-2 space-y-2">
+            <p className="text-foreground font-display text-lg font-bold tracking-[0.08em]">
+              Do this for 30 days.
             </p>
-            <GoDeeper className="mt-1" />
+            <p className="text-xs text-muted-foreground normal-case tracking-normal">
+              Then tell me what changed.
+            </p>
+            <p className="text-xs text-primary font-display tracking-[0.1em]">— Jared</p>
+            <GoDeeper className="mt-2" />
           </div>
         </motion.div>
       )}

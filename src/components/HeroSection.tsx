@@ -142,6 +142,23 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         </a>
       </motion.p>
 
+      {/* Jared's Story */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5 }}
+        className="mt-10 max-w-lg px-6 py-5 rounded-2xl border border-border/50 bg-secondary/10"
+      >
+        <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
+          "I built this because I needed it.
+          <br />
+          In 2019 I was 80lbs overweight, six figures in debt, and hiding in my parents' retirement condo at 32.
+          <br />
+          This was the first tool that changed anything."
+        </p>
+        <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">— Jared</p>
+      </motion.div>
+
       {/* Choose Your Path — revealed on CTA click */}
       <AnimatePresence>
         {showModes && (

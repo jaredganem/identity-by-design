@@ -99,16 +99,41 @@ const Index = () => {
               </div>
             )}
 
-            {/* Authority Quote — Before Recording */}
+            {/* Pattern Interrupt — Before Recording */}
             {(mode === "guided" || mode === "freestyle") && (
-              <div className="text-center px-6 py-4 rounded-2xl border border-border/30 bg-secondary/10">
-                <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
-                  "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
-                  <br />
-                  <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">
-                    — Maxwell Maltz, Psycho-Cybernetics
-                  </span>
-                </p>
+              <div className="text-center px-6 py-6 space-y-4">
+                <div className="space-y-2">
+                  <p className="text-base text-foreground leading-relaxed normal-case tracking-normal">
+                    You already know what you're capable of.
+                  </p>
+                  <p className="text-base text-foreground leading-relaxed normal-case tracking-normal">
+                    You've known for a while.
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
+                    Something keeps getting in the way —
+                    <br />
+                    not lack of effort, not lack of knowledge.
+                  </p>
+                  <p className="text-sm text-foreground font-medium leading-relaxed normal-case tracking-normal mt-3">
+                    The version of you that you know you can be
+                    <br />
+                    is already in there.
+                  </p>
+                  <p className="text-sm text-primary font-display tracking-[0.08em] mt-3">
+                    This is how you install him.
+                  </p>
+                </div>
+
+                {/* Maxwell Maltz quote */}
+                <div className="pt-3 border-t border-border/20">
+                  <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+                    "You act and feel not according to what things are really like, but according to the image your mind holds of what they're like. Change the self-image and you change the personality and the behavior."
+                    <br />
+                    <span className="text-primary not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">
+                      — Maxwell Maltz, Psycho-Cybernetics
+                    </span>
+                  </p>
+                </div>
               </div>
             )}
 
