@@ -25,7 +25,10 @@ export function useSpeechRecognition() {
   const supported = !!SpeechRecognition;
 
   const start = useCallback(() => {
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      console.log("[SpeechRecognition] Not supported in this browser");
+      return;
+    }
     try {
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
@@ -49,15 +52,22 @@ export function useSpeechRecognition() {
         fullTranscript.current = final;
         const combined = (final + interim).trim();
         setTranscript(combined);
+        console.log("[SpeechRecognition] Heard:", combined);
       };
 
-      recognition.onerror = () => {
-        // Silently fail — auto-naming is a nice-to-have
+      recognition.onerror = (e: any) => {
+        console.log("[SpeechRecognition] Error:", e.error);
+      };
+
+      recognition.onend = () => {
+        console.log("[SpeechRecognition] Ended. Final:", fullTranscript.current);
       };
 
       recognition.start();
+      console.log("[SpeechRecognition] Started listening");
       recognitionRef.current = recognition;
-    } catch {
+    } catch (e) {
+      console.log("[SpeechRecognition] Failed to start:", e);
       // Browser may throw if permissions denied
     }
   }, []);
