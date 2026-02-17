@@ -15,6 +15,8 @@ const CATEGORIES = [
 const FeedbackButton = () => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [category, setCategory] = useState<string>("feedback");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -32,6 +34,8 @@ const FeedbackButton = () => {
         page: window.location.pathname,
         user_agent: navigator.userAgent.slice(0, 500),
         session_id: sessionId,
+        name: name.trim() || null,
+        email: email.trim() || null,
       } as any);
 
       toast({ 
@@ -39,6 +43,8 @@ const FeedbackButton = () => {
         description: category === "win" ? "Your story fuels the mission." : "Your feedback helps us build something great." 
       });
       setMessage("");
+      setName("");
+      setEmail("");
       setCategory("feedback");
       setOpen(false);
     } catch {
@@ -124,6 +130,26 @@ const FeedbackButton = () => {
                 className="w-full px-4 py-3 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors resize-none"
                 autoFocus
               />
+
+              {/* Optional identity */}
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground text-center">If you'd like to let us know who you are, you can 👇</p>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Name (optional)"
+                  maxLength={100}
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                />
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email (optional)"
+                  type="email"
+                  maxLength={200}
+                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                />
+              </div>
 
               <Button
                 onClick={handleSubmit}
