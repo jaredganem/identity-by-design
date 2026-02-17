@@ -206,6 +206,8 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
               selectedIds={selectedItems.map((s) => s.id)}
               onToggleSelect={handleToggleSelect}
               refreshKey={refreshKey}
+              emptyQuote={{ text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" }}
+              emptyMessage="Record your first identity statement above, then come back here to build."
             />
           </div>
         )}
