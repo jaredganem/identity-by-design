@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Lightbulb, Bug, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Lightbulb, Bug, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
-  { id: "bug", label: "Bug", icon: Bug },
-  { id: "feature", label: "Feature Idea", icon: Sparkles },
-  { id: "general", label: "General", icon: Lightbulb },
+  { id: "feedback", label: "Feedback", icon: Lightbulb },
+  { id: "feature", label: "Feature Request", icon: Sparkles },
+  { id: "win", label: "Win / Testimonial", icon: Trophy },
+  { id: "bug", label: "Bug Report", icon: Bug },
 ] as const;
 
 const FeedbackButton = () => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [category, setCategory] = useState<string>("general");
+  const [category, setCategory] = useState<string>("feedback");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -33,9 +34,12 @@ const FeedbackButton = () => {
         session_id: sessionId,
       } as any);
 
-      toast({ title: "Thanks! 🙏", description: "Your feedback helps us build something great." });
+      toast({ 
+        title: category === "win" ? "Love to hear it! 🔥" : "Thanks! 🙏", 
+        description: category === "win" ? "Your story fuels the mission." : "Your feedback helps us build something great." 
+      });
       setMessage("");
-      setCategory("general");
+      setCategory("feedback");
       setOpen(false);
     } catch {
       toast({ title: "Couldn't send", description: "Try again in a moment.", variant: "destructive" });
