@@ -19,9 +19,9 @@ const ADVANCED_STEPS = [
   {
     key: "identity_gaps",
     label: "Step 2 of 5",
-    question: "Who is the REAL you — and how do they show up?",
+    question: "Who do you want to become?",
     subtext: "Who do you want to BE that you're not being? What do you want to DO that you're not doing? What do you want to HAVE that you don't have yet?",
-    placeholder: "e.g. I'm not being the leader my team needs, I'm not taking care of my body, I'm not showing up confident in rooms...",
+    placeholder: "e.g. I want to be the leader my team needs, I want to be disciplined with my health, I want to show up confident in every room...",
     emoji: "🪞",
   },
   {
@@ -35,9 +35,9 @@ const ADVANCED_STEPS = [
   {
     key: "peak_identity",
     label: "Step 4 of 5",
-    question: "Who are you when you're at your BEST?",
-    subtext: "Think about your peak moments. How do you carry yourself? How do people experience you? Describe that version of you.",
-    placeholder: "e.g. I'm decisive, calm, magnetic. I take action without hesitation. People look to me for direction...",
+    question: "Think of a time you were ON. What did that look like?",
+    subtext: "You've already been this version of yourself — even if just for a moment. How did you carry yourself? How did people experience you?",
+    placeholder: "e.g. I was decisive, calm, magnetic. I took action without hesitation. People looked to me for direction...",
     emoji: "👑",
   },
   {
