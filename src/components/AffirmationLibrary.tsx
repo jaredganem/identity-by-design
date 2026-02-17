@@ -12,6 +12,8 @@ interface AffirmationLibraryProps {
   selectedIds?: string[];
   onToggleSelect?: (item: SavedAffirmation) => void;
   refreshKey?: number;
+  emptyQuote?: { text: string; author: string };
+  emptyMessage?: string;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -34,6 +36,8 @@ const AffirmationLibrary = ({
   selectedIds = [],
   onToggleSelect,
   refreshKey = 0,
+  emptyQuote = { text: "The ancestor of every action is a thought.", author: "Ralph Waldo Emerson" },
+  emptyMessage = "Every installation starts with a single thought. Start here.",
 }: AffirmationLibraryProps) => {
   const [items, setItems] = useState<SavedAffirmation[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -88,10 +92,10 @@ const AffirmationLibrary = ({
         <FolderOpen className="w-10 h-10 text-muted-foreground mx-auto" />
         <p className="text-muted-foreground text-sm normal-case tracking-normal">Your Identity Library is empty.</p>
         <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
-          "The ancestor of every action is a thought." — Ralph Waldo Emerson
+          "{emptyQuote.text}" — {emptyQuote.author}
         </p>
         <p className="text-xs text-muted-foreground normal-case tracking-normal">
-          Every installation starts with a single thought. Start here.
+          {emptyMessage}
         </p>
       </div>
     );
