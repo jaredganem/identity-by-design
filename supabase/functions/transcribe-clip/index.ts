@@ -59,6 +59,37 @@ serve(async (req) => {
               ],
             },
           ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "classify_affirmation",
+                description: "Classify the affirmation into a category.",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", description: "Short transcribed name (max 50 chars)" },
+                    category: {
+                      type: "string",
+                      enum: [
+                        "Physical Health & Vitality",
+                        "Financial Sovereignty",
+                        "Relationship Mastery",
+                        "Mission & Career",
+                        "Leadership & Influence",
+                        "Identity & Character",
+                        "Custom",
+                      ],
+                      description: "Best matching category for this affirmation",
+                    },
+                  },
+                  required: ["name", "category"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "classify_affirmation" } },
         }),
       }
     );
@@ -88,9 +119,25 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const name = data.choices?.[0]?.message?.content?.trim() || "Untitled Clip";
 
-    return new Response(JSON.stringify({ name }), {
+    // Handle tool_calls response (structured output)
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    let name = "Untitled Clip";
+    let category = "Custom";
+    if (toolCall?.function?.arguments) {
+      try {
+        const parsed = JSON.parse(toolCall.function.arguments);
+        name = parsed.name || "Untitled Clip";
+        category = parsed.category || "Custom";
+      } catch {
+        // fallback to content
+        name = data.choices?.[0]?.message?.content?.trim() || "Untitled Clip";
+      }
+    } else {
+      name = data.choices?.[0]?.message?.content?.trim() || "Untitled Clip";
+    }
+
+    return new Response(JSON.stringify({ name, category }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
