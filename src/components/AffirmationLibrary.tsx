@@ -187,25 +187,67 @@ const AffirmationLibrary = ({
   };
   // Cleanup detection
   const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+  // Extract key phrases (numbers + units, goals) for similarity matching
+  const extractKeyPhrases = (text: string): string[] => {
+    const lower = text.toLowerCase();
+    // Match numbers with optional units/context (e.g. "180lbs", "30k", "$25k/mo", "6 pack")
+    const patterns = lower.match(/\$?\d+[\w/%]*(?:\/\w+)?/g) || [];
+    // Also grab 2+ word phrases for fuzzy matching
+    const words = lower.replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter((w) => w.length > 3);
+    return [...patterns, ...words];
+  };
+
+  const isSimilar = (a: SavedAffirmation, b: SavedAffirmation): boolean => {
+    if (a.id === b.id) return false;
+    const phrasesA = extractKeyPhrases(a.name);
+    const phrasesB = extractKeyPhrases(b.name);
+    if (phrasesA.length === 0 || phrasesB.length === 0) return false;
+    const overlap = phrasesA.filter((p) => phrasesB.includes(p));
+    // Flag if 2+ key phrases match, or if any specific number/goal appears in both
+    return overlap.length >= 2 || phrasesA.some((p) => /\d/.test(p) && phrasesB.includes(p));
+  };
+
   const flaggedItems = useMemo(() => {
     const now = Date.now();
     const flags: { item: SavedAffirmation; reason: string }[] = [];
-    const seen = new Map<string, SavedAffirmation>();
+    const flaggedIds = new Set<string>();
 
+    // Exact duplicates (same name)
+    const seenNames = new Map<string, SavedAffirmation>();
     for (const item of items) {
-      const dupeKey = `${item.name.toLowerCase().trim()}|${item.blob.size}`;
-      if (seen.has(dupeKey)) {
-        flags.push({ item, reason: "Duplicate" });
+      const nameKey = item.name.toLowerCase().trim();
+      if (seenNames.has(nameKey)) {
+        if (!flaggedIds.has(item.id)) {
+          flags.push({ item, reason: "Duplicate" });
+          flaggedIds.add(item.id);
+        }
       } else {
-        seen.set(dupeKey, item);
+        seenNames.set(nameKey, item);
       }
+    }
 
-      if (now - item.createdAt > THIRTY_DAYS) {
-        if (!flags.find((f) => f.item.id === item.id)) {
-          flags.push({ item, reason: "Older than 30 days" });
+    // Similar goals (shared numbers/phrases like "180lbs", "30k/mo")
+    for (let i = 0; i < items.length; i++) {
+      if (flaggedIds.has(items[i].id)) continue;
+      for (let j = i + 1; j < items.length; j++) {
+        if (flaggedIds.has(items[j].id)) continue;
+        if (isSimilar(items[i], items[j])) {
+          flags.push({ item: items[j], reason: "Similar goal" });
+          flaggedIds.add(items[j].id);
         }
       }
     }
+
+    // Old clips
+    for (const item of items) {
+      if (flaggedIds.has(item.id)) continue;
+      if (now - item.createdAt > THIRTY_DAYS) {
+        flags.push({ item, reason: "Older than 30 days" });
+        flaggedIds.add(item.id);
+      }
+    }
+
     return flags;
   }, [items]);
 
