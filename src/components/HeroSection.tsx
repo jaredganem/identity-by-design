@@ -126,6 +126,22 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         </motion.button>
       </motion.div>
 
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4 }}
+        className="mt-4 text-center"
+      >
+        <a
+          href="https://youtu.be/4jbeIorpN8Y"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-primary transition-colors normal-case tracking-normal"
+        >
+          🎓 New to autosuggestion? Watch the tutorial video here
+        </a>
+      </motion.p>
+
       {/* Choose Your Path — revealed on CTA click */}
       <AnimatePresence>
         {showModes && (
