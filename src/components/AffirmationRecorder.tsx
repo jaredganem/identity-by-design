@@ -210,8 +210,11 @@ const AffirmationRecorder = ({
               </motion.div>
             ) : (
               <motion.div key="form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+                <p className="text-sm font-medium text-foreground normal-case tracking-normal">
+                  ✍️ Type your goals or 🎙️ speak them — AI does the rest
+                </p>
                 <p className="text-xs text-muted-foreground normal-case tracking-normal">
-                  Describe your goals, targets, and the man you're becoming:
+                  Describe the outcomes, targets, and the man you're becoming:
                 </p>
                 <textarea
                   value={goalListening ? (personalizeGoal ? `${personalizeGoal} ${goalSpeech.transcript}` : goalSpeech.transcript) : personalizeGoal}
@@ -222,20 +225,20 @@ const AffirmationRecorder = ({
                   disabled={goalListening}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary resize-none"
                 />
-                {goalSpeech.supported && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={goalListening ? "default" : "outline"}
-                    onClick={handleGoalMicToggle}
-                    disabled={personalizing}
-                    className={`h-9 ${goalListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "border-primary/30 text-primary hover:bg-primary/10"}`}
-                  >
-                    {goalListening ? <Square className="w-4 h-4 mr-1.5" /> : <Mic className="w-4 h-4 mr-1.5" />}
-                    {goalListening ? "Stop Listening" : "Speak Your Goals"}
-                  </Button>
-                )}
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  {goalSpeech.supported && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={goalListening ? "default" : "outline"}
+                      onClick={handleGoalMicToggle}
+                      disabled={personalizing}
+                      className={`h-9 ${goalListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"}`}
+                    >
+                      {goalListening ? <Square className="w-4 h-4 mr-1.5" /> : <Mic className="w-4 h-4 mr-1.5" />}
+                      {goalListening ? "Stop Listening" : "🎙️ Speak Instead"}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     onClick={handlePersonalize}
@@ -243,7 +246,7 @@ const AffirmationRecorder = ({
                     className="bg-primary text-primary-foreground h-9"
                   >
                     {personalizing ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Send className="w-4 h-4 mr-1.5" />}
-                    {personalizing ? "Creating your prompts…" : "Generate My Affirmations"}
+                    {personalizing ? "Creating your prompts…" : "✨ Generate My Affirmations"}
                   </Button>
                   <Button
                     variant="ghost"
