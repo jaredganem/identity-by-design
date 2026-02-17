@@ -40,6 +40,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [showDeepDive, setShowDeepDive] = useState(false);
   const [deepDiveComplete, setDeepDiveComplete] = useState(false);
   const [generatedAffirmations, setGeneratedAffirmations] = useState<Record<string, string>>({});
+  const [scriptIndex, setScriptIndex] = useState(0);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -154,17 +155,25 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <AnimatePresence mode="wait">
             {!showDeepDive ? (
-              <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-2">
+              <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowDeepDive(true)}
                   className="border-primary/30 hover:bg-primary/10 text-primary"
                 >
                   <Wand2 className="w-4 h-4 mr-2" />
-                  {deepDiveComplete ? "Redo Deep Dive" : "🧠 Deep Dive — AI Identity Interview"}
+                  {deepDiveComplete ? "Redo Deep Dive" : "🧠 Answer 5 Identity Questions"}
                 </Button>
                 <p className="text-xs text-muted-foreground normal-case tracking-normal text-center">
-                  Answer 5 identity questions — AI crafts your custom affirmation script
+                  AI crafts your custom affirmation script from your answers
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-border/50" />
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">or</span>
+                  <div className="h-px flex-1 bg-border/50" />
+                </div>
+                <p className="text-xs text-muted-foreground normal-case tracking-normal text-center">
+                  Already know your affirmations? Skip this and <span className="text-primary font-medium">record your own</span> below ↓
                 </p>
               </motion.div>
             ) : (
@@ -175,6 +184,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                 forceMode="advanced"
                 onAdvancedResults={(_answers, affirmations) => {
                   setGeneratedAffirmations(affirmations);
+                  setScriptIndex(0);
                 }}
               />
             )}
@@ -183,19 +193,58 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       )}
 
       {/* Generated affirmations as recording prompts */}
-      {deepDiveComplete && Object.keys(generatedAffirmations).length > 0 && clipItems.length === 0 && (
-        <div className="rounded-xl border border-border bg-gradient-card p-4 space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-primary font-medium">Your AI-Generated Identity Script</p>
-          <p className="text-xs text-muted-foreground normal-case tracking-normal">
-            Read these aloud as you record your clips:
-          </p>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {Object.entries(generatedAffirmations).map(([key, text]) => (
-              <p key={key} className="text-sm text-foreground italic">"{text}"</p>
-            ))}
+      {deepDiveComplete && Object.keys(generatedAffirmations).length > 0 && clipItems.length === 0 && (() => {
+        const entries = Object.entries(generatedAffirmations);
+        const total = entries.length;
+        const [key, text] = entries[scriptIndex] || [];
+        if (!key) return null;
+        return (
+          <div className="rounded-xl border border-border bg-gradient-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.2em] text-primary font-medium">Your AI-Generated Identity Script</p>
+              <span className="text-xs text-muted-foreground">{scriptIndex + 1} of {total}</span>
+            </div>
+            <div className="flex gap-1">
+              {entries.map((_, i) => (
+                <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= scriptIndex ? "bg-primary" : "bg-muted"}`} />
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={scriptIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="text-sm text-foreground italic py-2"
+              >
+                "{text}"
+              </motion.p>
+            </AnimatePresence>
+            <p className="text-xs text-muted-foreground normal-case tracking-normal">
+              Read this aloud as you record your clip below ↓
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setScriptIndex((i) => Math.max(0, i - 1))}
+                disabled={scriptIndex === 0}
+                className="h-8"
+              >
+                ← Back
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setScriptIndex((i) => Math.min(total - 1, i + 1))}
+                disabled={scriptIndex >= total - 1}
+                className="bg-primary text-primary-foreground h-8"
+              >
+                Next →
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {clipItems.length > 0 && (
         <div className="space-y-2">
