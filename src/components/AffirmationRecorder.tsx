@@ -46,25 +46,9 @@ const AffirmationRecorder = ({
 
   // (Personalize logic moved to PersonalizeIntake component)
 
-  const handleAiName = async (blob: Blob) => {
+  const handleAiNameAndCategory = async (blob: Blob) => {
+    if (aiNaming || aiCategorizing) return; // prevent double calls
     setAiNaming(true);
-    try {
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
-      const { data, error } = await supabase.functions.invoke("transcribe-clip", {
-        body: { audioBase64: base64, mimeType: blob.type },
-      });
-      if (error) throw error;
-      setLibraryName(data?.name || "Untitled Clip");
-      if (data?.category) setSaveCategory(data.category);
-    } catch {
-      toast({ variant: "destructive", title: "AI naming failed", description: "Try again or name it manually." });
-    } finally {
-      setAiNaming(false);
-    }
-  };
-
-  const handleAiCategory = async (blob: Blob) => {
     setAiCategorizing(true);
     try {
       const arrayBuffer = await blob.arrayBuffer();
@@ -73,12 +57,12 @@ const AffirmationRecorder = ({
         body: { audioBase64: base64, mimeType: blob.type },
       });
       if (error) throw error;
+      if (data?.name) setLibraryName(data.name);
       if (data?.category) setSaveCategory(data.category);
-      if (data?.name && !libraryName.trim()) setLibraryName(data.name);
-      toast({ title: "Category detected ✓", description: `Classified as "${data?.category || "Custom"}"` });
     } catch {
-      toast({ variant: "destructive", title: "AI category failed", description: "Try again or pick manually." });
+      toast({ variant: "destructive", title: "AI failed", description: "Try again or fill in manually." });
     } finally {
+      setAiNaming(false);
       setAiCategorizing(false);
     }
   };
@@ -311,8 +295,8 @@ const AffirmationRecorder = ({
                     <label className="text-xs text-muted-foreground font-medium">Name</label>
                     <button
                       type="button"
-                      onClick={() => handleAiName(recordings[currentSlot.id])}
-                      disabled={aiNaming}
+                      onClick={() => handleAiNameAndCategory(recordings[currentSlot.id])}
+                      disabled={aiNaming || aiCategorizing}
                       className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                     >
                       {aiNaming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
@@ -333,8 +317,8 @@ const AffirmationRecorder = ({
                     <label className="text-xs text-muted-foreground font-medium">Category</label>
                     <button
                       type="button"
-                      onClick={() => handleAiCategory(recordings[currentSlot.id])}
-                      disabled={aiCategorizing}
+                      onClick={() => handleAiNameAndCategory(recordings[currentSlot.id])}
+                      disabled={aiNaming || aiCategorizing}
                       className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                     >
                       {aiCategorizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
@@ -414,7 +398,20 @@ const AffirmationRecorder = ({
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"
-          onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+          onClick={async () => {
+            if (isRecording) {
+              const autoName = speech.stop();
+              const blob = await audioEngine.stopRecording();
+              onRecordingsChange({ ...recordings, [currentSlot.id]: blob });
+              if (autoName) {
+                setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: autoName }));
+                captureTranscript(autoName, { category: categoryInfo.category, source: "guided" });
+              }
+              setIsRecording(false);
+              toast({ title: "Recorded ✓", description: "Auto-saved before navigating." });
+            }
+            setCurrentIndex(Math.max(0, currentIndex - 1));
+          }}
           disabled={currentIndex === 0}
           className="text-muted-foreground"
         >
@@ -423,7 +420,20 @@ const AffirmationRecorder = ({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => setCurrentIndex(Math.min(allSlots.length - 1, currentIndex + 1))}
+          onClick={async () => {
+            if (isRecording) {
+              const autoName = speech.stop();
+              const blob = await audioEngine.stopRecording();
+              onRecordingsChange({ ...recordings, [currentSlot.id]: blob });
+              if (autoName) {
+                setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: autoName }));
+                captureTranscript(autoName, { category: categoryInfo.category, source: "guided" });
+              }
+              setIsRecording(false);
+              toast({ title: "Recorded ✓", description: "Auto-saved before navigating." });
+            }
+            setCurrentIndex(Math.min(allSlots.length - 1, currentIndex + 1));
+          }}
           disabled={currentIndex === allSlots.length - 1}
           className="text-muted-foreground"
         >

@@ -43,25 +43,9 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
-  const handleAiName = async (blob: Blob) => {
+  const handleAiNameAndCategory = async (blob: Blob) => {
+    if (aiNaming || aiCategorizing) return;
     setAiNaming(true);
-    try {
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
-      const { data, error } = await supabase.functions.invoke("transcribe-clip", {
-        body: { audioBase64: base64, mimeType: blob.type },
-      });
-      if (error) throw error;
-      setSaveName(data?.name || "Untitled Clip");
-      if (data?.category) setSaveCategory(data.category);
-    } catch {
-      toast({ variant: "destructive", title: "AI naming failed", description: "Try again or name it manually." });
-    } finally {
-      setAiNaming(false);
-    }
-  };
-
-  const handleAiCategory = async (blob: Blob) => {
     setAiCategorizing(true);
     try {
       const arrayBuffer = await blob.arrayBuffer();
@@ -70,12 +54,12 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
         body: { audioBase64: base64, mimeType: blob.type },
       });
       if (error) throw error;
+      if (data?.name) setSaveName(data.name);
       if (data?.category) setSaveCategory(data.category);
-      if (data?.name && !saveName.trim()) setSaveName(data.name);
-      toast({ title: "Category detected ✓", description: `Classified as "${data?.category || "Custom"}"` });
     } catch {
-      toast({ variant: "destructive", title: "AI category failed", description: "Try again or pick manually." });
+      toast({ variant: "destructive", title: "AI failed", description: "Try again or fill in manually." });
     } finally {
+      setAiNaming(false);
       setAiCategorizing(false);
     }
   };
@@ -276,8 +260,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                               <label className="text-xs text-muted-foreground font-medium">Name</label>
                               <button
                                 type="button"
-                                onClick={() => handleAiName(item.blob)}
-                                disabled={aiNaming}
+                                onClick={() => handleAiNameAndCategory(item.blob)}
+                                disabled={aiNaming || aiCategorizing}
                                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                               >
                                 {aiNaming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
@@ -298,8 +282,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                               <label className="text-xs text-muted-foreground font-medium">Category</label>
                               <button
                                 type="button"
-                                onClick={() => handleAiCategory(item.blob)}
-                                disabled={aiCategorizing}
+                                onClick={() => handleAiNameAndCategory(item.blob)}
+                                disabled={aiNaming || aiCategorizing}
                                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                               >
                                 {aiCategorizing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
