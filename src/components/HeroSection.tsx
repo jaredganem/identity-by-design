@@ -222,22 +222,27 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.5 }}
-        className="mt-10 max-w-lg px-6 py-5 rounded-2xl border border-border/50 bg-secondary/10 flex items-start gap-4"
+        className="mt-10 max-w-lg px-6 py-5 rounded-2xl border border-border/50 bg-secondary/10 space-y-4"
       >
-        <img
-          src={jaredPhoto}
-          alt="Jared — before and after"
-          className="w-32 h-20 rounded-lg object-cover flex-shrink-0"
-        />
-        <div className="text-left">
-          <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
-            I'd been to every personal development seminar, read every book — but inner conflicts were still holding me back. Then in 2019, I hit what many would consider rock bottom. This was the tool that began to change everything for me. And now I'm excited to bring it to you.
-          </p>
-          <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">
-            — Jared Ganem, Lead Trainer
-            <br />
-            <span className="text-muted-foreground">Self-Mastery for Men™</span>
-          </p>
+        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground text-center font-display">
+          From the Founder
+        </p>
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+          <img
+            src={jaredPhoto}
+            alt="Jared — before and after"
+            className="w-full sm:w-32 h-32 sm:h-20 rounded-lg object-cover flex-shrink-0"
+          />
+          <div className="text-left">
+            <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
+              I'd been to every personal development seminar, read every book — but inner conflicts were still holding me back. Then in 2019, I hit what many would consider rock bottom. This was the tool that began to change everything for me. And now I'm excited to bring it to you.
+            </p>
+            <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">
+              — Jared Ganem, Lead Trainer
+              <br />
+              <span className="text-muted-foreground">Self-Mastery for Men™</span>
+            </p>
+          </div>
         </div>
       </motion.div>
 
