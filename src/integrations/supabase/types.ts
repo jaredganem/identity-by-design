@@ -45,8 +45,10 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          email: string | null
           id: string
           message: string
+          name: string | null
           page: string | null
           session_id: string | null
           user_agent: string | null
@@ -54,8 +56,10 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          email?: string | null
           id?: string
           message: string
+          name?: string | null
           page?: string | null
           session_id?: string | null
           user_agent?: string | null
@@ -63,8 +67,10 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          email?: string | null
           id?: string
           message?: string
+          name?: string | null
           page?: string | null
           session_id?: string | null
           user_agent?: string | null
