@@ -31,7 +31,7 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
           clearInterval(intervalRef.current!);
           onTimerEnd();
           setActiveMinutes(null);
-          toast({ title: "🌙 Sleep timer ended", description: "Playback stopped. Sweet dreams." });
+          toast({ title: "🌙 Session timer ended", description: "Playback stopped. Sweet dreams." });
           return 0;
         }
         return prev - 1;
@@ -43,7 +43,6 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
     };
   }, [activeMinutes]);
 
-  // Pause timer when not playing
   useEffect(() => {
     if (!isPlaying && activeMinutes !== null && intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -97,7 +96,7 @@ const SleepTimer = ({ onTimerEnd, isPlaying }: SleepTimerProps) => {
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Moon className="w-3.5 h-3.5" /> Sleep Timer
+        <Moon className="w-3.5 h-3.5" /> Session Timer <span className="italic normal-case tracking-normal">(Set It. Forget It. Wake Up Different.)</span>
       </p>
       <div className="flex gap-2">
         {TIMER_OPTIONS.map((opt) => (

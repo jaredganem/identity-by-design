@@ -61,7 +61,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       setProgress("Stringing affirmations together...");
       const concatenated = audioEngine.concatenateBuffers(decodedBuffers, 1.5);
 
-      setProgress("Adding ethereal reverb...");
+      setProgress("Adding depth effect...");
       let processed = await audioEngine.applyReverbToBuffer(concatenated, reverbAmount);
 
       if (vocalVolume < 1.0) {
@@ -82,17 +82,17 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       const bgBlob = await bgResponse.blob();
       const bgBuffer = await audioEngine.decodeBlob(bgBlob);
 
-      setProgress(`Mixing with 417 Hz and creating ${loopCount}x loop...`);
+      setProgress(`Mixing with 417 Hz — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(processed, bgBuffer, bgVolume, loopCount);
 
-      setProgress("Exporting...");
+      setProgress("Building your installation...");
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
       setFinalBlob(wavBlob);
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({
-        title: "✨ Your track is ready",
-        description: `${durationMin} minute track from ${selectedItems.length} affirmations.`,
+        title: "🎧 Your installation is ready",
+        description: `${durationMin} minute installation from ${selectedItems.length} identity statements.`,
       });
     } catch (err) {
       console.error(err);
@@ -127,7 +127,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "better-life-custom-track.wav";
+    a.download = "identity-installation.wav";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -135,9 +135,9 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="font-display text-2xl text-foreground">Modular Track Builder</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Pick affirmations from your library to build a custom track. Swap, reorder, mix & match.
+        <h3 className="font-display text-2xl text-foreground">Build Your Nightly Identity Installation</h3>
+        <p className="text-sm text-muted-foreground mt-1 normal-case tracking-normal">
+          Pick identity statements from your library to build a custom installation. Swap, reorder, mix & match.
         </p>
       </div>
 
@@ -145,7 +145,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       {selectedItems.length > 0 && (
         <div className="p-4 rounded-2xl bg-gradient-card border border-border space-y-3">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Your playlist — {selectedItems.length} affirmation{selectedItems.length !== 1 ? "s" : ""}
+            Your installation — {selectedItems.length} statement{selectedItems.length !== 1 ? "s" : ""}
           </p>
           <div className="space-y-1.5">
             {selectedItems.map((item, i) => (
@@ -215,15 +215,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
         <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">Reverb Amount</label>
-              <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
-            </div>
-            <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">Vocal Volume</label>
+              <label className="text-sm font-medium text-foreground">Your Voice Level</label>
               <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
             </div>
             <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
@@ -231,7 +223,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">417 Hz Background</label>
+              <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
               <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
             </div>
             <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
@@ -239,7 +231,15 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">Loop Count</label>
+              <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
+              <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
+            </div>
+            <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
               <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
             </div>
             <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
@@ -253,7 +253,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
             {isProcessing ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
             ) : (
-              `✨ Build Track from ${selectedItems.length} Affirmation${selectedItems.length !== 1 ? "s" : ""}`
+              `🎧 Build Installation from ${selectedItems.length} Statement${selectedItems.length !== 1 ? "s" : ""}`
             )}
           </Button>
         </div>
@@ -266,7 +266,10 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
           animate={{ opacity: 1, scale: 1 }}
           className="p-6 rounded-2xl bg-gradient-card border border-primary/30 shadow-glow space-y-4"
         >
-          <h4 className="font-display text-xl text-foreground text-center">Your Track is Ready ✨</h4>
+          <h4 className="font-display text-xl text-foreground text-center">Your Installation is Ready 🎧</h4>
+          <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
+            "Whatever we plant in our subconscious mind and nourish with repetition and emotion will one day become reality." — Earl Nightingale
+          </p>
           <div className="flex gap-3">
             <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
               {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
@@ -274,7 +277,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
             </Button>
             <Button onClick={handleDownload} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
               <Download className="w-4 h-4 mr-2" />
-              Download .WAV
+              Download My Program
             </Button>
           </div>
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />

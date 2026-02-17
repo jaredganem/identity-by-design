@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 
 interface HeroSectionProps {
   onStart: (mode: "guided" | "freestyle" | "library") => void;
@@ -41,6 +41,7 @@ const steps = [
 
 const HeroSection = ({ onStart }: HeroSectionProps) => {
   const [showGuide, setShowGuide] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   return (
     <motion.div
@@ -53,82 +54,81 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-      className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
-    >
-      Self-Mastery for Men™
-    </motion.p>
+        className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-6"
+      >
+        Self-Mastery for Men™
+      </motion.p>
 
       <motion.h1
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.8 }}
-        className="font-display text-5xl md:text-7xl font-bold text-foreground mb-4 leading-tight tracking-[0.06em]"
+        className="font-display text-5xl md:text-7xl font-bold text-foreground mb-2 leading-tight tracking-[0.06em]"
       >
         Identity
         <br />
         <span className="text-primary text-glow">By Design</span>
+        <span className="text-primary text-lg align-super ml-1">™</span>
       </motion.h1>
 
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="text-muted-foreground max-w-lg text-base leading-relaxed mb-10"
+        transition={{ delay: 0.65 }}
+        className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-6"
       >
-        Script, record, and activate your own unconscious autopilot.
-        A custom-built identity code — in your own voice, your own words —
-        hardwired into your nervous system through repetition.
-        This isn't some generic meditation.
+        Unconscious Autopilot Installer
       </motion.p>
 
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="text-foreground max-w-2xl text-lg md:text-xl font-medium leading-relaxed mb-4"
+      >
+        Finally. A tool that rewires your unconscious identity overnight — in your own voice.
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.95 }}
+        className="text-muted-foreground max-w-xl text-base leading-relaxed mb-4"
+      >
+        Most men know exactly who they're capable of being. Something keeps stopping them. This installs the new version at the only level where change actually sticks — the unconscious.
+      </motion.p>
+
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.05 }}
+        className="text-sm text-primary font-medium mb-10 italic"
+      >
+        The exact tool I used to lose 80lbs, eliminate six figures of debt, and completely rebuild my life — in less than 18 months.
+      </motion.p>
+
+      {/* CTA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.1, duration: 0.5 }}
-        className="flex flex-col sm:flex-row gap-4"
+        transition={{ delay: 1.2, duration: 0.5 }}
       >
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => onStart("guided")}
-          className="px-10 py-4 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
+          onClick={() => setShowOnboarding(true)}
+          className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
         >
-          Guided Journey
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onStart("freestyle")}
-          className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
-        >
-          Create Your Own
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onStart("library")}
-          className="px-10 py-4 rounded-full border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.15em] hover:bg-primary/10 transition-all duration-500"
-        >
-          My Library
+          Start Building Your Identity
+          <ArrowRight className="w-4 h-4" />
         </motion.button>
       </motion.div>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
-        className="text-xs text-muted-foreground mt-6 max-w-md"
-      >
-        <span className="text-primary">Guided</span> walks you through 12 curated affirmations.{" "}
-        <span className="text-primary">Create Your Own</span> lets you record freely.{" "}
-        <span className="text-primary">My Library</span> lets you mix &amp; match saved recordings into new tracks.
-      </motion.p>
-
-      {/* How to Use This */}
+      {/* How This Works */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.8 }}
+        transition={{ delay: 1.5 }}
         className="mt-12 w-full max-w-xl"
       >
         <button
@@ -195,6 +195,120 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* Onboarding Modal */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
+            onClick={() => setShowOnboarding(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.95 }}
+              transition={{ duration: 0.4 }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-lg w-full max-h-[85vh] overflow-y-auto rounded-2xl bg-gradient-card border border-border p-8 space-y-6 shadow-card"
+            >
+              <div className="text-center">
+                <p className="text-xs uppercase tracking-[0.3em] text-primary mb-2">Welcome to</p>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-1">
+                  Identity by Design<span className="text-primary text-sm align-super ml-0.5">™</span>
+                </h2>
+              </div>
+
+              <div className="space-y-4 text-sm text-muted-foreground leading-relaxed normal-case tracking-normal">
+                <p>
+                  Your unconscious mind is running your life on autopilot.<br />
+                  Right now. 24/7.
+                </p>
+                <p>
+                  Most of that programming was installed before you were 7.
+                  You didn't choose it. But it's choosing your results.
+                </p>
+                <p className="text-foreground font-medium">
+                  This tool lets you override it.
+                </p>
+                <p>
+                  In your own voice.<br />
+                  While you sleep.<br />
+                  Using the exact method I used to lose 80lbs, eliminate six figures of debt, and rebuild my entire life from scratch.
+                </p>
+                <p>
+                  Not motivation. Not willpower.<br />
+                  <span className="text-primary font-medium">Unconscious reprogramming.</span>
+                </p>
+
+                <div className="border-t border-border/50 pt-4">
+                  <p className="text-foreground font-medium mb-3">Here's what you're going to do:</p>
+                  <div className="space-y-2 text-sm">
+                    <p>→ Write 2-5 "I AM" statements in each life category</p>
+                    <p>→ Record them in your voice (first person + third person)</p>
+                    <p>→ Add the 417Hz frequency behind it</p>
+                    <p>→ Fall asleep listening for 20-30 minutes</p>
+                    <p>→ Repeat nightly</p>
+                  </div>
+                </div>
+
+                <p className="text-center text-foreground font-medium pt-2">
+                  Do this for 30 days. Then tell me what changed.
+                </p>
+
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-xs italic text-center">
+                    "Any idea, plan, or purpose may be placed in the mind through repetition of thought."
+                    <br />
+                    <span className="text-foreground not-italic font-display text-xs tracking-[0.1em] mt-1 inline-block">— Napoleon Hill, Think and Grow Rich</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center space-y-4 pt-2">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Choose your path</p>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={() => { setShowOnboarding(false); onStart("guided"); }}
+                    className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
+                  >
+                    <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
+                    Guided Identity Blueprint
+                    <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
+                      A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setShowOnboarding(false); onStart("freestyle"); }}
+                    className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+                  >
+                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
+                    Custom Identity Script
+                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                      Freestyle recording for men who know their affirmations. Record as many as you want.
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => { setShowOnboarding(false); onStart("library"); }}
+                    className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+                  >
+                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
+                    Identity Library
+                    <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                      All your saved identity statements. Mix, match, and build custom sessions from what's working.
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

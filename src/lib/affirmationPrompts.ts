@@ -12,50 +12,50 @@ export interface AffirmationCategory {
 
 export const AFFIRMATION_CATEGORIES: AffirmationCategory[] = [
   {
-    category: "Health",
-    icon: "🌿",
+    category: "Physical Dominance",
+    icon: "⚔️",
     count: 2,
     slots: [
-      { id: "health-1", suggestion: "Every cell in my body vibrates with perfect health and vitality." },
-      { id: "health-2", suggestion: "I nourish my body with love and it rewards me with energy and strength." },
+      { id: "health-1", suggestion: "I am now 180 lbs at 10% body fat by [date]. I prioritize my health and wellness every single day." },
+      { id: "health-2", suggestion: "I am the kind of man who treats his body like a weapon. I train hard, eat clean, and recover smart." },
     ],
   },
   {
-    category: "Wealth",
-    icon: "✨",
+    category: "Financial Sovereignty",
+    icon: "🏛️",
     count: 2,
     slots: [
-      { id: "wealth-1", suggestion: "Abundance flows freely and effortlessly into my life." },
-      { id: "wealth-2", suggestion: "I am a powerful magnet for prosperity and financial freedom." },
+      { id: "wealth-1", suggestion: "I am now generating $[amount] per month in revenue by [date]. Money flows to me because I create massive value." },
+      { id: "wealth-2", suggestion: "I am 100% debt-free and financially sovereign. I make decisions from abundance, never from scarcity." },
     ],
   },
   {
-    category: "Relationships",
-    icon: "💛",
+    category: "Relationship Mastery",
+    icon: "🤝",
     count: 2,
     slots: [
-      { id: "relationships-1", suggestion: "I attract loving, supportive, and authentic connections." },
-      { id: "relationships-2", suggestion: "My relationships are filled with trust, joy, and deep understanding." },
+      { id: "relationships-1", suggestion: "I am now in a deeply aligned relationship built on trust, growth, and shared mission." },
+      { id: "relationships-2", suggestion: "I am the kind of man who attracts high-quality people because I am a high-quality man." },
     ],
   },
   {
-    category: "Career",
-    icon: "🚀",
+    category: "Mission & Career",
+    icon: "🎯",
     count: 2,
     slots: [
-      { id: "career-1", suggestion: "I am confidently stepping into my highest professional purpose." },
-      { id: "career-2", suggestion: "Success and recognition flow to me through work I love." },
+      { id: "career-1", suggestion: "I am now building a business that generates six figures annually doing work that sets my soul on fire." },
+      { id: "career-2", suggestion: "I am the kind of man who takes decisive action every day toward his mission. I don't wait. I execute." },
     ],
   },
   {
-    category: "Personal Growth",
-    icon: "🔮",
+    category: "Identity & Character",
+    icon: "🛡️",
     count: 4,
     slots: [
-      { id: "personal-1", suggestion: "I am worthy of love, success, and happiness exactly as I am." },
-      { id: "personal-2", suggestion: "I release all fear and embrace my limitless potential." },
-      { id: "personal-3", suggestion: "My confidence grows stronger with each passing day." },
-      { id: "personal-4", suggestion: "I trust my intuition and honor my authentic self." },
+      { id: "personal-1", suggestion: "I am the kind of man who does what he says he's going to do. My word is my bond." },
+      { id: "personal-2", suggestion: "I am now fully congruent — my thoughts, words, and actions are in complete alignment." },
+      { id: "personal-3", suggestion: "I am mentally, emotionally, physically, and spiritually aligned with my highest self." },
+      { id: "personal-4", suggestion: "I am the kind of man who leads by example. I walk my talk and others follow." },
     ],
   },
 ];
