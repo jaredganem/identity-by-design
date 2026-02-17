@@ -19,7 +19,7 @@ const ADVANCED_STEPS = [
   {
     key: "identity_gaps",
     label: "Step 2 of 5",
-    question: "Who do you want to become?",
+    question: "What's your untapped potential?",
     subtext: "Who do you want to BE that you're not being? What do you want to DO that you're not doing? What do you want to HAVE that you don't have yet?",
     placeholder: "e.g. I want to be the leader my team needs, I want to be disciplined with my health, I want to show up confident in every room...",
     emoji: "🪞",
@@ -35,7 +35,7 @@ const ADVANCED_STEPS = [
   {
     key: "peak_identity",
     label: "Step 4 of 5",
-    question: "Think of a time you were ON. What did that look like?",
+    question: "You've been HIM before. When you were at your BEST — what did that look like?",
     subtext: "You've already been this version of yourself — even if just for a moment. How did you carry yourself? How did people experience you?",
     placeholder: "e.g. I was decisive, calm, magnetic. I took action without hesitation. People looked to me for direction...",
     emoji: "👑",
