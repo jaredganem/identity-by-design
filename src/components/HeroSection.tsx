@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import GoDeeper from "@/components/GoDeeper";
 
 interface HeroSectionProps {
   onStart: (mode: "guided" | "freestyle" | "library") => void;
@@ -181,14 +182,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
               Do this for 30 days. Then tell me what changed.
             </p>
             <p className="text-center pt-1">
-              <a
-                href="https://www.selfmasteryformen.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-primary transition-colors normal-case tracking-normal"
-              >
-                Ready to go deeper? →
-              </a>
+              <GoDeeper />
             </p>
           </motion.div>
         )}
