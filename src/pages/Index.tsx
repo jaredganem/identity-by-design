@@ -36,8 +36,8 @@ const modeHeaders: Record<Mode, { title: string; highlight: string; subtitle: st
     highlight: "Library",
     subtitle: "Your personal unconscious programming vault. Mix, match, and build custom sessions from what's working.",
     quote: {
-      text: "The ancestor of every action is a thought.",
-      author: "Ralph Waldo Emerson",
+      text: "Until you make the unconscious conscious, it will direct your life and you will call it fate.",
+      author: "Carl Jung",
     },
   },
 };
@@ -152,7 +152,7 @@ const Index = () => {
               <>
                 <div className="p-4 rounded-2xl bg-gradient-card border border-border">
                   <p className="text-sm text-muted-foreground mb-4 normal-case tracking-normal">
-                    Your saved identity statements. Build a new installation by picking favorites from different categories.
+                    Select your strongest identity statements below. Reorder them. Build a fresh installation every time you level up.
                   </p>
                   <AffirmationLibrary refreshKey={libraryRefreshKey} />
                 </div>
