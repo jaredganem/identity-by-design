@@ -82,7 +82,7 @@ const FreeWorkshopCTA = () => {
           </div>
           <div className="p-4 text-center">
             <a
-              href="https://www.youtube.com/@SelfMasteryForMen"
+              href="https://www.youtube.com/@SelfMasteryForMen?sub_confirmation=1"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-destructive text-destructive-foreground font-display font-bold text-sm uppercase tracking-[0.08em] hover:opacity-90 transition-opacity"

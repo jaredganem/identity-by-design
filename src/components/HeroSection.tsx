@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, Headphones } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones, Play } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface HeroSectionProps {
   onStart: (mode: "guided" | "freestyle" | "library" | "player") => void;
@@ -45,6 +51,7 @@ const steps = [
 const HeroSection = ({ onStart }: HeroSectionProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showModes, setShowModes] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const toggleCard = (id: string) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -139,15 +146,51 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         transition={{ delay: 1.4 }}
         className="mt-4 text-center"
       >
-        <a
-          href="https://urlgeni.us/youtube/uudPnV"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => setShowTutorial(true)}
           className="inline-flex items-center gap-1.5 text-xs px-4 py-1.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors normal-case tracking-normal"
         >
           🎓 New to autosuggestion? <span className="underline underline-offset-2">Watch the tutorial video</span>
-        </a>
+        </button>
       </motion.p>
+
+      {/* Tutorial Video Dialog */}
+      <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+        <DialogContent className="bg-card border-border/50 max-w-3xl p-0 gap-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>What is Autosuggestion?</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            <iframe
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/XYj8qBdpZ6A?si=SX5t3ivDHUIKpcgt&autoplay=1"
+              title="What is Autosuggestion?"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          </div>
+          <div className="p-4 text-center">
+            <a
+              href="https://www.youtube.com/@SelfMasteryForMen?sub_confirmation=1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-destructive text-destructive-foreground font-display font-bold text-sm uppercase tracking-[0.08em] hover:opacity-90 transition-opacity"
+            >
+              Subscribe for More on YouTube →
+            </a>
+            <a
+              href="https://youtu.be/XYj8qBdpZ6A"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mt-2 text-xs text-muted-foreground hover:text-primary transition-colors underline underline-offset-2 normal-case tracking-normal"
+            >
+              Watch on YouTube instead
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Choose Your Path — revealed on CTA click */}
       <AnimatePresence>
