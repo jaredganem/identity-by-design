@@ -81,7 +81,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         transition={{ delay: 0.65 }}
         className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-8"
       >
-        Unconscious Autopilot Installer
+        Your Unconscious Autopilot Installer
       </motion.p>
 
       <motion.p
@@ -108,12 +108,85 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         </p>
       </motion.div>
 
-      {/* ABOUT — Always visible accordion cards */}
+      {/* Start Building CTA */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.1, duration: 0.5 }}
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => setShowModes(true)}
+          className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
+        >
+          Start Building Your Identity
+          <ArrowRight className="w-4 h-4" />
+        </motion.button>
+      </motion.div>
+
+      {/* Choose Your Path — revealed on CTA click */}
+      <AnimatePresence>
+        {showModes && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.5 }}
+            className="mt-8 w-full max-w-2xl space-y-4"
+          >
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
+              Choose your path
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => onStart("guided")}
+                className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
+              >
+                <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
+                Guided Identity Blueprint
+                <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
+                  A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
+                </span>
+              </button>
+
+              <button
+                onClick={() => onStart("freestyle")}
+                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+              >
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
+                Custom Identity Script
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                  Freestyle recording. Record as many as you want. Build your exact identity code.
+                </span>
+              </button>
+
+              <button
+                onClick={() => onStart("library")}
+                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+              >
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
+                Identity Library
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                  Mix, match, and build custom sessions from what's working.
+                </span>
+              </button>
+            </div>
+
+            <p className="text-center text-foreground font-display text-sm tracking-[0.1em] pt-2">
+              Do this for 30 days. Then tell me what changed.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ABOUT — Always visible accordion cards at bottom */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.1 }}
-        className="w-full max-w-2xl space-y-4 mb-10"
+        transition={{ delay: 1.3 }}
+        className="w-full max-w-2xl space-y-4 mt-12"
       >
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">About</p>
 
@@ -269,79 +342,6 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
           </AnimatePresence>
         </div>
       </motion.div>
-
-      {/* Start Building CTA */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.3, duration: 0.5 }}
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => setShowModes(true)}
-          className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
-        >
-          Start Building Your Identity
-          <ArrowRight className="w-4 h-4" />
-        </motion.button>
-      </motion.div>
-
-      {/* Choose Your Path — revealed on CTA click */}
-      <AnimatePresence>
-        {showModes && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.5 }}
-            className="mt-8 w-full max-w-2xl space-y-4"
-          >
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
-              Choose your path
-            </p>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => onStart("guided")}
-                className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
-              >
-                <span className="block text-primary-foreground/70 text-xs normal-case tracking-normal font-normal mb-0.5">Don't know where to start? Use this.</span>
-                Guided Identity Blueprint
-                <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
-                  A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
-                </span>
-              </button>
-
-              <button
-                onClick={() => onStart("freestyle")}
-                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
-              >
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You know what you want to install. Let's do it.</span>
-                Custom Identity Script
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                  Freestyle recording. Record as many as you want. Build your exact identity code.
-                </span>
-              </button>
-
-              <button
-                onClick={() => onStart("library")}
-                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
-              >
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
-                Identity Library
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                  Mix, match, and build custom sessions from what's working.
-                </span>
-              </button>
-            </div>
-
-            <p className="text-center text-foreground font-display text-sm tracking-[0.1em] pt-2">
-              Do this for 30 days. Then tell me what changed.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };
