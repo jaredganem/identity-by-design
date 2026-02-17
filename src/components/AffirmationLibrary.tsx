@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllAffirmations, deleteAffirmation, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmations, deleteAffirmation, updateAffirmationName, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AffirmationLibraryProps {
   onSelectForTrack?: (items: SavedAffirmation[]) => void;
@@ -22,7 +23,6 @@ const CATEGORY_ICONS: Record<string, string> = {
   "Relationship Mastery": "🤝",
   "Mission & Career": "🎯",
   "Identity & Character": "🛡️",
-  // Legacy categories
   Health: "⚔️",
   Wealth: "🏛️",
   Relationships: "🤝",
@@ -30,6 +30,22 @@ const CATEGORY_ICONS: Record<string, string> = {
   "Personal Growth": "🛡️",
   Custom: "🎤",
 };
+
+const GENERIC_NAME_PATTERN = /^Clip \d+$/;
+
+async function transcribeClip(blob: Blob): Promise<string> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const base64 = btoa(
+    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), "")
+  );
+
+  const { data, error } = await supabase.functions.invoke("transcribe-clip", {
+    body: { audioBase64: base64, mimeType: blob.type },
+  });
+
+  if (error) throw error;
+  return data?.name || "Untitled Clip";
+}
 
 const AffirmationLibrary = ({
   selectable = false,
@@ -41,6 +57,8 @@ const AffirmationLibrary = ({
 }: AffirmationLibraryProps) => {
   const [items, setItems] = useState<SavedAffirmation[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [renamingIds, setRenamingIds] = useState<Set<string>>(new Set());
+  const [renamingAll, setRenamingAll] = useState(false);
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -59,6 +77,8 @@ const AffirmationLibrary = ({
     acc[cat].push(item);
     return acc;
   }, {});
+
+  const genericItems = items.filter((item) => GENERIC_NAME_PATTERN.test(item.name));
 
   const handlePlay = async (item: SavedAffirmation) => {
     if (playingId === item.id) {
@@ -86,6 +106,49 @@ const AffirmationLibrary = ({
     loadItems();
   };
 
+  const handleRenameOne = async (item: SavedAffirmation) => {
+    setRenamingIds((prev) => new Set(prev).add(item.id));
+    try {
+      const name = await transcribeClip(item.blob);
+      await updateAffirmationName(item.id, name);
+      toast({ title: "Renamed ✓", description: `Now called "${name}"` });
+      await loadItems();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Rename failed", description: e?.message || "Could not transcribe clip." });
+    } finally {
+      setRenamingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
+
+  const handleRenameAllGeneric = async () => {
+    if (genericItems.length === 0) return;
+    setRenamingAll(true);
+    let renamed = 0;
+    for (const item of genericItems) {
+      setRenamingIds((prev) => new Set(prev).add(item.id));
+      try {
+        const name = await transcribeClip(item.blob);
+        await updateAffirmationName(item.id, name);
+        renamed++;
+      } catch {
+        // Continue with remaining clips
+      } finally {
+        setRenamingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+      }
+    }
+    await loadItems();
+    setRenamingAll(false);
+    toast({ title: "Rename complete ✓", description: `${renamed} of ${genericItems.length} clips renamed.` });
+  };
+
   if (items.length === 0) {
     return (
       <div className="text-center py-12 space-y-3">
@@ -103,6 +166,26 @@ const AffirmationLibrary = ({
 
   return (
     <div className="space-y-6">
+      {/* Rename All Generic button */}
+      {genericItems.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRenameAllGeneric}
+            disabled={renamingAll}
+            className="border-primary/30 hover:bg-primary/10 text-primary text-xs"
+          >
+            {renamingAll ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            {renamingAll ? "Renaming..." : `Rename ${genericItems.length} Generic Clip${genericItems.length > 1 ? "s" : ""} with AI`}
+          </Button>
+        </div>
+      )}
+
       {Object.entries(grouped).map(([category, catItems]) => (
         <div key={category} className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -114,6 +197,7 @@ const AffirmationLibrary = ({
           <div className="space-y-1.5">
             {catItems.map((item) => {
               const isSelected = selectedIds.includes(item.id);
+              const isRenaming = renamingIds.has(item.id);
               return (
                 <motion.div
                   key={item.id}
@@ -149,17 +233,36 @@ const AffirmationLibrary = ({
                   </button>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {isRenaming ? (
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Transcribing…
+                        </span>
+                      ) : (
+                        item.name
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground italic truncate">"{item.text}"</p>
                   </div>
 
                   {!selectable && (
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleRenameOne(item)}
+                        disabled={isRenaming}
+                        className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                        title="Rename with AI"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   )}
                 </motion.div>
               );
