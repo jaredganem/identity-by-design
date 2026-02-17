@@ -260,13 +260,13 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground text-center font-display">
           From the Founder
         </p>
-        <div className="flex flex-col sm:flex-row items-start gap-4">
+        <div className="flex flex-row items-center gap-4">
           <img
             src={jaredPhoto}
             alt="Jared — before and after"
-            className="w-full sm:w-32 h-32 sm:h-20 rounded-lg object-cover flex-shrink-0"
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg object-cover flex-shrink-0"
           />
-          <div className="text-left">
+          <div className="text-left flex-1 min-w-0">
             <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
               I'd been to every personal development seminar, read every book — but inner conflicts were still holding me back. Then in 2019, I hit what many would consider rock bottom. This was the tool that began to change everything for me. And now I'm excited to bring it to you.
             </p>
