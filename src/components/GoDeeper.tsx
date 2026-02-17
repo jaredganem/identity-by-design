@@ -56,6 +56,14 @@ const GoDeeper = ({ className = "" }: GoDeeperProps) => (
           >
             📸 Follow us on Instagram
           </a>
+          <a
+            href="https://www.selfmasteryformen.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-primary hover:text-accent transition-colors normal-case tracking-normal"
+          >
+            🌐 Visit our website
+          </a>
         </div>
       </div>
     </DialogContent>
