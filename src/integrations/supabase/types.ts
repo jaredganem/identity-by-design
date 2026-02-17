@@ -22,6 +22,7 @@ export type Database = {
           is_founding_member: boolean
           last_name: string | null
           name: string
+          promo_tier: string | null
         }
         Insert: {
           created_at?: string
@@ -30,6 +31,7 @@ export type Database = {
           is_founding_member?: boolean
           last_name?: string | null
           name: string
+          promo_tier?: string | null
         }
         Update: {
           created_at?: string
@@ -38,6 +40,7 @@ export type Database = {
           is_founding_member?: boolean
           last_name?: string | null
           name?: string
+          promo_tier?: string | null
         }
         Relationships: []
       }

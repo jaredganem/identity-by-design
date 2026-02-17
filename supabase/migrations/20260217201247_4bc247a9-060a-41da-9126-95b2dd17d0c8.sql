@@ -1,0 +1,1 @@
+ALTER TABLE public.leads ADD COLUMN promo_tier text DEFAULT null;
