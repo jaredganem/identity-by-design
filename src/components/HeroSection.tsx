@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
 
 interface HeroSectionProps {
-  onStart: (mode: "guided" | "freestyle" | "library") => void;
+  onStart: (mode: "guided" | "freestyle" | "library" | "player") => void;
 }
 
 const steps = [
@@ -165,7 +165,12 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
             </p>
 
             <div className="space-y-3">
-              <button
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onStart("guided")}
                 className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-all duration-500 text-left"
               >
@@ -174,9 +179,14 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <span className="block text-primary-foreground/60 text-xs normal-case tracking-normal font-normal mt-1">
                   A structured 12-affirmation sequence across Health, Wealth, Relationships, Career & Character.
                 </span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onStart("freestyle")}
                 className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
@@ -188,9 +198,14 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <span className="block text-muted-foreground/60 text-xs normal-case tracking-normal font-normal mt-1.5 italic">
                   Press record → save your clip → rename it → reuse it from your library anytime.
                 </span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onStart("library")}
                 className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
@@ -199,7 +214,25 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
                   Mix, match, and build custom sessions from what's working.
                 </span>
-              </button>
+              </motion.button>
+
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onStart("player")}
+                className="w-full px-8 py-4 rounded-xl border border-accent/30 bg-accent/5 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-accent/10 transition-all duration-500 text-left"
+              >
+                <span className="block text-accent/70 text-xs normal-case tracking-normal font-normal mb-0.5 flex items-center gap-1">
+                  <Headphones className="w-3 h-3" /> Listen to your programs
+                </span>
+                Identity Player
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
+                  Play your saved affirmations with a visualizer. Loop, shuffle, and immerse.
+                </span>
+              </motion.button>
             </div>
 
             <div className="text-center pt-4 space-y-1">
