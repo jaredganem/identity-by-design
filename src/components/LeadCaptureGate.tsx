@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "smfm_lead";
 
@@ -13,8 +14,9 @@ export function hasLeadCaptured(): boolean {
   }
 }
 
-export function saveLead(name: string, email: string) {
+export async function saveLead(name: string, email: string) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, email, ts: Date.now() }));
+  await supabase.from("leads").insert({ name, email });
 }
 
 interface LeadCaptureGateProps {
@@ -28,7 +30,9 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
@@ -42,7 +46,9 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
       return;
     }
 
-    saveLead(trimmedName, trimmedEmail);
+    setSubmitting(true);
+    await saveLead(trimmedName, trimmedEmail);
+    setSubmitting(false);
     setError("");
     onSuccess();
   };
@@ -126,9 +132,10 @@ const LeadCaptureGate = ({ open, onClose, onSuccess }: LeadCaptureGateProps) => 
 
               <Button
                 type="submit"
+                disabled={submitting}
                 className="w-full h-12 bg-primary text-primary-foreground font-display text-sm tracking-wider hover:shadow-glow transition-all"
               >
-                Unlock Access
+                {submitting ? "Unlocking..." : "Unlock Access"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </form>
