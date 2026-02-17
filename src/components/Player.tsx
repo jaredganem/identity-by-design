@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2 } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1 } from "lucide-react";
 import { getAllAffirmations, SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
@@ -79,6 +79,9 @@ const Player = ({ onBack }: PlayerProps) => {
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const [subliminalIndex, setSubliminalIndex] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [muted, setMuted] = useState(false);
+  const prevVolume = useRef(1);
 
   useEffect(() => {
     getAllAffirmations().then((all) => {
@@ -348,6 +351,38 @@ const Player = ({ onBack }: PlayerProps) => {
             <span className="absolute -top-1 -right-1 text-[8px] font-bold text-primary">1</span>
           )}
         </button>
+      </div>
+
+      {/* Volume control */}
+      <div className="flex items-center justify-center gap-3 px-4">
+        <button
+          onClick={() => {
+            if (muted) {
+              setMuted(false);
+              setVolume(prevVolume.current || 0.5);
+              if (audioRef.current) audioRef.current.volume = prevVolume.current || 0.5;
+            } else {
+              prevVolume.current = volume;
+              setMuted(true);
+              setVolume(0);
+              if (audioRef.current) audioRef.current.volume = 0;
+            }
+          }}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 0.5 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </button>
+        <Slider
+          value={[muted ? 0 : volume]}
+          max={1}
+          step={0.01}
+          onValueChange={([v]) => {
+            setVolume(v);
+            setMuted(v === 0);
+            if (audioRef.current) audioRef.current.volume = v;
+          }}
+          className="w-28"
+        />
       </div>
 
       {/* Download button */}
