@@ -231,7 +231,7 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         />
         <div className="text-left">
           <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
-            In 2019 I was 80lbs overweight, six figures in debt, and hiding in a retirement condo at 32. This was the first tool that changed anything.
+            I knew every personal development technique — but something was still holding me back. Then in 2019, I hit rock bottom. This was the tool that changed everything.
           </p>
           <p className="text-xs text-primary font-display tracking-[0.1em] mt-2">
             — Jared Ganem, Lead Trainer
