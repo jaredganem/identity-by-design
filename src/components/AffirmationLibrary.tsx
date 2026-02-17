@@ -15,11 +15,17 @@ interface AffirmationLibraryProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  Health: "🌿",
-  Wealth: "✨",
-  Relationships: "💛",
-  Career: "🚀",
-  "Personal Growth": "🔮",
+  "Physical Dominance": "⚔️",
+  "Financial Sovereignty": "🏛️",
+  "Relationship Mastery": "🤝",
+  "Mission & Career": "🎯",
+  "Identity & Character": "🛡️",
+  // Legacy categories
+  Health: "⚔️",
+  Wealth: "🏛️",
+  Relationships: "🤝",
+  Career: "🎯",
+  "Personal Growth": "🛡️",
   Custom: "🎤",
 };
 
@@ -80,9 +86,12 @@ const AffirmationLibrary = ({
     return (
       <div className="text-center py-12 space-y-3">
         <FolderOpen className="w-10 h-10 text-muted-foreground mx-auto" />
-        <p className="text-muted-foreground text-sm">Your library is empty.</p>
-        <p className="text-xs text-muted-foreground">
-          Record affirmations in Guided Journey and save them here to mix & match later.
+        <p className="text-muted-foreground text-sm normal-case tracking-normal">Your Identity Library is empty.</p>
+        <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+          "The ancestor of every action is a thought." — Ralph Waldo Emerson
+        </p>
+        <p className="text-xs text-muted-foreground normal-case tracking-normal">
+          Every installation starts with a single thought. Start here.
         </p>
       </div>
     );

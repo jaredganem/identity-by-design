@@ -41,7 +41,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
       setProgress("Stringing clips together...");
       const concatenated = audioEngine.concatenateBuffers(decodedBuffers, 1.5);
 
-      setProgress("Adding ethereal reverb...");
+      setProgress("Adding depth effect...");
       let processed = await audioEngine.applyReverbToBuffer(concatenated, reverbAmount);
 
       if (vocalVolume < 1.0) {
@@ -62,19 +62,19 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
       const bgBlob = await bgResponse.blob();
       const bgBuffer = await audioEngine.decodeBlob(bgBlob);
 
-      setProgress(`Mixing with 417 Hz and creating ${loopCount}x loop...`);
+      setProgress(`Mixing with 417 Hz — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
         processed, bgBuffer, bgVolume, loopCount
       );
 
-      setProgress("Exporting...");
+      setProgress("Building your installation...");
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
       setFinalBlob(wavBlob);
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({
-        title: "✨ Your track is ready",
-        description: `${durationMin} minute affirmation track created.`,
+        title: "🎧 Your installation is ready",
+        description: `${durationMin} minute identity installation created.`,
       });
     } catch (err) {
       console.error(err);
@@ -111,7 +111,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "better-life-affirmations.wav";
+    a.download = "identity-installation.wav";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -142,9 +142,9 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="font-display text-2xl text-foreground">Build Your Track</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Customize reverb, volume, and looping before creating your final track.
+        <h3 className="font-display text-2xl text-foreground">Build Your Nightly Identity Installation</h3>
+        <p className="text-sm text-muted-foreground mt-1 normal-case tracking-normal">
+          Customize your voice, frequency, and repetition settings.
         </p>
       </div>
 
@@ -172,46 +172,45 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
               </Button>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">Hear each clip with your current reverb & volume settings.</p>
+          <p className="text-xs text-muted-foreground normal-case tracking-normal">Hear each clip with your current depth & volume settings.</p>
         </div>
       )}
 
       <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
-        {/* Reverb */}
+        {/* Voice Level */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Reverb Amount</label>
-            <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
-          </div>
-          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
-        </div>
-
-        {/* Vocal Volume */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Vocal Volume</label>
+            <label className="text-sm font-medium text-foreground">Your Voice Level</label>
             <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
           </div>
           <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
-        {/* Background volume */}
+        {/* 417Hz Level */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">417 Hz Background Volume</label>
+            <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
             <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
           </div>
           <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
-        {/* Loop count */}
+        {/* Depth Effect */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Loop Count</label>
+            <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
+            <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
+          </div>
+          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
+        </div>
+
+        {/* Repetitions */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
             <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
           </div>
           <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
-          <p className="text-xs text-muted-foreground">More loops = longer track for extended sleep sessions.</p>
         </div>
 
         <Button
@@ -222,12 +221,12 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           {isProcessing ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
           ) : (
-            "🎧 Create Autosuggestion File"
+            "🎧 Build My Identity Installation"
           )}
         </Button>
 
         {!hasClips && (
-          <p className="text-xs text-center text-muted-foreground">Record at least one clip to build your track.</p>
+          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record at least one clip to build your installation.</p>
         )}
       </div>
 
@@ -237,7 +236,10 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           animate={{ opacity: 1, scale: 1 }}
           className="p-6 rounded-2xl bg-gradient-card border border-primary/30 shadow-glow space-y-4"
         >
-          <h4 className="font-display text-xl text-foreground text-center">Your Track is Ready ✨</h4>
+          <h4 className="font-display text-xl text-foreground text-center">Your Installation is Ready 🎧</h4>
+          <p className="text-xs text-muted-foreground text-center italic normal-case tracking-normal">
+            "First comes thought; then organization of that thought into ideas and plans; then transformation of those plans into reality." — Napoleon Hill
+          </p>
           
           <div className="flex gap-3">
             <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
@@ -246,7 +248,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             </Button>
             <Button onClick={handleDownload} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
               <Download className="w-4 h-4 mr-2" />
-              Download .WAV
+              Download My Program
             </Button>
           </div>
 
