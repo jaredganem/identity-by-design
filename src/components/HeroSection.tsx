@@ -220,9 +220,9 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         <img
           src={jaredPhoto}
           alt="Jared — before and after"
-          className="w-24 h-16 rounded-lg object-cover flex-shrink-0"
+          className="w-32 h-20 rounded-lg object-cover flex-shrink-0"
         />
-        <div>
+        <div className="text-left">
           <p className="text-sm text-foreground leading-relaxed normal-case tracking-normal">
             In 2019 I was 80lbs overweight, six figures in debt, and hiding in a retirement condo at 32. This was the first tool that changed anything.
           </p>
