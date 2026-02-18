@@ -128,8 +128,9 @@ const AffirmationRecorder = ({
       }
       setIsRecording(false);
       trackEvent("recording_completed", { mode: "guided", slot: currentIndex + 1, total: allSlots.length });
-      // Log streak activity
+      // Log streak + challenge activity
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("recording"));
+      import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
     } else {
       setShowCountdown(true);
