@@ -18,16 +18,16 @@ interface AffirmationLibraryProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  "Physical Dominance": "⚔️",
-  "Financial Sovereignty": "🏛️",
+  "Physical Dominance": "💪",
+  "Financial Sovereignty": "👑",
   "Relationship Mastery": "🤝",
   "Mission & Career": "🎯",
   "Identity & Character": "🛡️",
-  Health: "⚔️",
-  Wealth: "🏛️",
+  Health: "💪",
+  Wealth: "💰",
   Relationships: "🤝",
   Career: "🎯",
-  "Personal Growth": "🛡️",
+  "Personal Growth": "🧠",
   Custom: "🎤",
 };
 
