@@ -202,7 +202,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     <div className="space-y-6">
       {/* countdown is now rendered inline in the mic button area below */}
       {/* Deep Dive AI Personalization */}
-      {clipItems.length === 0 && (
+{true && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <AnimatePresence mode="wait">
             {!showDeepDive ? (
@@ -234,7 +234,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                 isPersonalized={deepDiveComplete}
                 onPersonalized={() => { setShowDeepDive(false); setDeepDiveComplete(true); }}
                 onClose={() => setShowDeepDive(false)}
-                forceMode="advanced"
+                
                 onAdvancedResults={(_answers, affirmations) => {
                   setGeneratedAffirmations(affirmations);
                   setScriptIndex(0);
