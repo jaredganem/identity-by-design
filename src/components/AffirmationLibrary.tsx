@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, updateAffirmationName, moveAffirmationToCategory, renameCategory, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,8 +63,7 @@ const AffirmationLibrary = ({
   const [cleanupSelection, setCleanupSelection] = useState<Set<string>>(new Set());
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
-  const [movingItemId, setMovingItemId] = useState<string | null>(null);
-  const [moveBtnRect, setMoveBtnRect] = useState<DOMRect | null>(null);
+  const [movingItem, setMovingItem] = useState<{ item: SavedAffirmation; category: string } | null>(null);
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -134,7 +133,7 @@ const AffirmationLibrary = ({
   const handleMoveToCategory = async (item: SavedAffirmation, newCategory: string) => {
     await moveAffirmationToCategory(item.id, newCategory);
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, category: newCategory } : i)));
-    setMovingItemId(null);
+    setMovingItem(null);
     toast({ title: "Moved ✓", description: `"${item.name}" → ${newCategory}` });
   };
 
@@ -547,48 +546,13 @@ const AffirmationLibrary = ({
                                 )}
                               </button>
                             )}
-                            <div className="relative">
-                              <button
-                                ref={(el) => {
-                                  if (el && movingItemId === item.id) {
-                                    (el as any)._rect = el.getBoundingClientRect();
-                                  }
-                                }}
-                                onClick={(e) => {
-                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                  setMoveBtnRect(rect);
-                                  setMovingItemId(movingItemId === item.id ? null : item.id);
-                                }}
-                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                                title="Move to category"
-                              >
-                                <ArrowUpDown className="w-3.5 h-3.5" />
-                              </button>
-                              {movingItemId === item.id && moveBtnRect && createPortal(
-                                <div
-                                  className="fixed z-[9999] bg-card border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
-                                  style={{
-                                    top: moveBtnRect.top - 4,
-                                    left: Math.min(moveBtnRect.right - 160, window.innerWidth - 170),
-                                    transform: 'translateY(-100%)',
-                                  }}
-                                >
-                                  {Object.keys(grouped)
-                                    .filter((cat) => cat !== category)
-                                    .map((cat) => (
-                                      <button
-                                        key={cat}
-                                        onClick={() => handleMoveToCategory(item, cat)}
-                                        className="w-full text-left px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
-                                      >
-                                        <span>{CATEGORY_ICONS[cat] || "📁"}</span>
-                                        <span>{cat}</span>
-                                      </button>
-                                    ))}
-                                </div>,
-                                document.body
-                              )}
-                            </div>
+                            <button
+                              onClick={() => setMovingItem({ item, category })}
+                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              title="Move to category"
+                            >
+                              <ArrowUpDown className="w-3.5 h-3.5" />
+                            </button>
                             <button
                               onClick={() => handleRenameOne(item)}
                               disabled={isRenaming}
@@ -615,6 +579,29 @@ const AffirmationLibrary = ({
           </div>
         );
       })}
+
+      {/* Move to category dialog */}
+      <Dialog open={!!movingItem} onOpenChange={(open) => !open && setMovingItem(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-base">Move "{movingItem?.item.name}"</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1 pt-2">
+            {movingItem && Object.keys(grouped)
+              .filter((cat) => cat !== movingItem.category)
+              .map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleMoveToCategory(movingItem.item, cat)}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-primary/10 transition-colors flex items-center gap-2"
+                >
+                  <span>{CATEGORY_ICONS[cat] || "📁"}</span>
+                  <span>{cat}</span>
+                </button>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
