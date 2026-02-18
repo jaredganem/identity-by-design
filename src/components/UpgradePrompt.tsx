@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Zap, Crown, X, Sparkles } from "lucide-react";
+import { Lock, Zap, Crown, X, Sparkles, Tag } from "lucide-react";
 import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { supabase } from "@/integrations/supabase/client";
+import { saveLead } from "@/components/LeadCaptureGate";
 
 interface UpgradePromptProps {
   requiredTier: "tier1" | "tier2";
@@ -40,6 +41,86 @@ const TIER_INFO = {
       "AI Track Builder — Full Programs from a Single Goal",
     ],
   },
+};
+
+/** Inline promo code entry + launch access messaging */
+const LaunchAccessCard = ({ onDismiss }: { onDismiss?: () => void }) => {
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+
+  const handleApplyPromo = async () => {
+    const code = promoCode.trim();
+    if (!code) return;
+    setApplying(true);
+    try {
+      const raw = localStorage.getItem("smfm_lead");
+      if (raw) {
+        const lead = JSON.parse(raw);
+        await saveLead(lead.name || "User", lead.email || "", code, lead.lastName);
+        setApplied(true);
+        setTimeout(() => window.location.reload(), 800);
+      }
+    } catch {} finally {
+      setApplying(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
+        <div className="flex items-center justify-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="font-display text-sm text-primary">Launch Access</span>
+        </div>
+        <p className="text-xs text-muted-foreground normal-case tracking-normal leading-relaxed">
+          All Pro &amp; Elite features are unlocked free during our launch period. Pricing goes live soon — get in early.
+        </p>
+
+        {!showPromoInput ? (
+          <button
+            type="button"
+            onClick={() => setShowPromoInput(true)}
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors underline underline-offset-2"
+          >
+            <Tag className="w-3 h-3" />
+            Have a promo code?
+          </button>
+        ) : applied ? (
+          <p className="text-xs text-primary font-medium normal-case tracking-normal">✓ Code applied! Refreshing…</p>
+        ) : (
+          <div className="flex gap-2 mt-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              placeholder="Enter code"
+              maxLength={50}
+              className="flex-1 h-9 px-3 text-xs rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+              autoFocus
+              onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+            />
+            <button
+              onClick={handleApplyPromo}
+              disabled={applying || !promoCode.trim()}
+              className="px-3 h-9 rounded-lg bg-primary text-primary-foreground text-xs font-display font-bold uppercase tracking-wider disabled:opacity-50"
+            >
+              {applying ? "…" : "Apply"}
+            </button>
+          </div>
+        )}
+      </div>
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
+        >
+          Continue — It's Free
+        </button>
+      )}
+    </div>
+  );
 };
 
 const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }: UpgradePromptProps) => {
@@ -91,28 +172,7 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
       </div>
 
       {PAYMENTS_DISABLED ? (
-        <div className="space-y-3">
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="font-display text-sm text-primary">Launch Access</span>
-            </div>
-            <p className="text-xs text-muted-foreground normal-case tracking-normal leading-relaxed">
-              All Pro &amp; Elite features are unlocked free during our launch period. Pricing goes live soon — get in early.
-            </p>
-            <p className="text-[10px] text-muted-foreground/60 normal-case tracking-normal">
-              Have a promo code? You'll keep extended access even after launch pricing begins.
-            </p>
-          </div>
-          {onDismiss && (
-            <button
-              onClick={onDismiss}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
-            >
-              Continue — It's Free
-            </button>
-          )}
-        </div>
+        <LaunchAccessCard onDismiss={onDismiss} />
       ) : (
         <>
           <ul className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">

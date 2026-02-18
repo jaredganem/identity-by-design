@@ -2,7 +2,6 @@
  * Tier Access System
  * ──────────────────
  * Infrastructure for tiered feature gating.
- * NOT enforced yet — helpers are ready to flip on.
  *
  * Revised Tiers:
  *   "free"  → Record & hear playback. No save, no download, default prompts only.
@@ -11,6 +10,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 
 export type UserTier = "free" | "tier1" | "tier2";
 
@@ -55,49 +55,48 @@ export async function checkTier(userId?: string): Promise<TierInfo> {
 }
 
 // ─── Boolean gate helpers ────────────────────────────────
-// Revised: Save/Download/EditPrompts now require tier1 (Pro)
 
-/** Can the user save recordings to the library? Requires Pro (tier1+). */
 export function canSave(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user download/export tracks? Requires Pro (tier1+). */
 export function canDownload(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user edit affirmation prompts? Requires Pro (tier1+). */
 export function canEditPrompts(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user access the full affirmation library & replay? Requires Pro (tier1+). */
 export function canAccessLibrary(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user access cloud sync? Requires Pro (tier1+). */
 export function canCloudSync(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user access streak/progress tracking? Requires Pro (tier1+). */
 export function canTrackProgress(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user use AI features (personalization, track builder, coaching)? Requires Elite (tier2). */
 export function canAccessAI(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier2;
 }
 
-/** Can the user build & mix AI-powered tracks? Requires Elite (tier2). */
 export function canBuildTracks(tier: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[tier] >= TIER_RANK.tier2;
 }
 
-/** Generic helper — check if user tier meets a minimum requirement. */
 export function meetsMinimumTier(userTier: UserTier, required: UserTier): boolean {
+  if (PAYMENTS_DISABLED) return true;
   return TIER_RANK[userTier] >= TIER_RANK[required];
 }
