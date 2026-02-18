@@ -482,6 +482,9 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                 onClick={() => setShowChallengeDialog(true)}
                 className="w-full px-6 py-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all text-center space-y-2"
               >
+                <p className="text-sm text-muted-foreground italic normal-case tracking-normal">
+                  "They say it takes 21 days to build a habit…"
+                </p>
                 <p className="text-foreground font-display text-lg md:text-xl font-bold tracking-[0.08em]">
                   The Identity Challenge
                 </p>
