@@ -1,61 +1,108 @@
 /**
  * Identity Challenge System
  * ─────────────────────────
- * Progressive 7 → 21 → 30 day challenge with tier gating.
- * - 7 Day Identity Activation (Free)
- * - 21 Day Installation (Pro)
- * - 30 Day Identity Shift (Elite/Pro)
+ * Progressive challenge levels that unlock sequentially.
+ * Only 3 visible at a time — completed ones go to trophy shelf.
+ * Days auto-log from recordings, track builds, and listens.
  *
- * Tracks daily completions, unlocks next level on completion.
+ * Levels: 1 → 3 → 7 → 30 → 60 → 90 → 120 → 180 → 365
  */
 
 const STORAGE_KEY = "smfm_challenge";
 
 export interface ChallengeLevel {
-  id: "activation" | "installation" | "shift";
+  id: string;
   name: string;
-  subtitle: string;
+  tagline: string;
   days: number;
-  requiredTier: "free" | "tier1" | "tier2";
   badge: string;
+  requiredTier: "free" | "tier1" | "tier2";
 }
 
 export const CHALLENGE_LEVELS: ChallengeLevel[] = [
   {
-    id: "activation",
-    name: "The 7-Day Identity Activation",
-    subtitle: "Prove it to yourself.",
-    days: 7,
+    id: "day1",
+    name: "First Step",
+    tagline: "Just once. That's all it takes to start.",
+    days: 1,
+    badge: "✦",
     requiredTier: "free",
+  },
+  {
+    id: "day3",
+    name: "The Spark",
+    tagline: "3 days. Prove you're serious.",
+    days: 3,
     badge: "🔥",
+    requiredTier: "free",
   },
   {
-    id: "installation",
-    name: "The 21-Day Installation",
-    subtitle: "Rewire the pattern.",
-    days: 21,
-    requiredTier: "tier1",
+    id: "day7",
+    name: "The 7-Day Identity Activation",
+    tagline: "You could do anything for 7 days… couldn't you?",
+    days: 7,
     badge: "⚡",
+    requiredTier: "free",
   },
   {
-    id: "shift",
-    name: "The 30-Day Identity Shift",
-    subtitle: "Full installation.",
+    id: "day30",
+    name: "The 30-Day Installation",
+    tagline: "This is where habits become identity.",
     days: 30,
+    badge: "🛡️",
     requiredTier: "tier1",
+  },
+  {
+    id: "day60",
+    name: "The 60-Day Rewire",
+    tagline: "The old patterns don't fit anymore.",
+    days: 60,
+    badge: "💎",
+    requiredTier: "tier1",
+  },
+  {
+    id: "day90",
+    name: "The 90-Day Identity Shift",
+    tagline: "You're not the same man who started.",
+    days: 90,
+    badge: "👑",
+    requiredTier: "tier1",
+  },
+  {
+    id: "day120",
+    name: "The 120-Day Transformation",
+    tagline: "People around you are starting to notice.",
+    days: 120,
+    badge: "🏛️",
+    requiredTier: "tier1",
+  },
+  {
+    id: "day180",
+    name: "The 180-Day Mastery",
+    tagline: "Half a year. This is who you are now.",
+    days: 180,
+    badge: "🔱",
+    requiredTier: "tier1",
+  },
+  {
+    id: "day365",
+    name: "The 365-Day Legend",
+    tagline: "One full year. Unrecognizable.",
+    days: 365,
     badge: "🏆",
+    requiredTier: "tier1",
   },
 ];
 
 export interface ChallengeData {
   /** Which challenge level is active */
-  activeLevel: ChallengeLevel["id"] | null;
+  activeLevel: string | null;
   /** ISO date strings of completed days */
   completedDays: string[];
   /** Date challenge was started */
   startDate: string | null;
   /** Completed challenge level IDs */
-  completedLevels: ChallengeLevel["id"][];
+  completedLevels: string[];
 }
 
 function today(): string {
@@ -80,7 +127,7 @@ function save(data: ChallengeData): void {
 }
 
 /** Start a challenge level */
-export function startChallenge(levelId: ChallengeLevel["id"]): void {
+export function startChallenge(levelId: string): void {
   const data = getChallengeData();
   data.activeLevel = levelId;
   data.startDate = today();
@@ -88,7 +135,7 @@ export function startChallenge(levelId: ChallengeLevel["id"]): void {
   save(data);
 }
 
-/** Log today as a completed challenge day */
+/** Log today as a completed challenge day. Returns true if level completed. */
 export function logChallengeDay(): boolean {
   const data = getChallengeData();
   if (!data.activeLevel) return false;
@@ -98,14 +145,23 @@ export function logChallengeDay(): boolean {
     data.completedDays.push(d);
   }
 
-  // Check if level is complete
   const level = CHALLENGE_LEVELS.find((l) => l.id === data.activeLevel);
   if (level && data.completedDays.length >= level.days) {
     if (!data.completedLevels.includes(data.activeLevel)) {
       data.completedLevels.push(data.activeLevel);
     }
+    // Auto-advance to next level
+    const idx = CHALLENGE_LEVELS.findIndex((l) => l.id === data.activeLevel);
+    const next = CHALLENGE_LEVELS[idx + 1];
+    if (next) {
+      data.activeLevel = next.id;
+      data.startDate = d;
+      data.completedDays = [];
+    } else {
+      data.activeLevel = null;
+    }
     save(data);
-    return true; // level completed!
+    return true;
   }
 
   save(data);
@@ -142,9 +198,6 @@ export function getChallengeStatus() {
     }
   }
 
-  // Next available level
-  const nextLevel = getNextAvailableLevel(data);
-
   return {
     active: !!data.activeLevel,
     level,
@@ -154,33 +207,47 @@ export function getChallengeStatus() {
     completedToday,
     currentStreak,
     completedLevels: data.completedLevels,
-    nextLevel,
     isLevelComplete: level ? daysCompleted >= level.days : false,
   };
 }
 
-function getNextAvailableLevel(data: ChallengeData): ChallengeLevel | null {
-  for (const level of CHALLENGE_LEVELS) {
-    if (!data.completedLevels.includes(level.id) && data.activeLevel !== level.id) {
-      return level;
+/** Get the 3 visible levels: current + next 2 unlocked ones */
+export function getVisibleLevels(): ChallengeLevel[] {
+  const data = getChallengeData();
+
+  // Find the first non-completed level
+  let startIdx = 0;
+  for (let i = 0; i < CHALLENGE_LEVELS.length; i++) {
+    if (!data.completedLevels.includes(CHALLENGE_LEVELS[i].id)) {
+      startIdx = i;
+      break;
+    }
+    if (i === CHALLENGE_LEVELS.length - 1) {
+      startIdx = CHALLENGE_LEVELS.length; // all done
     }
   }
-  return null;
+
+  return CHALLENGE_LEVELS.slice(startIdx, startIdx + 3);
+}
+
+/** Get completed levels as trophies */
+export function getCompletedTrophies(): ChallengeLevel[] {
+  const data = getChallengeData();
+  return CHALLENGE_LEVELS.filter((l) => data.completedLevels.includes(l.id));
 }
 
 /** Check if a specific level is unlocked (previous levels completed) */
-export function isLevelUnlocked(levelId: ChallengeLevel["id"]): boolean {
+export function isLevelUnlocked(levelId: string): boolean {
   const data = getChallengeData();
   const levelIndex = CHALLENGE_LEVELS.findIndex((l) => l.id === levelId);
   if (levelIndex === 0) return true;
-  // All previous levels must be completed
   for (let i = 0; i < levelIndex; i++) {
     if (!data.completedLevels.includes(CHALLENGE_LEVELS[i].id)) return false;
   }
   return true;
 }
 
-/** Reset challenge (for testing or restart) */
+/** Reset challenge */
 export function resetChallenge(): void {
   localStorage.removeItem(STORAGE_KEY);
 }

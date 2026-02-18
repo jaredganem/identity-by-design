@@ -25,10 +25,9 @@ const FEATURES: { name: string; free: boolean; pro: boolean; elite: boolean; cat
   { name: "Save & Replay 1 Track In-App", free: true, pro: true, elite: true, category: "Recording" },
   { name: "Progress & Streak Tracking", free: true, pro: true, elite: true, category: "Recording" },
   // Challenge
-  { name: "7-Day Identity Activation", free: true, pro: true, elite: true, category: "Identity Challenge" },
-  { name: "21-Day Installation Challenge", free: false, pro: true, elite: true, category: "Identity Challenge" },
-  { name: "30-Day Identity Shift Challenge", free: false, pro: true, elite: true, category: "Identity Challenge" },
-  { name: "Challenge Badges & Progression", free: true, pro: true, elite: true, category: "Identity Challenge" },
+  { name: "Identity Challenge (1, 3, 7 Day)", free: true, pro: true, elite: true, category: "Identity Challenge" },
+  { name: "Identity Challenge (30–365 Day)", free: false, pro: true, elite: true, category: "Identity Challenge" },
+  { name: "Challenge Trophy Shelf & Badges", free: true, pro: true, elite: true, category: "Identity Challenge" },
   // Pro
   { name: "Unlimited Saved Tracks", free: false, pro: true, elite: true, category: "Library & Export" },
   { name: "Save to Library", free: false, pro: true, elite: true, category: "Library & Export" },

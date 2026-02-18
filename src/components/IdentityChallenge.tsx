@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Trophy, Zap, ChevronRight } from "lucide-react";
+import { Lock, Trophy, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
   getChallengeStatus,
   startChallenge,
   isLevelUnlocked,
+  getVisibleLevels,
+  getCompletedTrophies,
   CHALLENGE_LEVELS,
   type ChallengeLevel,
 } from "@/lib/challengeTracker";
@@ -19,22 +21,19 @@ interface IdentityChallengeProps {
 
 const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
   const [status, setStatus] = useState(getChallengeStatus());
-  const [showCelebration, setShowCelebration] = useState(false);
+  const [visible, setVisible] = useState(getVisibleLevels());
+  const [trophies, setTrophies] = useState(getCompletedTrophies());
   const { tier } = useTier();
 
-  const refresh = () => setStatus(getChallengeStatus());
+  const refresh = () => {
+    setStatus(getChallengeStatus());
+    setVisible(getVisibleLevels());
+    setTrophies(getCompletedTrophies());
+  };
 
   useEffect(() => {
     refresh();
   }, []);
-
-  // Check if level just completed
-  useEffect(() => {
-    if (status.isLevelComplete && status.active) {
-      setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 4000);
-    }
-  }, [status.isLevelComplete, status.active]);
 
   const handleStart = (level: ChallengeLevel) => {
     if (!isLevelUnlocked(level.id)) return;
@@ -43,63 +42,62 @@ const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
       return;
     }
     startChallenge(level.id);
-    trackEvent("challenge_started", { level: level.id });
+    trackEvent("challenge_started", { level: level.id, days: level.days });
     refresh();
   };
 
+  const allComplete = trophies.length === CHALLENGE_LEVELS.length;
+
   return (
     <div className="w-full max-w-md mx-auto space-y-4">
-      {/* Level Completion Celebration */}
-      <AnimatePresence>
-        {showCelebration && status.level && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
-          >
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-              className="relative text-center p-8 rounded-2xl bg-card border border-primary/30 shadow-glow max-w-sm mx-4"
-            >
+      {/* Trophy Shelf */}
+      {trophies.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="rounded-xl border border-primary/15 bg-primary/5 p-3"
+        >
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-display mb-2 flex items-center gap-1.5">
+            <Trophy className="w-3 h-3 text-primary" />
+            Trophy Shelf
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {trophies.map((t) => (
               <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", delay: 0.4 }}
-                className="text-6xl mb-4"
+                key={t.id}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card border border-border/30"
+                title={t.name}
               >
-                {status.level.badge}
+                <span className="text-sm">{t.badge}</span>
+                <span className="text-[10px] text-foreground/70 font-display">{t.days}d</span>
               </motion.div>
-              <h3 className="font-display text-xl text-primary text-glow mb-2">
-                Challenge Complete
-              </h3>
-              <p className="text-sm text-foreground font-display font-bold mb-1">
-                {status.level.name}
-              </p>
-              <p className="text-xs text-muted-foreground normal-case tracking-normal">
-                You showed up {status.level.days} days. That's not motivation — that's identity.
-              </p>
-              <button
-                onClick={() => {
-                  setShowCelebration(false);
-                  refresh();
-                }}
-                className="mt-4 px-6 py-2 rounded-full bg-primary text-primary-foreground font-display font-bold text-xs uppercase tracking-wider"
-              >
-                Continue
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-      {/* Level cards */}
-      {CHALLENGE_LEVELS.map((level, i) => {
+      {/* All complete */}
+      {allComplete && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-4 space-y-2"
+        >
+          <p className="text-sm text-primary font-display font-bold">
+            All Challenges Complete
+          </p>
+          <p className="text-xs text-muted-foreground normal-case tracking-normal">
+            365 days. One full year. You're not the same man who started this.
+          </p>
+        </motion.div>
+      )}
+
+      {/* Visible levels (max 3) */}
+      {!allComplete && visible.map((level, i) => {
         const unlocked = isLevelUnlocked(level.id);
-        const completed = status.completedLevels.includes(level.id);
         const isActive = status.level?.id === level.id;
         const tierOk = meetsMinimumTier(tier, level.requiredTier);
 
@@ -108,33 +106,29 @@ const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
             key={level.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.08 }}
             className={`rounded-xl border p-4 transition-all ${
               isActive
                 ? "border-primary/40 bg-primary/5"
-                : completed
-                ? "border-primary/20 bg-primary/5 opacity-70"
                 : unlocked && tierOk
-                ? "border-border/40 hover:border-primary/30"
-                : "border-border/20 opacity-40"
+                ? "border-border/30 hover:border-primary/30"
+                : "border-border/20 opacity-50"
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{completed ? "✅" : level.badge}</span>
+              <span className="text-2xl">{level.badge}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-display font-bold text-foreground">{level.name}</p>
-                <p className="text-xs text-muted-foreground normal-case tracking-normal">
-                  {completed
-                    ? "Completed — Badge earned"
-                    : !unlocked
-                    ? `Complete ${CHALLENGE_LEVELS[i - 1]?.name} first`
+                <p className="text-xs text-muted-foreground normal-case tracking-normal italic">
+                  {!unlocked
+                    ? "Complete the previous challenge first"
                     : !tierOk
                     ? `Requires ${level.requiredTier === "tier1" ? "Pro" : "Elite"}`
-                    : `${level.days} days • ${level.subtitle}`}
+                    : level.tagline}
                 </p>
               </div>
               {!unlocked && <Lock className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
-              {!tierOk && unlocked && !completed && (
+              {!tierOk && unlocked && (
                 <Zap className="w-4 h-4 text-primary flex-shrink-0" />
               )}
             </div>
@@ -151,28 +145,32 @@ const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
                   </span>
                 </div>
                 <Progress value={status.progressPercent} className="h-2" />
-                {/* Day dots */}
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {Array.from({ length: status.totalDays }, (_, j) => {
-                    const dayDone = j < status.daysCompleted;
-                    const isToday = j === status.daysCompleted && !status.completedToday;
-                    return (
-                      <div
-                        key={j}
-                        className={`w-2.5 h-2.5 rounded-full transition-all ${
-                          dayDone
-                            ? "bg-primary shadow-[0_0_4px_hsl(195_100%_29%/0.5)]"
-                            : isToday
-                            ? "border border-primary/50 bg-transparent animate-pulse-slow"
-                            : "bg-border/30"
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
+                {/* Day dots for short challenges */}
+                {level.days <= 30 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {Array.from({ length: status.totalDays }, (_, j) => {
+                      const dayDone = j < status.daysCompleted;
+                      const isToday = j === status.daysCompleted && !status.completedToday;
+                      return (
+                        <div
+                          key={j}
+                          className={`w-2.5 h-2.5 rounded-full transition-all ${
+                            dayDone
+                              ? "bg-primary shadow-[0_0_4px_hsl(195_100%_29%/0.5)]"
+                              : isToday
+                              ? "border border-primary/50 bg-transparent animate-pulse-slow"
+                              : "bg-border/30"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
                 {status.currentStreak > 0 && (
                   <p className="text-[10px] text-center text-primary/70 italic normal-case tracking-normal pt-1">
-                    {status.currentStreak >= 14
+                    {status.currentStreak >= 30
+                      ? "This is who you are now."
+                      : status.currentStreak >= 14
                       ? "You're becoming someone new. Keep going."
                       : status.currentStreak >= 7
                       ? "One week down. The pattern is shifting."
@@ -184,21 +182,21 @@ const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
               </div>
             )}
 
-            {/* Start button for unlocked, not active, not completed */}
-            {!isActive && !completed && unlocked && tierOk && (
+            {/* Start button */}
+            {!isActive && unlocked && tierOk && (
               <button
                 onClick={() => handleStart(level)}
-                className="mt-3 w-full py-2 rounded-lg bg-primary/10 text-primary font-display font-bold text-xs uppercase tracking-wider hover:bg-primary/20 transition-colors"
+                className="mt-3 w-full py-2.5 rounded-lg bg-primary/10 text-primary font-display font-bold text-xs uppercase tracking-wider hover:bg-primary/20 transition-colors"
               >
-                Begin Challenge
+                Begin {level.days === 1 ? "First Session" : `${level.days}-Day Challenge`}
               </button>
             )}
 
-            {/* Upgrade prompt for tier-gated */}
-            {!tierOk && unlocked && !completed && (
+            {/* Upgrade prompt */}
+            {!tierOk && unlocked && (
               <button
                 onClick={() => onNeedsUpgrade?.(level.requiredTier as "tier1" | "tier2")}
-                className="mt-3 w-full py-2 rounded-lg border border-primary/30 text-primary font-display font-bold text-xs uppercase tracking-wider hover:bg-primary/10 transition-colors"
+                className="mt-3 w-full py-2.5 rounded-lg border border-primary/30 text-primary font-display font-bold text-xs uppercase tracking-wider hover:bg-primary/10 transition-colors"
               >
                 Unlock with Pro →
               </button>
@@ -207,30 +205,9 @@ const IdentityChallenge = ({ onNeedsUpgrade }: IdentityChallengeProps) => {
         );
       })}
 
-      {/* All completed */}
-      {status.completedLevels.length === 3 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-4 space-y-2"
-        >
-          <div className="flex justify-center gap-2 text-2xl">
-            {CHALLENGE_LEVELS.map((l) => (
-              <span key={l.id}>{l.badge}</span>
-            ))}
-          </div>
-          <p className="text-sm text-primary font-display font-bold">
-            All Challenges Complete
-          </p>
-          <p className="text-xs text-muted-foreground normal-case tracking-normal">
-            You've completed the full Identity Challenge. You're not the same man who started.
-          </p>
-        </motion.div>
-      )}
-
       <div className="text-center pt-2">
         <p className="text-[10px] text-muted-foreground normal-case tracking-normal italic">
-          Days are logged automatically when you record or listen to a session.
+          Days log automatically when you record or listen to a session.
         </p>
       </div>
     </div>
