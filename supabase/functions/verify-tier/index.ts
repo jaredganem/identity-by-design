@@ -14,6 +14,14 @@ serve(async (req) => {
   try {
     const { email, session_id } = await req.json();
 
+    // Basic email validation to prevent abuse
+    if (email && (typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!email && !session_id) {
       return new Response(
         JSON.stringify({ error: "email or session_id required" }),
