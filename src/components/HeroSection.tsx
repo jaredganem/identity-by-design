@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
 import { getProgressStats, isReturningUser } from "@/lib/streakTracker";
+import { getSavedTracks, type SavedTrack } from "@/lib/savedTrackStorage";
+import { audioEngine } from "@/lib/audioEngine";
 import {
   Dialog,
   DialogContent,
@@ -55,12 +57,34 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   const [showModes, setShowModes] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [stats, setStats] = useState<ReturnType<typeof getProgressStats> | null>(null);
+  const [savedTrack, setSavedTrack] = useState<SavedTrack | null>(null);
+  const [isPlayingSaved, setIsPlayingSaved] = useState(false);
+  const savedPlayerRef = useRef<{ stop: () => void } | null>(null);
 
   useEffect(() => {
     if (isReturningUser()) {
       setStats(getProgressStats());
     }
+    getSavedTracks().then((tracks) => {
+      if (tracks.length > 0) setSavedTrack(tracks[0]);
+    }).catch(() => {});
   }, []);
+
+  const handlePlaySaved = async () => {
+    if (!savedTrack) return;
+    if (isPlayingSaved) {
+      savedPlayerRef.current?.stop();
+      setIsPlayingSaved(false);
+      return;
+    }
+    const ctx = audioEngine.getContext();
+    const buf = await ctx.decodeAudioData(await savedTrack.blob.arrayBuffer());
+    const player = audioEngine.playBuffer(buf);
+    savedPlayerRef.current = player;
+    setIsPlayingSaved(true);
+    import("@/lib/streakTracker").then(({ logActivity }) => logActivity("listen"));
+    setTimeout(() => setIsPlayingSaved(false), buf.duration * 1000);
+  };
 
   const toggleCard = (id: string) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -167,6 +191,25 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
               <Trophy className="w-3 h-3 inline mr-0.5" />
               Best streak: {stats.longestStreak} days
             </p>
+          )}
+          {/* Saved track quick replay */}
+          {savedTrack && (
+            <div className="mt-3 pt-3 border-t border-primary/10">
+              <button
+                onClick={handlePlaySaved}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  {isPlayingSaved ? <Pause className="w-4 h-4 text-primary" /> : <Play className="w-4 h-4 text-primary ml-0.5" />}
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{savedTrack.name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {Math.round(savedTrack.durationSec / 60)} min • Tap to {isPlayingSaved ? "stop" : "play"}
+                  </p>
+                </div>
+              </button>
+            </div>
           )}
         </motion.div>
       ) : libraryCount > 0 ? (
