@@ -29,8 +29,7 @@ const SoundscapeSelector = ({
 
   // --- Frequency preview state ---
   const [isPreviewingFreq, setIsPreviewingFreq] = useState(false);
-  const freqOscRef = useRef<OscillatorNode | null>(null);
-  const freqGainRef = useRef<GainNode | null>(null);
+  const freqNodesRef = useRef<AudioNode[]>([]);
   const freqCtxRef = useRef<AudioContext | null>(null);
   const freqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -41,14 +40,14 @@ const SoundscapeSelector = ({
 
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // --- Frequency preview ---
+  // --- Frequency preview (rich drone) ---
   const stopFreqPreview = () => {
     if (freqTimerRef.current) { clearTimeout(freqTimerRef.current); freqTimerRef.current = null; }
-    if (freqOscRef.current) {
-      try { freqOscRef.current.stop(); } catch {}
-      freqOscRef.current = null;
+    for (const node of freqNodesRef.current) {
+      try { (node as OscillatorNode).stop?.(); } catch {}
+      try { node.disconnect(); } catch {}
     }
-    if (freqGainRef.current) { freqGainRef.current.disconnect(); freqGainRef.current = null; }
+    freqNodesRef.current = [];
     setIsPreviewingFreq(false);
   };
 
@@ -58,20 +57,60 @@ const SoundscapeSelector = ({
 
     if (!freqCtxRef.current) freqCtxRef.current = new AudioContext();
     const ctx = freqCtxRef.current;
+    const nodes: AudioNode[] = [];
+    const f = freq.frequency;
 
-    const gain = ctx.createGain();
-    gain.gain.value = 0.25;
-    gain.connect(ctx.destination);
-    freqGainRef.current = gain;
+    // Synthetic reverb impulse
+    const irLen = Math.floor(ctx.sampleRate * 2);
+    const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = irBuf.getChannelData(ch);
+      for (let i = 0; i < irLen; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-3.5 * i / irLen);
+    }
+    const convolver = ctx.createConvolver();
+    convolver.buffer = irBuf;
 
-    const osc = ctx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.value = freq.frequency;
-    osc.connect(gain);
-    osc.start();
-    freqOscRef.current = osc;
+    const dryGain = ctx.createGain();
+    dryGain.gain.value = 0.45;
+    const wetGain = ctx.createGain();
+    wetGain.gain.value = 0.55;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0, ctx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.8);
+
+    dryGain.connect(masterGain);
+    convolver.connect(wetGain);
+    wetGain.connect(masterGain);
+    masterGain.connect(ctx.destination);
+    nodes.push(dryGain, wetGain, convolver, masterGain);
+
+    // Multi-voice drone
+    const voices = [
+      { freq: f, gain: 0.35, detune: 0 },
+      { freq: f, gain: 0.18, detune: 5 },
+      { freq: f, gain: 0.18, detune: -5 },
+      { freq: f * 2, gain: 0.06, detune: 2 },
+      { freq: f * 0.5, gain: 0.10, detune: 0 },
+      { freq: f * 3, gain: 0.03, detune: -3 },
+    ];
+
+    for (const v of voices) {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = v.freq;
+      osc.detune.value = v.detune;
+      const g = ctx.createGain();
+      g.gain.value = v.gain;
+      osc.connect(g);
+      g.connect(dryGain);
+      g.connect(convolver);
+      osc.start();
+      nodes.push(osc, g);
+    }
+
+    freqNodesRef.current = nodes;
     setIsPreviewingFreq(true);
-
     freqTimerRef.current = setTimeout(() => stopFreqPreview(), 10000);
   };
 
