@@ -10,6 +10,9 @@ import AdminInsights from "./pages/AdminInsights";
 import NotFound from "./pages/NotFound";
 import InAppBrowserBanner from "./components/InAppBrowserBanner";
 import FeedbackButton from "./components/FeedbackButton";
+import { captureReferral } from "./lib/referral";
+
+captureReferral();
 
 const queryClient = new QueryClient();
 

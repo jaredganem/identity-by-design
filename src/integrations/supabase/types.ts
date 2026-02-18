@@ -152,6 +152,7 @@ export type Database = {
           last_name: string | null
           name: string
           promo_tier: string | null
+          referral_code: string | null
         }
         Insert: {
           created_at?: string
@@ -161,6 +162,7 @@ export type Database = {
           last_name?: string | null
           name: string
           promo_tier?: string | null
+          referral_code?: string | null
         }
         Update: {
           created_at?: string
@@ -170,6 +172,7 @@ export type Database = {
           last_name?: string | null
           name?: string
           promo_tier?: string | null
+          referral_code?: string | null
         }
         Relationships: []
       }
@@ -259,6 +262,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_email: string | null
+          referred_lead_id: string | null
+          referrer_code: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_email?: string | null
+          referred_lead_id?: string | null
+          referrer_code: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_email?: string | null
+          referred_lead_id?: string | null
+          referrer_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_lead_id_fkey"
+            columns: ["referred_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
