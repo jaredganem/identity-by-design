@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import NeuralNetwork from "@/components/SacredGeometry";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { logReferral } from "@/lib/referral";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -45,6 +46,8 @@ const Auth = () => {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
+        // Log referral attribution on signup
+        logReferral(email);
         toast({
           title: "Check your email",
           description: "We sent you a confirmation link to verify your account.",
