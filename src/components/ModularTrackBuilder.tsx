@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus, Sparkles, Shuffle, Send } from "lucide-react";
+import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus, Sparkles, Shuffle, Send, Save } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -477,14 +477,44 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
-              {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-              {isPlaying ? "Stop" : "Preview"}
-            </Button>
-            <Button onClick={handleDownload} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Download className="w-4 h-4 mr-2" />
-              Download My Program
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-3">
+              <Button onClick={handlePlayback} variant="outline" className="flex-1 border-primary/30 hover:bg-primary/10">
+                {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                {isPlaying ? "Stop" : "Preview"}
+              </Button>
+              <Button onClick={handleDownload} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Download className="w-4 h-4 mr-2" />
+                Download My Program
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full border-primary/30 hover:bg-primary/10"
+              onClick={async () => {
+                if (!finalBlob) return;
+                const { canSaveTrack, saveTrack } = await import("@/lib/savedTrackStorage");
+                const allowed = await canSaveTrack("free");
+                if (!allowed) {
+                  toast({ title: "Limit reached", description: "Free users can save 1 track. Upgrade for unlimited." });
+                  return;
+                }
+                const ctx = audioEngine.getContext();
+                const buf = await ctx.decodeAudioData(await finalBlob.arrayBuffer());
+                await saveTrack({
+                  id: crypto.randomUUID(),
+                  name: "Library Installation",
+                  blob: finalBlob,
+                  durationSec: Math.round(buf.duration),
+                  createdAt: Date.now(),
+                  mode: "library",
+                });
+                trackEvent("track_saved_to_app", { mode: "library" });
+                toast({ title: "Saved ✓", description: "Track saved to your app. Come back anytime to replay it." });
+              }}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save to App
             </Button>
           </div>
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />
