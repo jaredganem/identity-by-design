@@ -454,7 +454,7 @@ const Player = ({ onBack }: PlayerProps) => {
               <div>
                 <p className="text-xs font-display font-bold uppercase tracking-wider text-foreground">Subliminal Saturation</p>
                 <p className="text-[10px] text-muted-foreground normal-case tracking-normal mt-1 leading-relaxed">
-                  Layers your own voice at near-inaudible volume — flooding the environment with your identity programming whether you're focused on it or not.
+                  Layers your own voice at near-inaudible volumes, bypassing your conscious awareness and allowing your identity to install even deeper.
                 </p>
               </div>
               {/* Intensity */}
