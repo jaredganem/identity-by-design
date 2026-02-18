@@ -90,12 +90,6 @@ const Index = () => {
   };
 
   const handleModeSelect = (m: Mode) => {
-    if (!hasLeadCaptured()) {
-      setPendingMode(m);
-      setShowLeadCapture(true);
-      trackEvent("lead_gate_viewed", { trigger: "mode_select", mode: m });
-      return;
-    }
     setMode(m);
     trackEvent("mode_selected", { mode: m });
   };
