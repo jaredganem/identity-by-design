@@ -46,28 +46,72 @@ export function getFrequencyById(id: string): Soundscape | undefined {
 }
 
 /**
- * Generate a pure sine-wave AudioBuffer at the given frequency.
+ * Generate a rich drone-style healing frequency AudioBuffer.
+ * Uses multiple detuned oscillators + harmonics rendered through
+ * a synthetic impulse-response reverb for depth.
  */
-export function generateToneBuffer(
+export async function generateToneBuffer(
   frequency: number,
   sampleRate = 44100,
   durationSec = 10
-): AudioBuffer {
+): Promise<AudioBuffer> {
   const length = sampleRate * durationSec;
   const ctx = new OfflineAudioContext(2, length, sampleRate);
-  const buffer = ctx.createBuffer(2, length, sampleRate);
 
+  // Create a simple synthetic impulse response for reverb
+  const irLength = sampleRate * 2.5; // 2.5s reverb tail
+  const irBuffer = ctx.createBuffer(2, irLength, sampleRate);
   for (let ch = 0; ch < 2; ch++) {
-    const data = buffer.getChannelData(ch);
-    for (let i = 0; i < length; i++) {
-      const t = i / sampleRate;
-      data[i] = Math.sin(2 * Math.PI * frequency * t) * 0.8
-              + Math.sin(2 * Math.PI * frequency * 2 * t) * 0.1
-              + Math.sin(2 * Math.PI * frequency * 3 * t) * 0.05;
+    const data = irBuffer.getChannelData(ch);
+    for (let i = 0; i < irLength; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-3.5 * i / irLength);
     }
   }
 
-  return buffer;
+  const convolver = ctx.createConvolver();
+  convolver.buffer = irBuffer;
+
+  const dryGain = ctx.createGain();
+  dryGain.gain.value = 0.5;
+  const wetGain = ctx.createGain();
+  wetGain.gain.value = 0.5;
+
+  dryGain.connect(ctx.destination);
+  convolver.connect(wetGain);
+  wetGain.connect(ctx.destination);
+
+  // Drone: multiple slightly-detuned oscillators for chorusing
+  const voices: { freq: number; gain: number; detune: number; type: OscillatorType }[] = [
+    { freq: frequency, gain: 0.35, detune: 0, type: "sine" },
+    { freq: frequency, gain: 0.20, detune: 4, type: "sine" },    // slightly sharp
+    { freq: frequency, gain: 0.20, detune: -4, type: "sine" },   // slightly flat
+    { freq: frequency * 2, gain: 0.06, detune: 2, type: "sine" }, // octave harmonic
+    { freq: frequency * 3, gain: 0.03, detune: -3, type: "sine" }, // fifth harmonic
+    { freq: frequency * 0.5, gain: 0.10, detune: 0, type: "sine" }, // sub-octave drone
+  ];
+
+  for (const v of voices) {
+    const osc = ctx.createOscillator();
+    osc.type = v.type;
+    osc.frequency.value = v.freq;
+    osc.detune.value = v.detune;
+
+    const gain = ctx.createGain();
+    // Fade in over 0.5s, fade out over 0.5s
+    gain.gain.setValueAtTime(0, 0);
+    gain.gain.linearRampToValueAtTime(v.gain, 0.5);
+    gain.gain.setValueAtTime(v.gain, durationSec - 0.5);
+    gain.gain.linearRampToValueAtTime(0, durationSec);
+
+    osc.connect(gain);
+    gain.connect(dryGain);
+    gain.connect(convolver);
+
+    osc.start(0);
+    osc.stop(durationSec);
+  }
+
+  return ctx.startRendering();
 }
 
 /**
