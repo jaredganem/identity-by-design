@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowUpDown } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowUpDown, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { getAllAffirmationsSync as getAllAffirmations, deleteAffirmationSync as deleteAffirmation, updateAffirmationNameSync as updateAffirmationName, moveAffirmationToCategorySync as moveAffirmationToCategory, renameCategorySync as renameCategory } from "@/lib/cloudStorage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -558,7 +559,7 @@ const AffirmationLibrary = ({
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-0.5">
+                          <div className="flex items-center gap-0.5 flex-shrink-0">
                             {selectable && (
                               <button
                                 onClick={() => onToggleSelect?.(item)}
@@ -576,28 +577,24 @@ const AffirmationLibrary = ({
                                 )}
                               </button>
                             )}
-                            <button
-                              onClick={() => setMovingItem({ item, category })}
-                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                              title="Move to category"
-                            >
-                              <ArrowUpDown className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleRenameOne(item)}
-                              disabled={isRenaming}
-                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
-                              title="Rename with AI"
-                            >
-                              <Sparkles className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(item)}
-                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                                  <MoreVertical className="w-4 h-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="min-w-[160px]">
+                                <DropdownMenuItem onClick={() => setMovingItem({ item, category })}>
+                                  <ArrowUpDown className="w-3.5 h-3.5 mr-2" /> Move
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleRenameOne(item)} disabled={isRenaming}>
+                                  <Sparkles className="w-3.5 h-3.5 mr-2" /> Rename with AI
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete(item)} className="text-destructive focus:text-destructive">
+                                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       );
