@@ -40,6 +40,7 @@ const SoundscapeSelector = ({
   const freqNodesRef = useRef<AudioNode[]>([]);
   const freqCtxRef = useRef<AudioContext | null>(null);
   const freqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const freqAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- Soundscape preview state ---
   const [isPreviewingSoundscape, setIsPreviewingSoundscape] = useState(false);
@@ -48,9 +49,14 @@ const SoundscapeSelector = ({
 
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // --- Frequency preview (rich drone) ---
+  // --- Frequency preview (file-first, fallback to drone) ---
   const stopFreqPreview = () => {
     if (freqTimerRef.current) { clearTimeout(freqTimerRef.current); freqTimerRef.current = null; }
+    if (freqAudioRef.current) {
+      freqAudioRef.current.pause();
+      freqAudioRef.current.currentTime = 0;
+      freqAudioRef.current = null;
+    }
     for (const node of freqNodesRef.current) {
       try { (node as OscillatorNode).stop?.(); } catch {}
       try { node.disconnect(); } catch {}
@@ -61,20 +67,25 @@ const SoundscapeSelector = ({
 
   const startFreqPreview = (freq: Soundscape) => {
     stopFreqPreview();
+    // Play file if available
+    if (freq.path) {
+      const audio = new Audio(freq.path);
+      audio.volume = 0.35;
+      audio.play().catch(() => {});
+      freqAudioRef.current = audio;
+      setIsPreviewingFreq(true);
+      freqTimerRef.current = setTimeout(() => stopFreqPreview(), 10000);
+      return;
+    }
     if (!freq.frequency) return;
-
     if (!freqCtxRef.current) freqCtxRef.current = new AudioContext();
     const ctx = freqCtxRef.current;
-
-    // Master gain with fade-in
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0, ctx.currentTime);
     masterGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 1.0);
     masterGain.connect(ctx.destination);
-
     const nodes = buildDroneGraphLive(ctx, freq.frequency, masterGain);
     nodes.push(masterGain);
-
     freqNodesRef.current = nodes;
     setIsPreviewingFreq(true);
     freqTimerRef.current = setTimeout(() => stopFreqPreview(), 10000);
