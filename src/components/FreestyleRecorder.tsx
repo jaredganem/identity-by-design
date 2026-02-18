@@ -54,15 +54,17 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const { toast } = useToast();
 
   const transcribeClip = async (blob: Blob) => {
-    const arrayBuffer = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    // Chunk-based base64 to avoid freezing the main thread on large blobs
-    let binary = "";
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
+    // Use FileReader for non-blocking base64 encoding
+    const base64: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Strip the data URL prefix to get raw base64
+        resolve(result.split(",")[1] || "");
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
     const { data, error } = await supabase.functions.invoke("transcribe-clip", {
       body: { audioBase64: base64, mimeType: blob.type },
     });
