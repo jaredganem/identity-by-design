@@ -34,5 +34,7 @@ export function loadEnvironment(): EnvironmentSettings {
 export function saveEnvironment(settings: EnvironmentSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    // Dispatch event so other components can react
+    window.dispatchEvent(new CustomEvent("environment-changed", { detail: settings }));
   } catch {}
 }

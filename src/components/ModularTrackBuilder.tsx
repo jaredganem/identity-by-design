@@ -32,7 +32,18 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [freqVolume, setFreqVolume] = useState(() => loadEnvironment().freqVolume);
+  const [freqLabel, setFreqLabel] = useState(() => (HEALING_FREQUENCIES.find(f => f.id === loadEnvironment().frequencyId) || HEALING_FREQUENCIES[0]).label);
   const [loopCount, setLoopCount] = useState(3);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const env = (e as CustomEvent).detail as EnvironmentSettings;
+      setFreqLabel((HEALING_FREQUENCIES.find(f => f.id === env.frequencyId) || HEALING_FREQUENCIES[0]).label);
+      setFreqVolume(env.freqVolume);
+    };
+    window.addEventListener("environment-changed", handler);
+    return () => window.removeEventListener("environment-changed", handler);
+  }, []);
   
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -433,7 +444,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">{(HEALING_FREQUENCIES.find(f => f.id === loadEnvironment().frequencyId) || HEALING_FREQUENCIES[3]).label} Frequency Level</label>
+              <label className="text-sm font-medium text-foreground">{freqLabel} Frequency Level</label>
               <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
             </div>
             <Slider value={[freqVolume]} onValueChange={([v]) => { setFreqVolume(v); const env = loadEnvironment(); saveEnvironment({ ...env, freqVolume: v }); }} max={1} step={0.01} className="w-full" />

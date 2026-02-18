@@ -145,6 +145,7 @@ const SetYourEnvironment = () => {
         <span className="flex items-center gap-2">
           <Settings className="w-4 h-4" />
           <span>Set Your Environment</span>
+          <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground/70">Pro / Elite</span>
           {!isPro && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] rounded-full border border-primary/40 text-primary bg-primary/5">
               <Lock className="w-2.5 h-2.5" /> Pro
