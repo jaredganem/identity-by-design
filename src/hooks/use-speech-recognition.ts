@@ -44,12 +44,13 @@ export function useSpeechRecognition() {
         for (let i = 0; i < event.results.length; i++) {
           const result = event.results[i];
           if (result.isFinal) {
-            final += result[0].transcript;
+            final += result[0].transcript + " ";
           } else {
-            interim += result[0].transcript;
+            // Only use the LAST interim result to avoid stuttering repeats
+            interim = result[0].transcript;
           }
         }
-        fullTranscript.current = final;
+        fullTranscript.current = final.trim();
         const combined = (final + interim).trim();
         setTranscript(combined);
         console.log("[SpeechRecognition] Heard:", combined);
