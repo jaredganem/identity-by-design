@@ -37,7 +37,7 @@ const InstallBanner = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="relative z-20 max-w-2xl mx-auto px-6 mb-4"
+          className="relative z-10 max-w-2xl mx-auto px-6 mb-4"
         >
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm">
             <div className="w-8 h-8 shrink-0 rounded-lg bg-primary/15 flex items-center justify-center">
