@@ -22,14 +22,16 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 max-w-2xl mx-auto px-6 py-12 mt-8 space-y-4">
-      {/* Share CTA */}
-      <button
-        onClick={handleShare}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary text-xs font-display tracking-wide"
-      >
-        <Share2 className="w-3.5 h-3.5" />
-        Know someone who'd love this? Share the app
-      </button>
+      <div className="text-center space-y-1">
+        <button
+          onClick={handleShare}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/30 transition-colors text-muted-foreground hover:text-primary text-xs font-display tracking-wide"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          Share the App
+        </button>
+        <p className="text-[10px] text-muted-foreground">Refer a friend</p>
+      </div>
 
       <div className="rounded-2xl bg-gradient-card border border-border p-5 text-center">
         <p className="text-xs text-muted-foreground leading-relaxed normal-case tracking-normal">
