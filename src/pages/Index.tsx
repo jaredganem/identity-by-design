@@ -11,7 +11,7 @@ import ModularTrackBuilder from "@/components/ModularTrackBuilder";
 import Player from "@/components/Player";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
-import { trackPageView } from "@/lib/analytics";
+import { trackPageView, trackEvent } from "@/lib/analytics";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -83,7 +83,10 @@ const Index = () => {
 
       <AnimatePresence mode="wait">
         {!mode ? (
-          <HeroSection key="hero" onStart={(m) => setMode(m as Mode)} />
+          <HeroSection key="hero" onStart={(m) => {
+            setMode(m as Mode);
+            trackEvent("mode_selected", { mode: m });
+          }} />
         ) : mode === "player" ? (
           <Player key="player" onBack={handleBack} />
         ) : (

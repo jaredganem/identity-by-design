@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Lightbulb, Bug, Sparkles, Trophy } from "lucide
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 
 const CATEGORIES = [
   { id: "feedback", label: "Feedback", icon: Lightbulb },
@@ -38,6 +39,7 @@ const FeedbackButton = () => {
         email: email.trim() || null,
       } as any);
 
+      trackEvent("feedback_submitted", { category });
       toast({ 
         title: category === "win" ? "Love to hear it! 🔥" : "Thanks! 🙏", 
         description: category === "win" ? "Your story fuels the mission." : "Your feedback helps us build something great." 
