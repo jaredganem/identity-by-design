@@ -18,6 +18,7 @@ import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage
 import CompletionShareCTA from "@/components/CompletionShareCTA";
 import UpgradeNudge from "@/components/UpgradeNudge";
 import TrialBanner from "@/components/TrialBanner";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -71,6 +72,8 @@ const Index = () => {
   const [clips, setClips] = useState<Blob[]>([]);
   const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
   const [libraryCount, setLibraryCount] = useState(0);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
+  const [pendingMode, setPendingMode] = useState<Mode | null>(null);
 
   useEffect(() => {
     trackPageView("/");
@@ -85,6 +88,25 @@ const Index = () => {
     setClips([]);
   };
 
+  const handleModeSelect = (m: Mode) => {
+    if (!hasLeadCaptured()) {
+      setPendingMode(m);
+      setShowLeadCapture(true);
+      return;
+    }
+    setMode(m);
+    trackEvent("mode_selected", { mode: m });
+  };
+
+  const handleLeadSuccess = () => {
+    setShowLeadCapture(false);
+    if (pendingMode) {
+      setMode(pendingMode);
+      trackEvent("mode_selected", { mode: pendingMode });
+      setPendingMode(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-sacred relative overflow-hidden">
       <NeuralNetwork />
@@ -92,10 +114,7 @@ const Index = () => {
 
       <AnimatePresence mode="wait">
         {!mode ? (
-          <HeroSection key="hero" libraryCount={libraryCount} onStart={(m) => {
-            setMode(m as Mode);
-            trackEvent("mode_selected", { mode: m });
-          }} />
+          <HeroSection key="hero" libraryCount={libraryCount} onStart={handleModeSelect} />
         ) : mode === "player" ? (
           <Player key="player" onBack={handleBack} />
         ) : (
@@ -296,6 +315,11 @@ const Index = () => {
 
       <InstallBanner />
       <Footer />
+      <LeadCaptureGate
+        open={showLeadCapture}
+        onClose={() => { setShowLeadCapture(false); setPendingMode(null); }}
+        onSuccess={handleLeadSuccess}
+      />
     </div>
   );
 };
