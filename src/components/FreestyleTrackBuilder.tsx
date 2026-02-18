@@ -114,8 +114,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
       setProgress("Loading background layers...");
       const soundscape = getSoundscapeById(env.soundscapeId);
-      const effectiveFreqId = (tier === "free" || tier === "tier1") && env.frequencyId !== "417hz" ? "417hz" : env.frequencyId;
-      const frequency = getFrequencyById(effectiveFreqId);
+      const frequency = getFrequencyById(env.frequencyId);
       const bgBuffer = soundscape && soundscape.id !== "none" ? await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b)) : null;
       const freqBuffer = frequency ? await loadSoundscapeBuffer(frequency, (b) => audioEngine.decodeBlob(b)) : null;
 

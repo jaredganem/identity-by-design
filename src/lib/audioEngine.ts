@@ -157,9 +157,12 @@ export class AudioEngine {
   }
 
   /**
-   * Mix voice buffer with background layers, looping voice with smooth crossfades.
-   * Supports an ambient soundscape and/or a healing frequency tone.
-   * Voice never fades — only backgrounds fade at the very end.
+   * Mix voice buffer with background layers, using professional cascading fades.
+   *
+   * Fade-in order:  Hz first → Voice → Background soundscape
+   * Fade-out order: Voice first → Background → Hz last
+   *
+   * Voice loops use smooth crossfade overlaps (no gaps, no warbling).
    */
   async mixWithBackgroundAndLoop(
     voiceBuffer: AudioBuffer,
@@ -169,66 +172,109 @@ export class AudioEngine {
     frequencyBuffer?: AudioBuffer | null,
     freqVolume?: number
   ): Promise<AudioBuffer> {
-    const sampleRate = voiceBuffer.sampleRate;
-    const voiceLen = voiceBuffer.length;
-    const tailSeconds = 3;
-    const tailSamples = Math.floor(sampleRate * tailSeconds);
-    const bgFadeInSeconds = 3;
-    const voiceDelaySeconds = 2;
-    const voiceDelaySamples = Math.floor(sampleRate * voiceDelaySeconds);
+    const sr = voiceBuffer.sampleRate;
+    const voiceDur = voiceBuffer.length / sr;
+    const fv = freqVolume ?? bgVolume;
 
-    const gapSamples = Math.floor(sampleRate * 1.5);
-    let totalVoiceLength: number;
-    if (loopCount <= 1) {
-      totalVoiceLength = voiceLen;
-    } else {
-      totalVoiceLength = voiceLen * loopCount + gapSamples * (loopCount - 1);
-    }
-    const totalLength = voiceDelaySamples + totalVoiceLength + tailSamples;
+    // ── Timing constants ──
+    const hzFadeInSec = 3;       // Hz fades in over 3s (starts at t=0)
+    const voiceStartSec = 2;     // Voice enters 2s after Hz begins
+    const bgStartSec = 3;        // Background enters after Hz is fully in
+    const xfadeSec = 0.8;        // Crossfade overlap between voice loops
+    const voiceFadeOutSec = 3;   // Voice fades out over 3s at end
+    const bgFadeInSec = 3;       // Background fade-in duration
+    const bgFadeOutSec = 3;      // Background fade-out duration
+    const bgTailSec = 3;         // Background continues 3s after voice ends
+    const hzFadeOutSec = 3;      // Hz fade-out duration
+    const hzTailSec = 3;         // Hz continues 3s after background ends
 
-    const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
-    const voiceEndTime = (voiceDelaySamples + totalVoiceLength) / sampleRate;
-    const endTime = totalLength / sampleRate;
+    // ── Calculate voice timeline ──
+    // With crossfade overlaps, total voice duration is shorter than simple multiplication
+    const voiceTotalDur = loopCount <= 1
+      ? voiceDur
+      : voiceDur * loopCount - xfadeSec * (loopCount - 1);
 
-    // --- Voice loops ---
-    for (let loop = 0; loop < loopCount; loop++) {
-      const startSample = voiceDelaySamples + loop * (voiceLen + gapSamples);
-      const startTime = startSample / sampleRate;
+    // ── Key timepoints ──
+    const voiceEndSec = voiceStartSec + voiceTotalDur;
+    const bgEndSec = voiceEndSec + bgTailSec;
+    const hzEndSec = bgEndSec + hzTailSec;
+    const totalDur = hzEndSec;
+    const totalLength = Math.ceil(sr * totalDur);
 
-      const voiceSource = offlineCtx.createBufferSource();
-      voiceSource.buffer = voiceBuffer;
-      const voiceGain = offlineCtx.createGain();
-      voiceGain.gain.value = 1.0;
+    const offlineCtx = new OfflineAudioContext(2, totalLength, sr);
 
-      voiceSource.connect(voiceGain);
-      voiceGain.connect(offlineCtx.destination);
-      voiceSource.start(startTime);
-    }
-
-    // --- Helper to add a looping background layer ---
-    const addBgLayer = (buffer: AudioBuffer, vol: number) => {
-      const source = offlineCtx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
+    // ── Voice loops with smooth crossfade ──
+    for (let i = 0; i < loopCount; i++) {
+      const loopStart = voiceStartSec + i * (voiceDur - xfadeSec);
+      const loopEnd = loopStart + voiceDur;
+      const src = offlineCtx.createBufferSource();
+      src.buffer = voiceBuffer;
       const gain = offlineCtx.createGain();
-      gain.gain.setValueAtTime(0, 0);
-      gain.gain.linearRampToValueAtTime(vol, bgFadeInSeconds);
-      gain.gain.setValueAtTime(vol, voiceEndTime);
-      gain.gain.linearRampToValueAtTime(0.0, endTime);
-      source.connect(gain);
-      gain.connect(offlineCtx.destination);
-      source.start(0);
-      source.stop(endTime);
-    };
 
-    // Ambient soundscape layer
-    if (backgroundBuffer) {
-      addBgLayer(backgroundBuffer, bgVolume);
+      if (loopCount === 1) {
+        // Single loop: simple fade out at end
+        gain.gain.setValueAtTime(1, loopStart);
+        gain.gain.setValueAtTime(1, Math.max(loopStart, loopEnd - voiceFadeOutSec));
+        gain.gain.linearRampToValueAtTime(0, loopEnd);
+      } else if (i === 0) {
+        // First loop: full volume, crossfade out at end
+        gain.gain.setValueAtTime(1, loopStart);
+        gain.gain.setValueAtTime(1, loopEnd - xfadeSec);
+        gain.gain.linearRampToValueAtTime(0, loopEnd);
+      } else if (i === loopCount - 1) {
+        // Last loop: crossfade in, then fade out at end
+        gain.gain.setValueAtTime(0, loopStart);
+        gain.gain.linearRampToValueAtTime(1, loopStart + xfadeSec);
+        gain.gain.setValueAtTime(1, Math.max(loopStart + xfadeSec, loopEnd - voiceFadeOutSec));
+        gain.gain.linearRampToValueAtTime(0, loopEnd);
+      } else {
+        // Middle loops: crossfade in and crossfade out
+        gain.gain.setValueAtTime(0, loopStart);
+        gain.gain.linearRampToValueAtTime(1, loopStart + xfadeSec);
+        gain.gain.setValueAtTime(1, loopEnd - xfadeSec);
+        gain.gain.linearRampToValueAtTime(0, loopEnd);
+      }
+
+      src.connect(gain);
+      gain.connect(offlineCtx.destination);
+      src.start(loopStart);
     }
 
-    // Healing frequency layer
+    // ── Background soundscape (fades in after Hz, fades out after voice) ──
+    if (backgroundBuffer) {
+      const src = offlineCtx.createBufferSource();
+      src.buffer = backgroundBuffer;
+      src.loop = true;
+      const gain = offlineCtx.createGain();
+      gain.gain.setValueAtTime(0, bgStartSec);
+      gain.gain.linearRampToValueAtTime(bgVolume, bgStartSec + bgFadeInSec);
+      // Hold steady
+      gain.gain.setValueAtTime(bgVolume, Math.max(bgStartSec + bgFadeInSec, bgEndSec - bgFadeOutSec));
+      // Fade out
+      gain.gain.linearRampToValueAtTime(0, bgEndSec);
+      src.connect(gain);
+      gain.connect(offlineCtx.destination);
+      src.start(bgStartSec);
+      src.stop(bgEndSec);
+    }
+
+    // ── Healing frequency (fades in FIRST, fades out LAST) ──
     if (frequencyBuffer) {
-      addBgLayer(frequencyBuffer, freqVolume ?? bgVolume);
+      const src = offlineCtx.createBufferSource();
+      src.buffer = frequencyBuffer;
+      src.loop = true;
+      const gain = offlineCtx.createGain();
+      // Fade in first (Hz leads everything)
+      gain.gain.setValueAtTime(0, 0);
+      gain.gain.linearRampToValueAtTime(fv, hzFadeInSec);
+      // Hold steady throughout
+      gain.gain.setValueAtTime(fv, Math.max(hzFadeInSec, hzEndSec - hzFadeOutSec));
+      // Fade out last (after background has ended)
+      gain.gain.linearRampToValueAtTime(0, hzEndSec);
+      src.connect(gain);
+      gain.connect(offlineCtx.destination);
+      src.start(0);
+      src.stop(hzEndSec);
     }
 
     return offlineCtx.startRendering();
