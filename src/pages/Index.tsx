@@ -11,6 +11,7 @@ import ModularTrackBuilder from "@/components/ModularTrackBuilder";
 import Player from "@/components/Player";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
+import InstallBanner from "@/components/InstallBanner";
 import { trackPageView, trackEvent } from "@/lib/analytics";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
@@ -240,6 +241,7 @@ const Index = () => {
         )}
       </AnimatePresence>
 
+      <InstallBanner />
       <Footer />
     </div>
   );
