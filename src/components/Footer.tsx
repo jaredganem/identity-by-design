@@ -30,7 +30,7 @@ const Footer = () => {
           <Share2 className="w-3.5 h-3.5" />
           Share the App
         </button>
-        <p className="text-[10px] text-muted-foreground">Refer a friend</p>
+        <p className="text-[10px] text-muted-foreground">Refer a friend — they'll thank you later</p>
       </div>
 
       <div className="rounded-2xl bg-gradient-card border border-border p-5 text-center">
