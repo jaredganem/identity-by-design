@@ -350,8 +350,39 @@ const AffirmationLibrary = ({
     );
   }
 
+  const allSelected = selectable && items.length > 0 && items.every((i) => selectedIds.includes(i.id));
+
+  const handleSelectAll = () => {
+    if (!onToggleSelect) return;
+    if (allSelected) {
+      // Deselect all
+      items.forEach((item) => {
+        if (selectedIds.includes(item.id)) onToggleSelect(item);
+      });
+    } else {
+      // Select all not yet selected
+      items.forEach((item) => {
+        if (!selectedIds.includes(item.id)) onToggleSelect(item);
+      });
+    }
+  };
+
   return (
     <div className="space-y-3">
+      {/* Select All button when in selectable mode */}
+      {selectable && items.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSelectAll}
+            className="border-primary/30 hover:bg-primary/10 text-primary text-xs"
+          >
+            {allSelected ? <Check className="w-3.5 h-3.5 mr-1.5" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
+            {allSelected ? "Deselect All" : `Add All ${items.length} to Track`}
+          </Button>
+        </div>
+      )}
       {/* Rename All Generic button */}
       {genericItems.length > 0 && (
         <div className="flex justify-end">
