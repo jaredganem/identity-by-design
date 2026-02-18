@@ -57,7 +57,14 @@ const AffirmationRecorder = ({
 
   const transcribeClip = async (blob: Blob) => {
     const arrayBuffer = await blob.arrayBuffer();
-    const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
+    const bytes = new Uint8Array(arrayBuffer);
+    // Chunk-based base64 to avoid freezing the main thread on large blobs
+    let binary = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
     const { data, error } = await supabase.functions.invoke("transcribe-clip", {
       body: { audioBase64: base64, mimeType: blob.type },
     });

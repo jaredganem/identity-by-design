@@ -14,9 +14,28 @@ export class AudioEngine {
   }
 
   async startRecording(): Promise<void> {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+        channelCount: 2,
+        sampleRate: 48000,
+      },
+    });
     this.recordedChunks = [];
-    this.mediaRecorder = new MediaRecorder(stream);
+
+    // Prefer high-quality codec when available
+    const mimeOptions = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg;codecs=opus",
+    ];
+    const mimeType = mimeOptions.find((m) => MediaRecorder.isTypeSupported(m));
+    this.mediaRecorder = new MediaRecorder(stream, {
+      ...(mimeType ? { mimeType } : {}),
+      audioBitsPerSecond: 128000,
+    });
 
     this.mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) this.recordedChunks.push(e.data);
