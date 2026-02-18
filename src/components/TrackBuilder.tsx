@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
+// TIER GATE: requires tier2 to build & download tracks (canBuildTracks)
 
 interface TrackBuilderProps {
   recordings: Record<string, Blob>;

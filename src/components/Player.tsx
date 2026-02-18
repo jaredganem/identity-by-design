@@ -6,6 +6,7 @@ import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { trackEvent } from "@/lib/analytics";
+// TIER GATE: requires tier1 to access player & replay saved tracks (canAccessLibrary)
 
 interface PlayerProps {
   onBack: () => void;

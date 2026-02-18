@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
 import { trackEvent } from "@/lib/analytics";
+// TIER GATE: requires tier1 to save clips (canSave), requires tier2 for AI deep-dive script (canAccessAI)
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
