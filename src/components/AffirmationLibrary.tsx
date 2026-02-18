@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllAffirmations, deleteAffirmation, updateAffirmationName, renameCategory, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmations, deleteAffirmation, updateAffirmationName, moveAffirmationToCategory, renameCategory, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,7 @@ const AffirmationLibrary = ({
   const [cleanupSelection, setCleanupSelection] = useState<Set<string>>(new Set());
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
+  const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -126,6 +127,13 @@ const AffirmationLibrary = ({
     await deleteAffirmation(item.id);
     toast({ title: "Removed", description: `"${item.name}" deleted from library.` });
     loadItems();
+  };
+
+  const handleMoveToCategory = async (item: SavedAffirmation, newCategory: string) => {
+    await moveAffirmationToCategory(item.id, newCategory);
+    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, category: newCategory } : i)));
+    setMovingItemId(null);
+    toast({ title: "Moved ✓", description: `"${item.name}" → ${newCategory}` });
   };
 
   const handleRenameOne = async (item: SavedAffirmation) => {
@@ -537,6 +545,31 @@ const AffirmationLibrary = ({
                                 )}
                               </button>
                             )}
+                            <div className="relative">
+                              <button
+                                onClick={() => setMovingItemId(movingItemId === item.id ? null : item.id)}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                title="Move to category"
+                              >
+                                <ArrowRightLeft className="w-3.5 h-3.5" />
+                              </button>
+                              {movingItemId === item.id && (
+                                <div className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
+                                  {Object.keys(grouped)
+                                    .filter((cat) => cat !== category)
+                                    .map((cat) => (
+                                      <button
+                                        key={cat}
+                                        onClick={() => handleMoveToCategory(item, cat)}
+                                        className="w-full text-left px-3 py-1.5 text-sm hover:bg-secondary/50 transition-colors flex items-center gap-2"
+                                      >
+                                        <span>{CATEGORY_ICONS[cat] || "📁"}</span>
+                                        <span>{cat}</span>
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
                             <button
                               onClick={() => handleRenameOne(item)}
                               disabled={isRenaming}
