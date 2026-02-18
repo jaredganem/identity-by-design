@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause, Target } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
+import IdentityChallenge from "@/components/IdentityChallenge";
 import { Progress } from "@/components/ui/progress";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
@@ -58,6 +59,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showModes, setShowModes] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showChallengeDialog, setShowChallengeDialog] = useState(false);
   const [stats, setStats] = useState<ReturnType<typeof getProgressStats> | null>(null);
   const [challengeStatus, setChallengeStatus] = useState(getChallengeStatus());
   const [savedTrack, setSavedTrack] = useState<SavedTrack | null>(null);
@@ -215,27 +217,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                   </span>
                 ))}
               </div>
-              <button
-                onClick={() => onStart("challenge")}
-                className="mt-1.5 text-[10px] text-primary hover:text-primary/80 font-display tracking-wider w-full text-center"
-              >
-                View Challenge →
-              </button>
             </div>
-          )}
-
-          {/* Start challenge prompt if none active and none completed */}
-          {!challengeStatus.active && challengeStatus.completedLevels.length === 0 && (
-            <button
-              onClick={() => onStart("challenge")}
-              className="mt-3 pt-3 border-t border-primary/10 w-full flex items-center justify-between hover:bg-primary/5 rounded-lg px-1 py-1.5 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-primary" />
-                <span className="text-xs text-foreground font-display">Start the Identity Challenge</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground">7 → 21 → 30 days</span>
-            </button>
           )}
 
           {stats.currentStreak > 0 && !challengeStatus.active && (
@@ -386,6 +368,23 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* Identity Challenge Dialog */}
+      <Dialog open={showChallengeDialog} onOpenChange={setShowChallengeDialog}>
+        <DialogContent className="bg-card border-border/50 max-w-lg p-0 gap-0 overflow-hidden max-h-[85dvh] overflow-y-auto">
+          <DialogHeader className="px-5 pt-5 pb-3">
+            <DialogTitle className="font-display text-lg text-foreground">
+              The Identity <span className="text-primary">Challenge</span>
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground normal-case tracking-normal mt-1">
+              Progressive identity installation. Days log automatically when you record or listen.
+            </p>
+          </DialogHeader>
+          <div className="px-5 pb-5">
+            <IdentityChallenge />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Choose Your Path — revealed on CTA click */}
       <AnimatePresence>
         {showModes && (
@@ -472,14 +471,57 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
               </motion.button>
             </div>
 
-            <div className="text-center pt-4 space-y-1">
-              <p className="text-foreground font-display text-lg md:text-xl font-bold tracking-[0.08em]">
-                Start The Identity Challenge.
-              </p>
-              <p className="text-sm text-muted-foreground normal-case tracking-normal">
-                7 → 21 → 30 days. Each level unlocks when you complete the last.
-              </p>
-            </div>
+            {/* Identity Challenge CTA with live streak */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="pt-4"
+            >
+              <button
+                onClick={() => setShowChallengeDialog(true)}
+                className="w-full px-6 py-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all text-center space-y-2"
+              >
+                <p className="text-foreground font-display text-lg md:text-xl font-bold tracking-[0.08em]">
+                  The Identity Challenge
+                </p>
+                {challengeStatus.active && challengeStatus.level ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-sm">{challengeStatus.level.badge}</span>
+                      <span className="text-xs text-primary font-display">{challengeStatus.level.name}</span>
+                      <span className="text-xs font-display font-bold text-primary">
+                        {challengeStatus.daysCompleted}/{challengeStatus.totalDays}
+                      </span>
+                    </div>
+                    <div className="max-w-xs mx-auto">
+                      <Progress value={challengeStatus.progressPercent} className="h-1.5" />
+                    </div>
+                    {stats && stats.currentStreak > 0 && (
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-xs text-primary font-display font-bold">{stats.currentStreak} day streak</span>
+                      </div>
+                    )}
+                  </div>
+                ) : stats && stats.currentStreak > 0 ? (
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs text-primary font-display font-bold">{stats.currentStreak} day streak</span>
+                    <span className="text-xs text-muted-foreground">•</span>
+                    <span className="text-xs text-muted-foreground normal-case tracking-normal">7 → 21 → 30 days</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground normal-case tracking-normal">
+                    7 → 21 → 30 days. Each level unlocks when you complete the last.
+                  </p>
+                )}
+                <p className="text-[10px] text-primary/70 font-display tracking-wider">
+                  TAP TO VIEW →
+                </p>
+              </button>
+            </motion.div>
+
             <div className="text-center pt-3">
               <GoDeeper />
             </div>
