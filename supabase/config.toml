@@ -2,3 +2,6 @@ project_id = "rggxvavflgseqnntaoig"
 
 [functions.lemonsqueezy-webhook]
 verify_jwt = false
+
+[functions.silent-auth]
+verify_jwt = false

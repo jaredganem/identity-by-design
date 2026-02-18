@@ -76,6 +76,33 @@ export async function saveLead(firstName: string, email: string, promoCode?: str
       localStorage.setItem("smfm_ref_code", data.referral_code);
     }
   }
+
+  // Silent auth — create a real auth account so cloud sync works
+  try {
+    const { data: authData } = await supabase.functions.invoke("silent-auth", {
+      body: { email, name: firstName },
+    });
+
+    if (authData?.password && authData?.email) {
+      // New user — sign in with the generated password
+      await supabase.auth.signInWithPassword({
+        email: authData.email,
+        password: authData.password,
+      });
+      console.log("[SilentAuth] New user signed in");
+    } else if (authData?.exists && authData?.token_hash) {
+      // Existing user — verify OTP to sign in
+      await supabase.auth.verifyOtp({
+        type: "magiclink",
+        token_hash: authData.token_hash,
+        email: authData.email,
+      });
+      console.log("[SilentAuth] Existing user signed in via OTP");
+    }
+  } catch (e) {
+    // Silent auth failure is non-blocking — local storage still works
+    console.warn("[SilentAuth] Failed, continuing with local-only:", e);
+  }
 }
 
 interface LeadCaptureGateProps {
