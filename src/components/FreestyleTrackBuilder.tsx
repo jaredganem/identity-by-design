@@ -14,7 +14,7 @@ import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import SoundscapeSelector from "@/components/SoundscapeSelector";
-import { getSoundscapeById, loadSoundscapeBuffer } from "@/lib/soundscapes";
+import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer } from "@/lib/soundscapes";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -26,7 +26,8 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
   const [loopCount, setLoopCount] = useState(3);
-  const [soundscapeId, setSoundscapeId] = useState("417hz");
+  const [soundscapeId, setSoundscapeId] = useState("ocean");
+  const [frequencyId, setFrequencyId] = useState("417hz");
   const [isProcessing, setIsProcessing] = useState(false);
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -70,13 +71,15 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
         processed = scaled;
       }
 
+      setProgress("Loading background layers...");
       const soundscape = getSoundscapeById(soundscapeId);
-      setProgress(`Loading ${soundscape.label}...`);
-      const bgBuffer = await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b));
+      const frequency = getFrequencyById(frequencyId);
+      const bgBuffer = soundscape && soundscape.id !== "none" ? await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b)) : null;
+      const freqBuffer = frequency ? await loadSoundscapeBuffer(frequency, (b) => audioEngine.decodeBlob(b)) : null;
 
-      setProgress(`Mixing with ${soundscape.label} — ${loopCount}x repetitions...`);
+      setProgress(`Mixing — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
-        processed, bgBuffer, bgVolume, loopCount
+        processed, bgBuffer, bgVolume, loopCount, freqBuffer, bgVolume
       );
 
       setProgress("Building your installation...");
@@ -210,8 +213,8 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
-        {/* Soundscape Selector */}
-        <SoundscapeSelector value={soundscapeId} onChange={setSoundscapeId} />
+        {/* Soundscape & Frequency Selector */}
+        <SoundscapeSelector soundscapeId={soundscapeId} onSoundscapeChange={setSoundscapeId} frequencyId={frequencyId} onFrequencyChange={setFrequencyId} />
 
         {/* Soundscape Level */}
         <div className="space-y-3">

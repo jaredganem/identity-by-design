@@ -2,30 +2,26 @@ export interface Soundscape {
   id: string;
   label: string;
   emoji: string;
-  /** File path for file-based soundscapes */
   path?: string;
-  /** Frequency in Hz for oscillator-generated tones */
   frequency?: number;
-  /** Group for UI display */
   group: "soundscape" | "frequency";
-  /** Description shown on hover/select */
   description?: string;
 }
 
-export const SOUNDSCAPES: Soundscape[] = [
-  // File-based soundscapes
-  { id: "417hz-file", label: "417Hz Frequency", emoji: "🔊", path: "/audio/417Hz_Frequency.mp3", group: "soundscape", description: "Original 417Hz audio file" },
+export const AMBIENT_SOUNDSCAPES: Soundscape[] = [
+  { id: "none", label: "None", emoji: "🔇", group: "soundscape" },
   { id: "ocean", label: "Ocean Waves", emoji: "🌊", path: "/audio/soundscape_oceanwaves.m4a", group: "soundscape" },
   { id: "rain", label: "Slow Rain", emoji: "🌧️", path: "/audio/soundscape_slowrain.m4a", group: "soundscape" },
   { id: "forest", label: "Forest", emoji: "🌲", path: "/audio/soundscape_forest.m4a", group: "soundscape" },
   { id: "fireplace", label: "Fireplace", emoji: "🔥", path: "/audio/soundscape_fireplace.m4a", group: "soundscape" },
   { id: "brownnoise", label: "Brown Noise", emoji: "🟤", path: "/audio/soundscape_brownnoise.m4a", group: "soundscape" },
+];
 
-  // Healing frequencies (oscillator-generated)
+export const HEALING_FREQUENCIES: Soundscape[] = [
+  { id: "417hz", label: "417 Hz", emoji: "🔄", frequency: 417, group: "frequency", description: "Facilitating change" },
   { id: "174hz", label: "174 Hz", emoji: "🩹", frequency: 174, group: "frequency", description: "Pain relief & security" },
   { id: "285hz", label: "285 Hz", emoji: "🧬", frequency: 285, group: "frequency", description: "Tissue healing & restoration" },
   { id: "396hz", label: "396 Hz", emoji: "🔓", frequency: 396, group: "frequency", description: "Liberating guilt & fear" },
-  { id: "417hz", label: "417 Hz", emoji: "🔄", frequency: 417, group: "frequency", description: "Facilitating change" },
   { id: "528hz", label: "528 Hz", emoji: "💎", frequency: 528, group: "frequency", description: "Transformation & DNA repair" },
   { id: "639hz", label: "639 Hz", emoji: "🤝", frequency: 639, group: "frequency", description: "Connecting & relationships" },
   { id: "741hz", label: "741 Hz", emoji: "🗣️", frequency: 741, group: "frequency", description: "Awakening intuition & expression" },
@@ -36,15 +32,21 @@ export const SOUNDSCAPES: Soundscape[] = [
   { id: "7.83hz", label: "7.83 Hz", emoji: "🌍", frequency: 7.83, group: "frequency", description: "Schumann resonance — Earth's pulse" },
 ];
 
-export const DEFAULT_SOUNDSCAPE = SOUNDSCAPES[0];
+// Combined for backward compat
+export const SOUNDSCAPES: Soundscape[] = [...AMBIENT_SOUNDSCAPES, ...HEALING_FREQUENCIES];
 
-export function getSoundscapeById(id: string): Soundscape {
-  return SOUNDSCAPES.find((s) => s.id === id) || DEFAULT_SOUNDSCAPE;
+export const DEFAULT_SOUNDSCAPE = AMBIENT_SOUNDSCAPES[0];
+
+export function getSoundscapeById(id: string): Soundscape | undefined {
+  return SOUNDSCAPES.find((s) => s.id === id);
+}
+
+export function getFrequencyById(id: string): Soundscape | undefined {
+  return HEALING_FREQUENCIES.find((f) => f.id === id);
 }
 
 /**
  * Generate a pure sine-wave AudioBuffer at the given frequency.
- * Duration is 10 seconds — the track builder loops it anyway.
  */
 export function generateToneBuffer(
   frequency: number,
@@ -58,7 +60,6 @@ export function generateToneBuffer(
   for (let ch = 0; ch < 2; ch++) {
     const data = buffer.getChannelData(ch);
     for (let i = 0; i < length; i++) {
-      // Pure sine wave with gentle warmth from a subtle harmonic
       const t = i / sampleRate;
       data[i] = Math.sin(2 * Math.PI * frequency * t) * 0.8
               + Math.sin(2 * Math.PI * frequency * 2 * t) * 0.1
