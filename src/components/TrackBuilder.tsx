@@ -18,6 +18,7 @@ import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGat
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import SoundscapeSelector from "@/components/SoundscapeSelector";
+import CustomizeEnvironment from "@/components/CustomizeEnvironment";
 import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer } from "@/lib/soundscapes";
 
 interface TrackBuilderProps {
@@ -245,54 +246,44 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
-        {/* Soundscape & Frequency Selector */}
-        <SoundscapeSelector soundscapeId={soundscapeId} onSoundscapeChange={setSoundscapeId} frequencyId={frequencyId} onFrequencyChange={setFrequencyId} />
+        {/* Customize Environment — gated collapsible */}
+        <CustomizeEnvironment>
+          <SoundscapeSelector soundscapeId={soundscapeId} onSoundscapeChange={setSoundscapeId} frequencyId={frequencyId} onFrequencyChange={setFrequencyId} />
 
-        {/* Soundscape Level */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Soundscape Level</label>
-            <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
+          {/* Soundscape Level */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-foreground">Soundscape Level</label>
+              <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
+            </div>
+            <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
           </div>
-          <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
-          <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
-            "The principle of autosuggestion voluntarily reaches the subconscious mind and influences it with these thoughts." — Napoleon Hill
-          </p>
-        </div>
 
-        {/* Healing Frequency Level */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Healing Frequency Level</label>
-            <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+          {/* Healing Frequency Level */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-foreground">Healing Frequency Level</label>
+              <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+            </div>
+            <Slider value={[freqVolume]} onValueChange={([v]) => setFreqVolume(v)} max={1} step={0.01} className="w-full" />
           </div>
-          <Slider value={[freqVolume]} onValueChange={([v]) => setFreqVolume(v)} max={1} step={0.01} className="w-full" />
-        </div>
 
-        {/* Depth Effect */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
-            <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
+          {/* Subliminal Layer */}
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground">Subliminal Layer</label>
+              <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
+            </div>
+            <Switch
+              checked={subliminalOn}
+              onCheckedChange={(checked) => {
+                setSubliminalOn(checked);
+                const prefs = getSubliminalPrefs();
+                saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
+              }}
+            />
           </div>
-          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
-        </div>
-
-        {/* Subliminal Layer */}
-        <div className="flex items-center justify-between py-2">
-          <div>
-            <label className="text-sm font-medium text-foreground">Subliminal Layer</label>
-            <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
-          </div>
-          <Switch
-            checked={subliminalOn}
-            onCheckedChange={(checked) => {
-              setSubliminalOn(checked);
-              const prefs = getSubliminalPrefs();
-              saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
-            }}
-          />
-        </div>
+        </CustomizeEnvironment>
 
         {/* Repetitions */}
         <div className="space-y-3">
