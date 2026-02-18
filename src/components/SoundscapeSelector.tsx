@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Play, Square, Lock, Volume2 } from "lucide-react";
-import { AMBIENT_SOUNDSCAPES, HEALING_FREQUENCIES, type Soundscape } from "@/lib/soundscapes";
+import { AMBIENT_SOUNDSCAPES, HEALING_FREQUENCIES, buildDroneGraphLive, type Soundscape } from "@/lib/soundscapes";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { useTier } from "@/hooks/use-tier";
 import UpgradePrompt from "@/components/UpgradePrompt";
@@ -58,76 +58,15 @@ const SoundscapeSelector = ({
 
     if (!freqCtxRef.current) freqCtxRef.current = new AudioContext();
     const ctx = freqCtxRef.current;
-    const nodes: AudioNode[] = [];
-    const f = freq.frequency;
 
-    // Synthetic reverb — long tail for ethereal feel
-    const irLen = Math.floor(ctx.sampleRate * 3);
-    const irBuf = ctx.createBuffer(2, irLen, ctx.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = irBuf.getChannelData(ch);
-      const stereo = ch === 0 ? 0.7 : 1.3;
-      for (let i = 0; i < irLen; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-2.8 * i / irLen) * stereo;
-    }
-    const convolver = ctx.createConvolver();
-    convolver.buffer = irBuf;
-
-    const dryGain = ctx.createGain();
-    dryGain.gain.value = 0.35;
-    const wetGain = ctx.createGain();
-    wetGain.gain.value = 0.65;
-
+    // Master gain with fade-in
     const masterGain = ctx.createGain();
     masterGain.gain.setValueAtTime(0, ctx.currentTime);
     masterGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 1.0);
-
-    dryGain.connect(masterGain);
-    convolver.connect(wetGain);
-    wetGain.connect(masterGain);
     masterGain.connect(ctx.destination);
-    nodes.push(dryGain, wetGain, convolver, masterGain);
 
-    // LFO shimmer
-    const lfo = ctx.createOscillator();
-    lfo.type = "sine";
-    lfo.frequency.value = 0.15;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.06;
-    lfo.connect(lfoGain);
-    lfo.start();
-    nodes.push(lfo, lfoGain);
-
-    // Rich drone voices with stereo panning
-    const voices = [
-      { freq: f, gain: 0.30, detune: 0, pan: 0 },
-      { freq: f, gain: 0.14, detune: 7, pan: -0.6 },
-      { freq: f, gain: 0.14, detune: -7, pan: 0.6 },
-      { freq: f, gain: 0.07, detune: 12, pan: -0.9 },
-      { freq: f, gain: 0.07, detune: -12, pan: 0.9 },
-      { freq: f * 0.5, gain: 0.10, detune: 0, pan: 0 },
-      { freq: f * 2, gain: 0.04, detune: 2, pan: -0.3 },
-      { freq: f * 2, gain: 0.04, detune: -2, pan: 0.3 },
-      { freq: f * 1.5, gain: 0.025, detune: 1, pan: 0.5 },
-      { freq: f * 3, gain: 0.02, detune: -4, pan: -0.7 },
-    ];
-
-    for (const v of voices) {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = v.freq;
-      osc.detune.value = v.detune;
-      const g = ctx.createGain();
-      g.gain.value = v.gain;
-      lfoGain.connect(g.gain);
-      const panner = ctx.createStereoPanner();
-      panner.pan.value = v.pan;
-      osc.connect(g);
-      g.connect(panner);
-      panner.connect(dryGain);
-      panner.connect(convolver);
-      osc.start();
-      nodes.push(osc, g, panner);
-    }
+    const nodes = buildDroneGraphLive(ctx, freq.frequency, masterGain);
+    nodes.push(masterGain);
 
     freqNodesRef.current = nodes;
     setIsPreviewingFreq(true);
