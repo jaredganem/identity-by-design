@@ -5,6 +5,8 @@ import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus, Sp
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
@@ -433,6 +435,21 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
               <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
             </div>
             <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
+          </div>
+
+          {/* Subliminal Layer */}
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <label className="text-sm font-medium text-foreground">Subliminal Layer</label>
+              <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
+            </div>
+            <Switch
+              checked={getSubliminalPrefs().intensity !== "off"}
+              onCheckedChange={(checked) => {
+                const prefs = getSubliminalPrefs();
+                saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
+              }}
+            />
           </div>
 
           <div className="space-y-3">

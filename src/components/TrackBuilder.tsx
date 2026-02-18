@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
 import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
@@ -6,6 +7,7 @@ import { audioEngine } from "@/lib/audioEngine";
 import { getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
@@ -262,6 +264,21 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
           </div>
           <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
+        </div>
+
+        {/* Subliminal Layer */}
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <label className="text-sm font-medium text-foreground">Subliminal Layer</label>
+            <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
+          </div>
+          <Switch
+            checked={getSubliminalPrefs().intensity !== "off"}
+            onCheckedChange={(checked) => {
+              const prefs = getSubliminalPrefs();
+              saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
+            }}
+          />
         </div>
 
         {/* Repetitions */}
