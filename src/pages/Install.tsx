@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Download, Smartphone, Monitor, Share, Share2, MoreVertical, PlusSquare, ArrowLeft, Check, Copy } from "lucide-react";
+import { Download, Smartphone, Monitor, Share, MoreVertical, PlusSquare, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
-import { toast } from "sonner";
+import ShareButton from "@/components/ShareButton";
 
 const Install = () => {
   const navigate = useNavigate();
@@ -43,22 +43,8 @@ const Install = () => {
     setDeferredPrompt(null);
   };
 
-  const shareUrl = "https://identity-by-design.lovable.app/install";
-  const shareText = "I've been using Identity by Design to reprogram my mindset with custom affirmations. Check it out 🔥";
 
-  const handleShare = async () => {
-    trackEvent("share_app", { method: navigator.share ? "native" : "clipboard" });
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Identity by Design", text: shareText, url: shareUrl });
-      } catch {
-        // user cancelled
-      }
-    } else {
-      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-      toast.success("Link copied to clipboard!");
-    }
-  };
+
 
   const stagger = {
     hidden: { opacity: 0 },
@@ -192,13 +178,7 @@ const Install = () => {
           )}
 
           <motion.div variants={item} className="pt-2">
-            <button
-              onClick={handleShare}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors text-primary font-display text-sm tracking-wide"
-            >
-              <Share2 className="w-4 h-4" />
-              Share with a Friend
-            </button>
+            <ShareButton variant="inline" />
           </motion.div>
 
           <motion.div variants={item} className="text-center space-y-2 pt-4">
