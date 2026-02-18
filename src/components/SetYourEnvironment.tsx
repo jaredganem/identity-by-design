@@ -24,7 +24,7 @@ const SetYourEnvironment = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [settings, setSettings] = useState<EnvironmentSettings>(loadEnvironment);
+  const [settings, setSettings] = useState<EnvironmentSettings>(() => loadEnvironment(tier));
 
   // --- Frequency preview ---
   const [isPreviewingFreq, setIsPreviewingFreq] = useState(false);

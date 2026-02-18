@@ -27,8 +27,8 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const { tier } = useTier();
   const [reverbAmount, setReverbAmount] = useState(0.4);
   const [vocalVolume, setVocalVolume] = useState(0.85);
-  const [freqVolume, setFreqVolume] = useState(() => loadEnvironment().freqVolume);
-  const [freqLabel, setFreqLabel] = useState(() => (HEALING_FREQUENCIES.find(f => f.id === loadEnvironment().frequencyId) || HEALING_FREQUENCIES[0]).label);
+  const [freqVolume, setFreqVolume] = useState(() => loadEnvironment(tier).freqVolume);
+  const [freqLabel, setFreqLabel] = useState(() => (HEALING_FREQUENCIES.find(f => f.id === loadEnvironment(tier).frequencyId) || HEALING_FREQUENCIES[0]).label);
   const [loopCount, setLoopCount] = useState(3);
 
   const applyPreset = (preset: typeof OPTIMAL_MIX) => {
@@ -36,7 +36,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
     setReverbAmount(preset.reverbAmount);
     setLoopCount(preset.loopCount);
     setFreqVolume(preset.freqVolume);
-    const env = loadEnvironment();
+    const env = loadEnvironment(tier);
     saveEnvironment({ ...env, freqVolume: preset.freqVolume, bgVolume: preset.bgVolume });
   };
 
@@ -65,7 +65,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
   const handleBuild = () => {
     if (!hasClips) return;
-    executeBuild(loadEnvironment());
+    executeBuild(loadEnvironment(tier));
   };
 
   const executeBuild = async (env: EnvironmentSettings) => {
@@ -259,7 +259,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <label className="text-sm font-medium text-foreground">{freqLabel} Frequency Level</label>
             <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
           </div>
-          <Slider value={[freqVolume]} onValueChange={([v]) => { setFreqVolume(v); const env = loadEnvironment(); saveEnvironment({ ...env, freqVolume: v }); }} max={1} step={0.01} className="w-full" />
+          <Slider value={[freqVolume]} onValueChange={([v]) => { setFreqVolume(v); const env = loadEnvironment(tier); saveEnvironment({ ...env, freqVolume: v }); }} max={1} step={0.01} className="w-full" />
         </div>
 
         <div className="space-y-3">
