@@ -1,19 +1,24 @@
 import { trackEvent } from "@/lib/analytics";
 import { Share2 } from "lucide-react";
+import { buildShareUrl } from "@/lib/referral";
 
-const SHARE_URL = "https://identity-by-design.lovable.app/install";
 const SHARE_TEXT = "This app helped me start reprogramming my mindset with custom affirmations. Check it out 🔥";
+
+function getMyRefCode(): string | null {
+  try { return localStorage.getItem("smfm_ref_code"); } catch { return null; }
+}
 
 const Footer = () => {
   const handleShare = async () => {
+    const shareUrl = buildShareUrl(getMyRefCode());
     trackEvent("share_app", { method: "footer", page: window.location.pathname });
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Identity by Design", text: SHARE_TEXT, url: SHARE_URL });
+        await navigator.share({ title: "Identity by Design", text: SHARE_TEXT, url: shareUrl });
       } catch {}
     } else {
       window.open(
-        `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT}\n${SHARE_URL}`)}`,
+        `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT}\n${shareUrl}`)}`,
         "_blank",
         "noopener,noreferrer"
       );

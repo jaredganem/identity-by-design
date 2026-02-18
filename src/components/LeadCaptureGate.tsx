@@ -4,6 +4,7 @@ import { ArrowRight, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
+import { logReferral } from "@/lib/referral";
 
 const STORAGE_KEY = "smfm_lead";
 
@@ -31,8 +32,17 @@ export async function saveLead(firstName: string, email: string, promoCode?: str
   const isFoundingMember = ["VIP", "FOUNDERSVIP", "VIPALL"].includes(upperCode);
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, promoTier, ts: Date.now() }));
-  await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any);
+  const { data } = await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any).select("id, referral_code").single();
   trackEvent("lead_captured", { is_founding_member: isFoundingMember, promo_tier: promoTier });
+
+  // Log referral attribution if they arrived via ?ref=
+  if (data?.id) {
+    await logReferral(email, data.id);
+    // Store their own referral code so share links include it
+    if (data.referral_code) {
+      localStorage.setItem("smfm_ref_code", data.referral_code);
+    }
+  }
 }
 
 interface LeadCaptureGateProps {

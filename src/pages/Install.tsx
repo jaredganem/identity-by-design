@@ -5,11 +5,17 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
+import { buildShareUrl } from "@/lib/referral";
+
+function getMyRefCode(): string | null {
+  try { return localStorage.getItem("smfm_ref_code"); } catch { return null; }
+}
 
 const CopyLinkButton = () => {
   const [copied, setCopied] = useState(false);
+  const shareUrl = buildShareUrl(getMyRefCode());
   const handleCopy = async () => {
-    await navigator.clipboard.writeText("https://identity-by-design.lovable.app/install");
+    await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success("Link copied!");
     trackEvent("share_app", { method: "copy_link", page: "install" });
@@ -38,6 +44,7 @@ const Install = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [installed, setInstalled] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | "desktop">("desktop");
+  const shareUrl = buildShareUrl(getMyRefCode());
 
   useEffect(() => {
     const ua = navigator.userAgent.toLowerCase();
@@ -219,7 +226,7 @@ const Install = () => {
                     await navigator.share({
                       title: "Identity by Design",
                       text: "This app helped me start reprogramming my mindset with custom affirmations. You should check it out 🔥",
-                      url: "https://identity-by-design.lovable.app/install",
+                      url: shareUrl,
                     });
                   } catch {}
                 }}
@@ -233,7 +240,7 @@ const Install = () => {
             {/* Quick-tap grid: Text, WhatsApp, Email */}
             <div className="grid grid-cols-3 gap-2">
               <a
-                href={`sms:?&body=${encodeURIComponent("Yo check this out — it's an app that lets you record your own affirmations over frequency music and reprogram your identity. Free, no app store needed 🔥\nhttps://identity-by-design.lovable.app/install")}`}
+                href={`sms:?&body=${encodeURIComponent(`Yo check this out — it's an app that lets you record your own affirmations over frequency music and reprogram your identity. Free, no app store needed 🔥\n${shareUrl}`)}`}
                 onClick={() => trackEvent("share_app", { method: "sms", page: "install" })}
                 className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/30 transition-colors"
               >
@@ -241,7 +248,7 @@ const Install = () => {
                 <span className="text-[10px] font-display text-muted-foreground tracking-wide">Text</span>
               </a>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent("This app helped me start reprogramming my mindset with custom affirmations. You should check it out 🔥\nhttps://identity-by-design.lovable.app/install")}`}
+                href={`https://wa.me/?text=${encodeURIComponent(`This app helped me start reprogramming my mindset with custom affirmations. You should check it out 🔥\n${shareUrl}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackEvent("share_app", { method: "whatsapp", page: "install" })}
@@ -251,7 +258,7 @@ const Install = () => {
                 <span className="text-[10px] font-display text-muted-foreground tracking-wide">WhatsApp</span>
               </a>
               <a
-                href={`mailto:?subject=${encodeURIComponent("Check this out — Identity by Design")}&body=${encodeURIComponent("I found this app that lets you record your own affirmations over 417Hz frequency music and literally reprogram your identity. It's free and works right from your phone — no app store needed.\n\nCheck it out: https://identity-by-design.lovable.app/install")}`}
+                href={`mailto:?subject=${encodeURIComponent("Check this out — Identity by Design")}&body=${encodeURIComponent(`I found this app that lets you record your own affirmations over 417Hz frequency music and literally reprogram your identity. It's free and works right from your phone — no app store needed.\n\nCheck it out: ${shareUrl}`)}`}
                 onClick={() => trackEvent("share_app", { method: "email", page: "install" })}
                 className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-border bg-card hover:bg-primary/10 hover:border-primary/30 transition-colors"
               >
