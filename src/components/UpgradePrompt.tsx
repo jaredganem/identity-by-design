@@ -4,6 +4,7 @@ import { Lock, Zap, Crown, X, Sparkles, Tag } from "lucide-react";
 import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { supabase } from "@/integrations/supabase/client";
 import { saveLead } from "@/components/LeadCaptureGate";
+import { trackEvent } from "@/lib/analytics";
 
 interface UpgradePromptProps {
   requiredTier: "tier1" | "tier2";
@@ -54,12 +55,14 @@ const LaunchAccessCard = ({ onDismiss }: { onDismiss?: () => void }) => {
     const code = promoCode.trim();
     if (!code) return;
     setApplying(true);
+    trackEvent("promo_code_submitted", { code });
     try {
       const raw = localStorage.getItem("smfm_lead");
       if (raw) {
         const lead = JSON.parse(raw);
         await saveLead(lead.name || "User", lead.email || "", code, lead.lastName);
         setApplied(true);
+        trackEvent("promo_code_applied", { code });
         setTimeout(() => window.location.reload(), 800);
       }
     } catch {} finally {
@@ -81,7 +84,7 @@ const LaunchAccessCard = ({ onDismiss }: { onDismiss?: () => void }) => {
         {!showPromoInput ? (
           <button
             type="button"
-            onClick={() => setShowPromoInput(true)}
+            onClick={() => { setShowPromoInput(true); trackEvent("promo_code_opened", {}); }}
             className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors underline underline-offset-2"
           >
             <Tag className="w-3 h-3" />
@@ -128,8 +131,12 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
   const Icon = info.icon;
   const [userEmail, setUserEmail] = useState("");
 
+  // Track when the upgrade prompt is shown
   useEffect(() => {
-    // Try auth user first, fall back to lead email
+    trackEvent("upgrade_prompt_viewed", { tier: requiredTier, feature: featureName, payments_disabled: PAYMENTS_DISABLED });
+  }, [requiredTier, featureName]);
+
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) {
         setUserEmail(user.email);
@@ -146,6 +153,7 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
   }, []);
 
   const handleUpgrade = () => {
+    trackEvent("upgrade_clicked", { tier: requiredTier, feature: featureName });
     redirectToCheckout(requiredTier, userEmail);
   };
 
@@ -195,7 +203,7 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
 
           {onDismiss && (
             <button
-              onClick={onDismiss}
+              onClick={() => { trackEvent("upgrade_prompt_dismissed", { tier: requiredTier, feature: featureName }); onDismiss(); }}
               className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1 normal-case tracking-normal"
             >
               Maybe later

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
 import { Play, Pause, Download, Loader2, Headphones } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -116,9 +117,11 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    trackEvent("download_attempted", { mode: "freestyle", tier });
     // Lead capture first
     if (!hasLeadCaptured()) { setShowLeadCapture(true); return; }
     if (tier === "free" && hasUsedFreeDownload()) {
+      trackEvent("download_gated", { mode: "freestyle", reason: "free_limit" });
       setShowUpgradePrompt(true);
       return;
     }
@@ -128,6 +131,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
     a.download = "identity-installation.wav";
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent("download_completed", { mode: "freestyle" });
     if (tier === "free") markFreeDownloadUsed();
   };
 

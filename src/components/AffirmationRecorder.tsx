@@ -127,6 +127,7 @@ const AffirmationRecorder = ({
         captureTranscript(autoName, { category: categoryInfo.category, source: "guided" });
       }
       setIsRecording(false);
+      trackEvent("recording_completed", { mode: "guided", slot: currentIndex + 1, total: allSlots.length });
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
     } else {
       setShowCountdown(true);

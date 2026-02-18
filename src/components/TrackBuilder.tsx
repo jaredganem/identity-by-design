@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
 import { Play, Pause, Download, Loader2, Headphones } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -41,6 +42,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
   const handleBuild = async () => {
     if (!allRecorded) return;
+    trackEvent("track_build_started", { mode: "guided", loop_count: loopCount });
     setIsProcessing(true);
     setFinalBlob(null);
 
@@ -83,6 +85,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
       setProgress("Building your installation...");
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
       setFinalBlob(wavBlob);
+      trackEvent("track_build_completed", { mode: "guided", duration_min: Math.round(finalBuffer.length / finalBuffer.sampleRate / 60) });
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({
@@ -121,10 +124,12 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    trackEvent("download_attempted", { mode: "guided", tier });
     // Lead capture first
     if (!hasLeadCaptured()) { setShowLeadCapture(true); return; }
     // Free users: allow first download, gate after
     if (tier === "free" && hasUsedFreeDownload()) {
+      trackEvent("download_gated", { mode: "guided", reason: "free_limit" });
       setShowUpgradePrompt(true);
       return;
     }
@@ -134,6 +139,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
     a.download = `identity-installation.${downloadFormat}`;
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent("download_completed", { mode: "guided", format: downloadFormat });
     if (tier === "free") markFreeDownloadUsed();
     if (downloadFormat === "mp3") {
       toast({ title: "Note", description: "MP3 encoding requires a server. Downloading as WAV for now." });
