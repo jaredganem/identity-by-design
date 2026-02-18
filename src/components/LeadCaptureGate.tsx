@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 
 const STORAGE_KEY = "smfm_lead";
 
@@ -31,6 +32,7 @@ export async function saveLead(firstName: string, email: string, promoCode?: str
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, promoTier, ts: Date.now() }));
   await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any);
+  trackEvent("lead_captured", { is_founding_member: isFoundingMember, promo_tier: promoTier });
 }
 
 interface LeadCaptureGateProps {

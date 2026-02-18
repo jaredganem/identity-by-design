@@ -24,3 +24,17 @@ export async function trackPageView(page = "/") {
     user_agent: navigator.userAgent || null,
   });
 }
+
+export async function trackEvent(event: string, metadata: Record<string, unknown> = {}) {
+  try {
+    const sessionId = getSessionId();
+    await supabase.from("events").insert({
+      session_id: sessionId,
+      event,
+      metadata,
+      page: window.location.pathname,
+    } as any);
+  } catch {
+    // Fire-and-forget — never block UI
+  }
+}

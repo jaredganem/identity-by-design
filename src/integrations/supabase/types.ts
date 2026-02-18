@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          metadata: Json | null
+          page: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           category: string

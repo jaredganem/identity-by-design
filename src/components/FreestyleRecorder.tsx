@@ -11,6 +11,7 @@ import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
+import { trackEvent } from "@/lib/analytics";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -91,6 +92,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
         await audioEngine.startRecording();
         speech.start();
         setIsRecording(true);
+        trackEvent("recording_started", { mode: "freestyle" });
       } catch {
         toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
       }
@@ -139,6 +141,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     setSaveName("");
     setSaveCategory("Custom");
     setCustomCategoryName("");
+    trackEvent("saved_to_library", { mode: "freestyle", category: finalCategory });
     toast({ title: "Saved to Library 📚", description: `"${name}" added to ${finalCategory}.` });
   };
 

@@ -11,6 +11,7 @@ import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
+import { trackEvent } from "@/lib/analytics";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -109,6 +110,7 @@ const AffirmationRecorder = ({
         await audioEngine.startRecording();
         speech.start();
         setIsRecording(true);
+        trackEvent("recording_started", { mode: "guided" });
       } catch {
         toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
       }
@@ -371,6 +373,7 @@ const AffirmationRecorder = ({
                       onLibraryChanged?.();
                       setSavingToLibrary(false);
                       setCustomCategoryName("");
+                      trackEvent("saved_to_library", { mode: "guided", category: finalCategory });
                       toast({ title: "Saved to Library 📚", description: `"${libraryName}" added to ${finalCategory}.` });
                     }}
                     className="bg-primary text-primary-foreground h-8"

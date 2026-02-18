@@ -5,6 +5,7 @@ import { getAllAffirmations, SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { trackEvent } from "@/lib/analytics";
 
 interface PlayerProps {
   onBack: () => void;
@@ -224,6 +225,7 @@ const Player = ({ onBack }: PlayerProps) => {
       try {
         await audioRef.current.play();
         setIsPlaying(true);
+        trackEvent("playback_started", { track: currentTrack?.name });
       } catch (e) {
         console.error("Playback failed:", e);
       }
