@@ -17,7 +17,7 @@ import { useTier } from "@/hooks/use-tier";
 import { canAccessLibrary, canBuildTracks, canAccessAI } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
-import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer } from "@/lib/soundscapes";
+import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer, HEALING_FREQUENCIES } from "@/lib/soundscapes";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import SetYourEnvironment from "@/components/SetYourEnvironment";
 import { loadEnvironment, saveEnvironment, type EnvironmentSettings } from "@/lib/environmentStorage";
@@ -433,7 +433,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
+              <label className="text-sm font-medium text-foreground">{(HEALING_FREQUENCIES.find(f => f.id === loadEnvironment().frequencyId) || HEALING_FREQUENCIES[3]).label} Frequency Level</label>
               <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
             </div>
             <Slider value={[freqVolume]} onValueChange={([v]) => { setFreqVolume(v); const env = loadEnvironment(); saveEnvironment({ ...env, freqVolume: v }); }} max={1} step={0.01} className="w-full" />
