@@ -2,8 +2,9 @@ import { useRef, useCallback, useState } from "react";
 
 /**
  * Lightweight hook wrapping the Web Speech API (SpeechRecognition).
- * Runs alongside the MediaRecorder so we can auto-name clips from what the user says.
- * Falls back gracefully — if the browser doesn't support it, transcript stays empty.
+ * Uses auto-restarting single-shot mode for Android compatibility.
+ * `continuous: true` causes stuttering/duplicate text on Android Chrome,
+ * so we use single-shot recognition that auto-restarts on `onend`.
  */
 
 const SpeechRecognition =
@@ -12,7 +13,6 @@ const SpeechRecognition =
 function abbreviate(text: string, maxLen = 50): string {
   const cleaned = text.trim().replace(/\s+/g, " ");
   if (cleaned.length <= maxLen) return cleaned;
-  // Cut at the last full word within maxLen and add ellipsis
   const truncated = cleaned.slice(0, maxLen);
   const lastSpace = truncated.lastIndexOf(" ");
   return (lastSpace > 20 ? truncated.slice(0, lastSpace) : truncated) + "…";
@@ -20,60 +20,82 @@ function abbreviate(text: string, maxLen = 50): string {
 
 export function useSpeechRecognition() {
   const recognitionRef = useRef<any>(null);
-  const fullTranscript = useRef("");
+  const committedText = useRef("");      // All finalized text across restarts
+  const activeRef = useRef(false);       // Whether we should keep listening
   const [transcript, setTranscript] = useState("");
   const supported = !!SpeechRecognition;
+
+  const startInstance = useCallback(() => {
+    if (!SpeechRecognition || !activeRef.current) return;
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;      // Single-shot — avoids Android stutter
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onresult = (event: any) => {
+        let interim = "";
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            // Append finalized text to our committed buffer
+            const finalText = result[0].transcript.trim();
+            if (finalText) {
+              committedText.current = committedText.current
+                ? `${committedText.current} ${finalText}`
+                : finalText;
+            }
+          } else {
+            interim = result[0].transcript;
+          }
+        }
+        const combined = (committedText.current + (interim ? ` ${interim}` : "")).trim();
+        setTranscript(combined);
+      };
+
+      recognition.onerror = (e: any) => {
+        console.log("[SpeechRecognition] Error:", e.error);
+        // Don't restart on fatal errors
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          activeRef.current = false;
+        }
+      };
+
+      recognition.onend = () => {
+        console.log("[SpeechRecognition] Segment ended. Committed:", committedText.current);
+        // Auto-restart if still active (keeps listening through natural pauses)
+        if (activeRef.current) {
+          try {
+            startInstance();
+          } catch {
+            activeRef.current = false;
+          }
+        }
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      console.log("[SpeechRecognition] Failed to start:", e);
+      activeRef.current = false;
+    }
+  }, []);
 
   const start = useCallback(() => {
     if (!SpeechRecognition) {
       console.log("[SpeechRecognition] Not supported in this browser");
       return;
     }
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-US";
-
-      fullTranscript.current = "";
-      setTranscript("");
-
-      recognition.onresult = (event: any) => {
-        let final = "";
-        let interim = "";
-        for (let i = 0; i < event.results.length; i++) {
-          const result = event.results[i];
-          if (result.isFinal) {
-            final += result[0].transcript + " ";
-          } else {
-            // Only use the LAST interim result to avoid stuttering repeats
-            interim = result[0].transcript;
-          }
-        }
-        fullTranscript.current = final.trim();
-        const combined = (final + interim).trim();
-        setTranscript(combined);
-        console.log("[SpeechRecognition] Heard:", combined);
-      };
-
-      recognition.onerror = (e: any) => {
-        console.log("[SpeechRecognition] Error:", e.error);
-      };
-
-      recognition.onend = () => {
-        console.log("[SpeechRecognition] Ended. Final:", fullTranscript.current);
-      };
-
-      recognition.start();
-      console.log("[SpeechRecognition] Started listening");
-      recognitionRef.current = recognition;
-    } catch (e) {
-      console.log("[SpeechRecognition] Failed to start:", e);
-      // Browser may throw if permissions denied
-    }
-  }, []);
+    committedText.current = "";
+    setTranscript("");
+    activeRef.current = true;
+    console.log("[SpeechRecognition] Started listening");
+    startInstance();
+  }, [startInstance]);
 
   const stop = useCallback((): string => {
+    activeRef.current = false;
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -82,8 +104,7 @@ export function useSpeechRecognition() {
       }
       recognitionRef.current = null;
     }
-    // Use the final transcript, fall back to whatever we have
-    const raw = fullTranscript.current || transcript;
+    const raw = committedText.current || transcript;
     return abbreviate(raw);
   }, [transcript]);
 
