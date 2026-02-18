@@ -14,12 +14,13 @@
  */
 
 export type SubliminalMode = "echo" | "rapid";
-export type SubliminalIntensity = "off" | "low" | "medium";
+export type SubliminalIntensity = "off" | "low" | "medium" | "high";
 
 const GAIN_MAP: Record<SubliminalIntensity, number> = {
   off: 0,
   low: 0.03,
   medium: 0.08,
+  high: 0.14,
 };
 
 const STORAGE_KEY = "smfm_subliminal";
