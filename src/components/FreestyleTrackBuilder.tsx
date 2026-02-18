@@ -10,6 +10,7 @@ import GoDeeper from "@/components/GoDeeper";
 import { useTier } from "@/hooks/use-tier";
 import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGate";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -27,6 +28,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const [progress, setProgress] = useState("");
   const [previewingIndex, setPreviewingIndex] = useState<number | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
@@ -114,6 +116,8 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    // Lead capture first
+    if (!hasLeadCaptured()) { setShowLeadCapture(true); return; }
     if (tier === "free" && hasUsedFreeDownload()) {
       setShowUpgradePrompt(true);
       return;
@@ -297,6 +301,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           onDismiss={() => setShowUpgradePrompt(false)}
         />
       )}
+      <LeadCaptureGate open={showLeadCapture} onClose={() => setShowLeadCapture(false)} onSuccess={() => { setShowLeadCapture(false); window.location.reload(); }} />
     </div>
   );
 };

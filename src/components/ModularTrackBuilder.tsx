@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTier } from "@/hooks/use-tier";
 import { canAccessLibrary, canBuildTracks, canAccessAI } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 interface ModularTrackBuilderProps {
   refreshKey?: number;
@@ -37,6 +38,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
   const [hasLibraryItems, setHasLibraryItems] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
 
   useEffect(() => {
     const checkLibrary = async () => {
@@ -47,7 +49,19 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
     checkLibrary();
   }, [refreshKey]);
 
-  // Gate: Library access requires Pro
+  // Gate: Lead capture first, then tier check
+  if (!hasLeadCaptured()) {
+    return (
+      <>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">Enter your email to unlock the Track Builder.</p>
+          <Button onClick={() => setShowLeadCapture(true)}>Get Started</Button>
+        </div>
+        <LeadCaptureGate open={showLeadCapture} onClose={() => setShowLeadCapture(false)} onSuccess={() => { setShowLeadCapture(false); window.location.reload(); }} />
+      </>
+    );
+  }
+
   if (!canAccessLibrary(tier)) {
     return <UpgradePrompt requiredTier="tier1" featureName="Track Builder" inline />;
   }
