@@ -165,9 +165,9 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1">
                 <Mic className="w-4 h-4 text-primary" />
-                <span className="text-xl font-display font-bold text-foreground">{stats.totalRecordings}</span>
+                <span className="text-xl font-display font-bold text-foreground">{stats.totalRecordings + stats.totalTrackBuilds + stats.totalListens}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground">Recordings</p>
+              <p className="text-[10px] text-muted-foreground">Sessions</p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1">
