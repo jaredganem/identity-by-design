@@ -17,7 +17,7 @@ import { canAccessLibrary, canBuildTracks, canAccessAI } from "@/lib/tierAccess"
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import SoundscapeSelector from "@/components/SoundscapeSelector";
-import { getSoundscapeById } from "@/lib/soundscapes";
+import { getSoundscapeById, loadSoundscapeBuffer } from "@/lib/soundscapes";
 
 interface ModularTrackBuilderProps {
   refreshKey?: number;
@@ -123,9 +123,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
       const soundscape = getSoundscapeById(soundscapeId);
       setProgress(`Loading ${soundscape.label}...`);
-      const bgResponse = await fetch(soundscape.path);
-      const bgBlob = await bgResponse.blob();
-      const bgBuffer = await audioEngine.decodeBlob(bgBlob);
+      const bgBuffer = await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b));
 
       setProgress(`Mixing with ${soundscape.label} — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(processed, bgBuffer, bgVolume, loopCount);
