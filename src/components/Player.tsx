@@ -13,6 +13,7 @@ import { getSubliminalPrefs, saveSubliminalPrefs, createSubliminalLayer, type Su
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
+import PlayerSoundscape from "@/components/PlayerSoundscape";
 
 interface PlayerProps {
   onBack: () => void;
@@ -560,6 +561,13 @@ const Player = ({ onBack }: PlayerProps) => {
           />
         </div>
       </div>
+
+      {/* Live Soundscape Environment */}
+      <PlayerSoundscape
+        isPlaying={isPlaying}
+        audioContext={analyserRef.current?.context as AudioContext | null}
+        destination={analyserRef.current?.context ? (analyserRef.current.context as AudioContext).destination : null}
+      />
 
       {/* Download button */}
       {currentTrack && (
