@@ -252,7 +252,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
                       key={theme.label}
                       onClick={() => { setGoalText(theme.goal); handleAiBuildTrack(theme.goal); }}
                       disabled={aiBuildingTrack}
-                      className="px-3 py-1.5 text-xs rounded-full border border-primary/30 bg-background text-foreground hover:bg-primary/10 hover:border-primary/50 transition-colors disabled:opacity-50"
+                      className="px-3 py-2 min-h-[44px] text-xs rounded-full border border-primary/30 bg-background text-foreground hover:bg-primary/10 hover:border-primary/50 transition-colors disabled:opacity-50"
                     >
                       {theme.label}
                     </button>
@@ -330,34 +330,34 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
               {selectedItems.map((item, i) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 border border-border"
+                  className="flex items-center gap-2 p-2.5 rounded-lg bg-secondary/30 border border-primary/30"
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      onClick={() => moveItem(i, -1)}
-                      disabled={i === 0}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => moveItem(i, 1)}
-                      disabled={i === selectedItems.length - 1}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▼
-                    </button>
-                  </div>
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveItem(i, -1)}
+                        disabled={i === 0}
+                        className="min-w-[44px] min-h-[22px] text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs flex items-center justify-center"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        onClick={() => moveItem(i, 1)}
+                        disabled={i === selectedItems.length - 1}
+                        className="min-w-[44px] min-h-[22px] text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs flex items-center justify-center"
+                      >
+                        ▼
+                      </button>
+                    </div>
                   <span className="text-xs text-muted-foreground w-5">{i + 1}.</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{item.name}</p>
                   </div>
-                  <button
-                    onClick={() => handleRemove(item.id)}
-                    className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                    <button
+                      onClick={() => handleRemove(item.id)}
+                      className="min-w-[44px] min-h-[44px] p-2 rounded text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                 </div>
               ))}
             </div>
@@ -365,6 +365,15 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
         </div>
       </div>
 
+      {/* Visual distinction hint */}
+      {selectedItems.length > 0 && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0" />
+          <p className="text-xs text-muted-foreground normal-case tracking-normal">
+            Highlighted items are in your track. Tap the <span className="text-primary font-medium">+</span> on unselected items to add them.
+          </p>
+        </div>
+      )}
       {/* Mix controls */}
       {selectedItems.length > 0 && (
         <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
