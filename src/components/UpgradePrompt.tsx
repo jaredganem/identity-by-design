@@ -48,8 +48,19 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
+    // Try auth user first, fall back to lead email
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email ?? "");
+      if (user?.email) {
+        setUserEmail(user.email);
+      } else {
+        try {
+          const raw = localStorage.getItem("smfm_lead");
+          if (raw) {
+            const lead = JSON.parse(raw);
+            if (lead.email) setUserEmail(lead.email);
+          }
+        } catch {}
+      }
     });
   }, []);
 

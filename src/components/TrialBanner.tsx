@@ -11,7 +11,17 @@ const TrialBanner = () => {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email ?? "");
+      if (user?.email) {
+        setUserEmail(user.email);
+      } else {
+        try {
+          const raw = localStorage.getItem("smfm_lead");
+          if (raw) {
+            const lead = JSON.parse(raw);
+            if (lead.email) setUserEmail(lead.email);
+          }
+        } catch {}
+      }
     });
   }, []);
 
