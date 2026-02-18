@@ -313,6 +313,39 @@ export type Database = {
           },
         ]
       }
+      user_recordings: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+          storage_path: string
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          storage_path: string
+          text?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          storage_path?: string
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

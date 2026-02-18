@@ -5,7 +5,7 @@ import { audioEngine } from "@/lib/audioEngine";
 import { AFFIRMATION_CATEGORIES, getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { saveAffirmation } from "@/lib/affirmationLibrary";
+import { saveAffirmationSync as saveAffirmation } from "@/lib/cloudStorage";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";

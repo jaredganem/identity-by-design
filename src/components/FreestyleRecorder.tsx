@@ -3,7 +3,7 @@ import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { Mic, Square, Trash2, Play, Pause, Plus, GripVertical, BookmarkPlus, X, Check, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { useToast } from "@/hooks/use-toast";
-import { saveAffirmation } from "@/lib/affirmationLibrary";
+import { saveAffirmationSync as saveAffirmation } from "@/lib/cloudStorage";
 import { AFFIRMATION_CATEGORIES } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
