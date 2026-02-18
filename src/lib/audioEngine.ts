@@ -138,23 +138,24 @@ export class AudioEngine {
   }
 
   /**
-   * Mix voice buffer with background, looping voice with smooth crossfades.
-   * 417Hz plays continuously underneath. After the last voice loop,
-   * 417Hz plays alone for a few seconds then gently fades out.
-   * Voice never fades — only background fades at the very end.
+   * Mix voice buffer with background layers, looping voice with smooth crossfades.
+   * Supports an ambient soundscape and/or a healing frequency tone.
+   * Voice never fades — only backgrounds fade at the very end.
    */
   async mixWithBackgroundAndLoop(
     voiceBuffer: AudioBuffer,
-    backgroundBuffer: AudioBuffer,
+    backgroundBuffer: AudioBuffer | null,
     bgVolume = 0.3,
-    loopCount = 1
+    loopCount = 1,
+    frequencyBuffer?: AudioBuffer | null,
+    freqVolume?: number
   ): Promise<AudioBuffer> {
     const sampleRate = voiceBuffer.sampleRate;
     const voiceLen = voiceBuffer.length;
     const tailSeconds = 3;
     const tailSamples = Math.floor(sampleRate * tailSeconds);
-    const bgFadeInSeconds = 3; // Background fades in over 3 seconds
-    const voiceDelaySeconds = 2; // Voice starts 2 seconds after background
+    const bgFadeInSeconds = 3;
+    const voiceDelaySeconds = 2;
     const voiceDelaySamples = Math.floor(sampleRate * voiceDelaySeconds);
 
     const gapSamples = Math.floor(sampleRate * 1.5);
@@ -164,12 +165,13 @@ export class AudioEngine {
     } else {
       totalVoiceLength = voiceLen * loopCount + gapSamples * (loopCount - 1);
     }
-    // Add voice delay to total length
     const totalLength = voiceDelaySamples + totalVoiceLength + tailSamples;
 
     const offlineCtx = new OfflineAudioContext(2, totalLength, sampleRate);
+    const voiceEndTime = (voiceDelaySamples + totalVoiceLength) / sampleRate;
+    const endTime = totalLength / sampleRate;
 
-    // --- Voice loops: start after delay ---
+    // --- Voice loops ---
     for (let loop = 0; loop < loopCount; loop++) {
       const startSample = voiceDelaySamples + loop * (voiceLen + gapSamples);
       const startTime = startSample / sampleRate;
@@ -184,25 +186,31 @@ export class AudioEngine {
       voiceSource.start(startTime);
     }
 
-    // --- Single continuous 417Hz background with fade-in ---
-    const bgSource = offlineCtx.createBufferSource();
-    bgSource.buffer = backgroundBuffer;
-    bgSource.loop = true;
-    const bgGain = offlineCtx.createGain();
+    // --- Helper to add a looping background layer ---
+    const addBgLayer = (buffer: AudioBuffer, vol: number) => {
+      const source = offlineCtx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      const gain = offlineCtx.createGain();
+      gain.gain.setValueAtTime(0, 0);
+      gain.gain.linearRampToValueAtTime(vol, bgFadeInSeconds);
+      gain.gain.setValueAtTime(vol, voiceEndTime);
+      gain.gain.linearRampToValueAtTime(0.0, endTime);
+      source.connect(gain);
+      gain.connect(offlineCtx.destination);
+      source.start(0);
+      source.stop(endTime);
+    };
 
-    // Fade in from 0 to bgVolume over first few seconds
-    bgGain.gain.setValueAtTime(0, 0);
-    bgGain.gain.linearRampToValueAtTime(bgVolume, bgFadeInSeconds);
+    // Ambient soundscape layer
+    if (backgroundBuffer) {
+      addBgLayer(backgroundBuffer, bgVolume);
+    }
 
-    // Fade out background during the tail (after voice ends)
-    const voiceEndTime = (voiceDelaySamples + totalVoiceLength) / sampleRate;
-    bgGain.gain.setValueAtTime(bgVolume, voiceEndTime);
-    bgGain.gain.linearRampToValueAtTime(0.0, totalLength / sampleRate);
-
-    bgSource.connect(bgGain);
-    bgGain.connect(offlineCtx.destination);
-    bgSource.start(0);
-    bgSource.stop(totalLength / sampleRate);
+    // Healing frequency layer
+    if (frequencyBuffer) {
+      addBgLayer(frequencyBuffer, freqVolume ?? bgVolume);
+    }
 
     return offlineCtx.startRendering();
   }
