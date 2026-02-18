@@ -20,18 +20,37 @@ interface AffirmationLibraryProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
+  "Physical Health & Vitality": "💪",
   "Physical Dominance": "💪",
-  "Financial Sovereignty": "👑",
-  "Relationship Mastery": "🤝",
-  "Mission & Career": "🎯",
-  "Identity & Character": "🛡️",
   Health: "💪",
+  "Financial Sovereignty": "💰",
   Wealth: "💰",
+  "Relationship Mastery": "🤝",
   Relationships: "🤝",
+  "Leadership & Influence": "🧭",
+  "Mission & Career": "🎯",
   Career: "🎯",
+  "Identity & Character": "🛡️",
   "Personal Growth": "🧠",
   Custom: "🎤",
 };
+
+// Preferred category display order
+const CATEGORY_ORDER: string[] = [
+  "Physical Health & Vitality",
+  "Physical Dominance",
+  "Health",
+  "Financial Sovereignty",
+  "Wealth",
+  "Relationship Mastery",
+  "Relationships",
+  "Leadership & Influence",
+  "Mission & Career",
+  "Career",
+  "Identity & Character",
+  "Personal Growth",
+  "Custom",
+];
 
 const GENERIC_NAME_PATTERN = /^Clip \d+$/;
 
@@ -419,7 +438,17 @@ const AffirmationLibrary = ({
         )}
       </AnimatePresence>
 
-      {Object.entries(grouped).map(([category, catItems]) => {
+      {Object.entries(grouped)
+        .sort(([a], [b]) => {
+          const idxA = CATEGORY_ORDER.indexOf(a);
+          const idxB = CATEGORY_ORDER.indexOf(b);
+          // Known categories sorted by CATEGORY_ORDER, unknown ones go to the end alphabetically
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+          return a.localeCompare(b);
+        })
+        .map(([category, catItems]) => {
         const isExpanded = expandedCategories.has(category);
         return (
           <div key={category} className="rounded-xl border border-border overflow-visible">
