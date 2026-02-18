@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Lock } from "lucide-react";
+import { Lock, Play, Square } from "lucide-react";
 import { AMBIENT_SOUNDSCAPES, type Soundscape } from "@/lib/soundscapes";
 import { Slider } from "@/components/ui/slider";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
@@ -26,6 +26,10 @@ const PlayerSoundscape = ({ isPlaying, audioContext, destination }: PlayerSounds
   const [soundscapeId, setSoundscapeId] = useState(() => loadEnvironment(tier).soundscapeId);
   const [bgVolume, setBgVolume] = useState(() => loadEnvironment(tier).bgVolume);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const gainRef = useRef<GainNode | null>(null);
@@ -108,15 +112,58 @@ const PlayerSoundscape = ({ isPlaying, audioContext, destination }: PlayerSounds
     saveEnvironment({ ...env, bgVolume: v });
   };
 
+  const stopPreview = () => {
+    if (previewTimerRef.current) { clearTimeout(previewTimerRef.current); previewTimerRef.current = null; }
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      previewAudioRef.current.currentTime = 0;
+      previewAudioRef.current = null;
+    }
+    setIsPreviewing(false);
+  };
+
+  const togglePreview = () => {
+    if (isPreviewing) { stopPreview(); return; }
+    const selected = AMBIENT_SOUNDSCAPES.find((s) => s.id === soundscapeId);
+    if (!selected || !selected.path) return;
+    const audio = new Audio(selected.path);
+    audio.volume = bgVolume;
+    audio.play().catch(() => {});
+    previewAudioRef.current = audio;
+    setIsPreviewing(true);
+    previewTimerRef.current = setTimeout(() => stopPreview(), 10000);
+  };
+
+  // Stop preview on soundscape change or unmount
+  useEffect(() => { stopPreview(); }, [soundscapeId]);
+  useEffect(() => () => { stopPreview(); }, []);
+
+  const canPreview = isPro && soundscapeId !== "none" && AMBIENT_SOUNDSCAPES.find(s => s.id === soundscapeId)?.path;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-display">Environment</label>
-        {!isPro && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] rounded-full border border-primary/40 text-primary bg-primary/5">
-            <Lock className="w-2.5 h-2.5" /> Pro
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {canPreview && (
+            <button
+              onClick={togglePreview}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border transition-colors ${
+                isPreviewing
+                  ? "border-primary/50 bg-primary/15 text-primary"
+                  : "border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40"
+              }`}
+            >
+              {isPreviewing ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
+              {isPreviewing ? "Stop" : "Preview"}
+            </button>
+          )}
+          {!isPro && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] rounded-full border border-primary/40 text-primary bg-primary/5">
+              <Lock className="w-2.5 h-2.5" /> Pro
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
