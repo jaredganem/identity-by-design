@@ -43,6 +43,9 @@ const MixPresetBar = ({
     hasMyMix() && isPro ? "my-mix" : null
   );
 
+  // Free users: hide preset bar entirely on builder
+  if (!isPro) return null;
+
   const handleSleep = () => {
     onApplyPreset(SLEEP_MIX);
     setActivePreset("sleep");
