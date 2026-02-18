@@ -271,7 +271,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                     <span className="text-sm font-medium text-foreground flex-1">{item.autoName || `Clip ${i + 1}`}</span>
                     <button
                       onClick={() => handlePlayClip(i)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      className="min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center justify-center"
                     >
                       {playingIndex === i ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </button>
@@ -281,7 +281,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                         setSaveName(item.autoName || `Clip ${i + 1}`);
                         setSaveCategory("Custom");
                       }}
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`min-w-[44px] min-h-[44px] p-2 rounded-lg transition-colors flex items-center justify-center ${
                         savingId === item.id
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/10"
@@ -292,7 +292,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex items-center justify-center"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

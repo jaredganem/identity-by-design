@@ -13,6 +13,7 @@ import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
 import InstallBanner from "@/components/InstallBanner";
 import { trackPageView, trackEvent } from "@/lib/analytics";
+import { getAllAffirmations } from "@/lib/affirmationLibrary";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -65,9 +66,12 @@ const Index = () => {
   const [customTexts, setCustomTexts] = useState<Record<string, string>>({});
   const [clips, setClips] = useState<Blob[]>([]);
   const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
+  const [libraryCount, setLibraryCount] = useState(0);
 
   useEffect(() => {
     trackPageView("/");
+    // Check library for returning user experience
+    getAllAffirmations().then((items) => setLibraryCount(items.length)).catch(() => {});
   }, []);
 
   const handleBack = () => {
@@ -84,7 +88,7 @@ const Index = () => {
 
       <AnimatePresence mode="wait">
         {!mode ? (
-          <HeroSection key="hero" onStart={(m) => {
+          <HeroSection key="hero" libraryCount={libraryCount} onStart={(m) => {
             setMode(m as Mode);
             trackEvent("mode_selected", { mode: m });
           }} />
@@ -180,6 +184,40 @@ const Index = () => {
 
             {mode === "guided" ? (
               <>
+                {/* Session completion celebration */}
+                {Object.keys(recordings).length === 12 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="text-center py-8 space-y-3"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                      className="text-4xl"
+                    >
+                      🏆
+                    </motion.div>
+                    <motion.h3
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="font-display text-2xl text-primary text-glow"
+                    >
+                      Identity Blueprint Complete
+                    </motion.h3>
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                      className="text-sm text-muted-foreground normal-case tracking-normal"
+                    >
+                      All 12 affirmations recorded. Now build your nightly installation track below.
+                    </motion.p>
+                  </motion.div>
+                )}
                 <AffirmationRecorder
                   recordings={recordings}
                   onRecordingsChange={setRecordings}
@@ -232,7 +270,7 @@ const Index = () => {
             <div className="text-center pt-4">
               <button
                 onClick={handleBack}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="min-h-[44px] px-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 ← Back to home
               </button>

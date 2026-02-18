@@ -162,11 +162,27 @@ const AffirmationRecorder = ({
         </div>
       )}
 
-      {/* Progress */}
+      {/* Progress momentum indicator */}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{categoryInfo.icon} {categoryInfo.category} — {slotInCategory}/{slotsInCategory}</span>
         <span className="text-primary font-medium">{totalRecorded}/{allSlots.length} recorded</span>
       </div>
+
+      {/* Momentum message */}
+      {totalRecorded > 0 && totalRecorded < allSlots.length && (
+        <motion.p
+          key={totalRecorded}
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center text-xs text-primary/80 font-display tracking-wide"
+        >
+          {totalRecorded <= 3
+            ? "You're building momentum…"
+            : totalRecorded <= 8
+            ? "Over halfway — your identity is taking shape."
+            : "Almost there. Finish strong."}
+        </motion.p>
+      )}
 
       {/* Progress bar */}
       <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -215,7 +231,7 @@ const AffirmationRecorder = ({
               </p>
               <button
                 onClick={() => setEditingText(currentSlot.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 title="Edit affirmation text"
               >
                 <Pencil className="w-3 h-3" />
@@ -417,7 +433,7 @@ const AffirmationRecorder = ({
             setCurrentIndex(Math.max(0, currentIndex - 1));
           }}
           disabled={currentIndex === 0}
-          className="text-muted-foreground"
+          className="text-muted-foreground min-h-[44px] min-w-[44px]"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Previous
@@ -439,7 +455,7 @@ const AffirmationRecorder = ({
             setCurrentIndex(Math.min(allSlots.length - 1, currentIndex + 1));
           }}
           disabled={currentIndex === allSlots.length - 1}
-          className="text-muted-foreground"
+          className="text-muted-foreground min-h-[44px] min-w-[44px]"
         >
           Next
           <ChevronRight className="w-4 h-4 ml-1" />
@@ -447,20 +463,22 @@ const AffirmationRecorder = ({
       </div>
 
       {/* Category overview */}
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
         {allSlots.map((slot, i) => (
           <button
             key={slot.id}
             onClick={() => setCurrentIndex(i)}
-            className={`h-2 rounded-full transition-all ${
+            className={`min-h-[44px] min-w-[44px] rounded-lg transition-all flex items-center justify-center text-xs font-medium ${
               recordings[slot.id]
-                ? "bg-primary"
+                ? "bg-primary text-primary-foreground"
                 : i === currentIndex
-                ? "bg-primary/40"
-                : "bg-secondary"
+                ? "bg-primary/30 text-foreground border border-primary/50"
+                : "bg-secondary text-muted-foreground"
             }`}
             title={`Affirmation ${i + 1}`}
-          />
+          >
+            {i + 1}
+          </button>
         ))}
       </div>
 

@@ -13,6 +13,7 @@ import {
 
 interface HeroSectionProps {
   onStart: (mode: "guided" | "freestyle" | "library" | "player") => void;
+  libraryCount?: number;
 }
 
 const steps = [
@@ -48,7 +49,7 @@ const steps = [
   },
 ];
 
-const HeroSection = ({ onStart }: HeroSectionProps) => {
+const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showModes, setShowModes] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -98,10 +99,28 @@ const HeroSection = ({ onStart }: HeroSectionProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="text-muted-foreground max-w-xl text-base leading-relaxed mb-10"
+        className="text-muted-foreground max-w-xl text-base leading-relaxed mb-4"
       >
         Your custom unconscious reprogramming system. Script, record, and install your new identity — in your own voice, while you sleep.
       </motion.p>
+
+      {/* Returning user welcome */}
+      {libraryCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="mb-8 px-5 py-3 rounded-xl border border-primary/20 bg-primary/5"
+        >
+          <p className="text-sm text-primary font-display tracking-wide">
+            Welcome back. Your library has{" "}
+            <span className="font-bold">{libraryCount}</span>{" "}
+            {libraryCount === 1 ? "track" : "tracks"}.
+          </p>
+        </motion.div>
+      )}
+
+      {libraryCount === 0 && <div className="mb-6" />}
 
       {/* Napoleon Hill — Featured Quote */}
       <motion.div

@@ -442,7 +442,7 @@ const AffirmationLibrary = ({
               ) : (
                 <button
                   onClick={() => toggleCategory(category)}
-                  className="flex items-center gap-2 flex-1 text-left hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-2 flex-1 text-left min-h-[44px] hover:opacity-80 transition-opacity"
                 >
                   <span>{CATEGORY_ICONS[category] || "📁"}</span>
                   <span className="text-sm font-medium text-foreground">{category}</span>
@@ -457,7 +457,7 @@ const AffirmationLibrary = ({
                     setEditingCategory(category);
                     setEditCategoryName(category);
                   }}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  className="min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                   title="Rename category"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ const AffirmationLibrary = ({
                         >
                           <button
                             onClick={() => handlePlay(item)}
-                            className="flex-shrink-0 w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                            className="flex-shrink-0 w-11 h-11 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
                           >
                             {playingId === item.id ? (
                               <Pause className="w-3 h-3 text-primary" />
@@ -532,7 +532,7 @@ const AffirmationLibrary = ({
                             {selectable && (
                               <button
                                 onClick={() => onToggleSelect?.(item)}
-                                className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
+                                className={`flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg transition-colors ${
                                   isSelected
                                     ? "text-primary bg-primary/10"
                                     : "text-muted-foreground hover:text-primary hover:bg-primary/10"
@@ -548,7 +548,7 @@ const AffirmationLibrary = ({
                             )}
                             <button
                               onClick={() => setMovingItem({ item, category })}
-                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                               title="Move to category"
                             >
                               <ArrowUpDown className="w-3.5 h-3.5" />
@@ -556,14 +556,14 @@ const AffirmationLibrary = ({
                             <button
                               onClick={() => handleRenameOne(item)}
                               disabled={isRenaming}
-                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
+                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-40"
                               title="Rename with AI"
                             >
                               <Sparkles className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDelete(item)}
-                              className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              className="flex-shrink-0 min-w-[44px] min-h-[44px] p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
