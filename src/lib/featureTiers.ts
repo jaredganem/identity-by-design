@@ -2,12 +2,11 @@
  * Feature Tier Mapping
  * ────────────────────
  * Central registry of all features tagged by pricing tier.
- * When we implement gating, check: canAccess(userTier, featureId)
  *
- * Tiers:
- *   "free"    → Basic functionality, lead-gen users
- *   "pro"     → Power users, enhanced UX & unlimited access
- *   "elite"   → Full AI suite + premium capabilities
+ * Revised Allocation:
+ *   "free"  → Record, hear playback, basic frequency. No saving, no download, default prompts only.
+ *   "pro"   → $27 — Save, download, edit prompts, mixer, depth, reps, sleep timer, AI naming, custom categories, cloud sync, streaks, PWA.
+ *   "elite" → $97 — Full AI suite: personalization, track builder, voice cloning, delivery coaching, soundscapes, multi-freq, subliminal, batch export, scheduler, mind-movie.
  */
 
 export type FeatureTier = "free" | "pro" | "elite";
@@ -39,74 +38,53 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
   {
     id: "417hz_playback",
     name: "417Hz Frequency Playback",
-    description: "Listen to the base 417Hz healing frequency",
+    description: "Listen to the base 417Hz healing frequency during recording",
     tier: "free",
     category: "audio",
   },
   {
-    id: "basic_mixer",
-    name: "Basic Audio Mixer",
-    description: "Adjust voice level and frequency level sliders",
+    id: "basic_playback",
+    name: "In-Session Playback",
+    description: "Listen to your recording within the current session (not saved)",
     tier: "free",
     category: "audio",
   },
+
+  // ─── PRO TIER ($27) ───────────────────────────────────
   {
     id: "library_save",
     name: "Save to Library",
-    description: "Save recorded clips to the local affirmation library",
-    tier: "free",
+    description: "Save recorded clips to the affirmation library",
+    tier: "pro",
     category: "library",
   },
   {
     id: "library_browse",
-    name: "Browse Library",
-    description: "View saved affirmations organized by category",
-    tier: "free",
+    name: "Browse & Replay Library",
+    description: "View, replay, and manage saved affirmations organized by category",
+    tier: "pro",
     category: "library",
   },
   {
     id: "basic_export",
-    name: "Download Program (Single)",
-    description: "Export a single mixed track as WAV",
-    tier: "free",
+    name: "Download Program",
+    description: "Export mixed tracks as WAV/WebM files",
+    tier: "pro",
     category: "export",
-  },
-  {
-    id: "sleep_timer",
-    name: "Sleep Timer",
-    description: "Set a timer to auto-stop playback",
-    tier: "free",
-    category: "audio",
   },
   {
     id: "edit_prompts",
     name: "Edit Prompts Manually",
-    description: "Tap to edit any guided affirmation prompt text",
-    tier: "free",
+    description: "Tap to edit any guided affirmation prompt text before recording",
+    tier: "pro",
     category: "personalization",
   },
-
-  // ─── PRO TIER ──────────────────────────────────────────
   {
-    id: "custom_categories",
-    name: "Custom Categories",
-    description: "Create your own category names when saving clips",
+    id: "basic_mixer",
+    name: "Audio Mixer",
+    description: "Adjust voice level and frequency level sliders",
     tier: "pro",
-    category: "library",
-  },
-  {
-    id: "ai_clip_naming",
-    name: "AI Clip Naming",
-    description: "Auto-name saved clips using AI transcription",
-    tier: "pro",
-    category: "ai",
-  },
-  {
-    id: "ai_categorization",
-    name: "AI Auto-Categorization",
-    description: "AI suggests the best category for saved clips",
-    tier: "pro",
-    category: "ai",
+    category: "audio",
   },
   {
     id: "depth_effect",
@@ -123,11 +101,67 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     category: "audio",
   },
   {
-    id: "unlimited_library",
-    name: "Unlimited Library Storage",
-    description: "No cap on saved affirmations (free tier could be limited)",
+    id: "sleep_timer",
+    name: "Sleep Timer",
+    description: "Set a timer to auto-stop playback",
+    tier: "pro",
+    category: "audio",
+  },
+  {
+    id: "ai_clip_naming",
+    name: "AI Clip Naming",
+    description: "Auto-name saved clips using AI transcription",
+    tier: "pro",
+    category: "ai",
+  },
+  {
+    id: "ai_categorization",
+    name: "AI Auto-Categorization",
+    description: "AI suggests the best category for saved clips",
+    tier: "pro",
+    category: "ai",
+  },
+  {
+    id: "custom_categories",
+    name: "Custom Categories",
+    description: "Create your own category names when saving clips",
     tier: "pro",
     category: "library",
+  },
+  {
+    id: "unlimited_library",
+    name: "Unlimited Library Storage",
+    description: "No cap on saved affirmations",
+    tier: "pro",
+    category: "library",
+  },
+  {
+    id: "cloud_sync",
+    name: "Cloud Library Sync",
+    description: "Sync affirmation library across devices via cloud storage",
+    tier: "pro",
+    category: "library",
+  },
+  {
+    id: "progress_tracking",
+    name: "Progress & Streak Tracking",
+    description: "Track daily listening streaks, total hours, and consistency metrics",
+    tier: "pro",
+    category: "personalization",
+  },
+  {
+    id: "identity_player",
+    name: "Identity Player",
+    description: "Dedicated player with circular visualizer, playlist, loop/shuffle controls",
+    tier: "pro",
+    category: "audio",
+  },
+  {
+    id: "pwa_install",
+    name: "Installable App (PWA)",
+    description: "Install to home screen for native-like offline experience",
+    tier: "pro",
+    category: "export",
   },
   {
     id: "speech_to_text_input",
@@ -137,7 +171,7 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     category: "personalization",
   },
 
-  // ─── ELITE TIER ────────────────────────────────────────
+  // ─── ELITE TIER ($97) ─────────────────────────────────
   {
     id: "ai_personalize_prompts",
     name: "AI Prompt Personalization",
@@ -159,22 +193,6 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     tier: "elite",
     category: "ai",
   },
-  {
-    id: "identity_player",
-    name: "Identity Player",
-    description: "Dedicated player with circular visualizer, playlist, loop/shuffle controls",
-    tier: "pro",
-    category: "audio",
-  },
-  {
-    id: "pwa_install",
-    name: "Installable App (PWA)",
-    description: "Install to home screen for native-like offline experience",
-    tier: "pro",
-    category: "export",
-  },
-
-  // ─── FUTURE ADVANCED FEATURES (Elite) ──────────────────
   {
     id: "ai_voice_clone",
     name: "AI Voice Cloning",
@@ -211,20 +229,6 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     category: "personalization",
   },
   {
-    id: "progress_tracking",
-    name: "Progress & Streak Tracking",
-    description: "Track daily listening streaks, total hours, and consistency metrics",
-    tier: "elite",
-    category: "personalization",
-  },
-  {
-    id: "cloud_sync",
-    name: "Cloud Library Sync",
-    description: "Sync affirmation library across devices via cloud storage",
-    tier: "elite",
-    category: "library",
-  },
-  {
     id: "share_tracks",
     name: "Share Tracks",
     description: "Share finished affirmation programs with others or on social media",
@@ -245,6 +249,13 @@ export const FEATURE_TIERS: FeatureDefinition[] = [
     tier: "elite",
     category: "export",
   },
+  {
+    id: "mind_movie",
+    name: "Subliminal Mind-Movie",
+    description: "Visual affirmation cycling display with animated transitions during playback",
+    tier: "elite",
+    category: "personalization",
+  },
 ];
 
 // ─── Helper for future gating ────────────────────────────
@@ -252,9 +263,6 @@ const TIER_RANK: Record<FeatureTier, number> = { free: 0, pro: 1, elite: 2 };
 
 /**
  * Promo-tier → max unlocked FeatureTier mapping.
- * "vip_all" / "founders_vip" / "vip" → elite (everything)
- * "vip_mid"                          → pro
- * "vip_basic" / "3mo_free" / "6mo_free" → free (must upgrade for more)
  */
 export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
   vip: "elite",
