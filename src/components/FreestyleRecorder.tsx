@@ -39,7 +39,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [saveCategory, setSaveCategory] = useState("Custom");
   const [customCategoryName, setCustomCategoryName] = useState("");
   const nextId = useRef(0);
-  const [clipItems, setClipItems] = useState<{ id: number; blob: Blob; autoName?: string }[]>([]);
+  const [clipItems, setClipItems] = useState<{ id: number; blob: Blob; autoName?: string; savedToLibrary?: boolean }[]>([]);
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [aiNaming, setAiNaming] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
@@ -180,6 +180,10 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       updatedAt: Date.now(),
     });
     onLibraryChanged?.();
+    // Update the clip's displayed name and mark as saved so UI reflects it
+    setClipItems((prev) =>
+      prev.map((c) => (c.id === item.id ? { ...c, autoName: name, savedToLibrary: true } : c))
+    );
     setSavingId(null);
     setSaveName("");
     setSaveCategory("Custom");
@@ -322,19 +326,22 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                     </button>
                     <button
                       onClick={() => {
+                        if (item.savedToLibrary) return;
                         if (!canSave(tier)) { setShowUpgradePrompt("tier1"); return; }
                         setSavingId(savingId === item.id ? null : item.id);
                         setSaveName(item.autoName || `Clip ${i + 1}`);
                         setSaveCategory("Custom");
                       }}
                       className={`min-w-[44px] min-h-[44px] p-2 rounded-lg transition-colors flex items-center justify-center ${
-                        savingId === item.id
+                        item.savedToLibrary
+                          ? "text-green-500 cursor-default"
+                          : savingId === item.id
                           ? "text-primary bg-primary/10"
                           : "text-muted-foreground hover:text-primary hover:bg-primary/10"
                       }`}
-                      title="Save to Library"
+                      title={item.savedToLibrary ? "Saved ✓" : "Save to Library"}
                     >
-                      <BookmarkPlus className="w-4 h-4" />
+                      {item.savedToLibrary ? <Check className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}

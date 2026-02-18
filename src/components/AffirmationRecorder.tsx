@@ -43,6 +43,7 @@ const AffirmationRecorder = ({
   const [customCategoryName, setCustomCategoryName] = useState("");
   const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [spokenNames, setSpokenNames] = useState<Record<string, string>>({});
+  const [savedSlots, setSavedSlots] = useState<Record<string, boolean>>({});
   const [aiNaming, setAiNaming] = useState(false);
   const [aiCategorizing, setAiCategorizing] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
@@ -351,7 +352,17 @@ const AffirmationRecorder = ({
               <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
               Re-record
             </Button>
-            {!savingToLibrary ? (
+            {savedSlots[currentSlot.id] ? (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="border-green-500/30 text-green-500 cursor-default"
+              >
+                <Check className="w-3.5 h-3.5 mr-1.5" />
+                Saved ✓
+              </Button>
+            ) : !savingToLibrary ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -440,9 +451,10 @@ const AffirmationRecorder = ({
                     size="sm"
                     onClick={async () => {
                       const finalCategory = saveCategory === "__custom_new__" ? (customCategoryName.trim() || "Custom") : saveCategory;
+                      const savedName = libraryName || displayText.slice(0, 40);
                       await saveAffirmation({
                         id: `${currentSlot.id}-${Date.now()}`,
-                        name: libraryName || displayText.slice(0, 40),
+                        name: savedName,
                         text: displayText,
                         category: finalCategory,
                         blob: recordings[currentSlot.id],
@@ -450,10 +462,12 @@ const AffirmationRecorder = ({
                         updatedAt: Date.now(),
                       });
                       onLibraryChanged?.();
+                      setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: savedName }));
+                      setSavedSlots((prev) => ({ ...prev, [currentSlot.id]: true }));
                       setSavingToLibrary(false);
                       setCustomCategoryName("");
                       trackEvent("saved_to_library", { mode: "guided", category: finalCategory });
-                      toast({ title: "Saved to Library 📚", description: `"${libraryName}" added to ${finalCategory}.` });
+                      toast({ title: "Saved to Library 📚", description: `"${savedName}" added to ${finalCategory}.` });
                     }}
                     className="bg-primary text-primary-foreground h-8"
                   >
