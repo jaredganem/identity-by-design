@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowRightLeft } from "lucide-react";
+import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllAffirmations, deleteAffirmation, updateAffirmationName, moveAffirmationToCategory, renameCategory, type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { audioEngine } from "@/lib/audioEngine";
@@ -551,10 +551,10 @@ const AffirmationLibrary = ({
                                 className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                 title="Move to category"
                               >
-                                <ArrowRightLeft className="w-3.5 h-3.5" />
+                              <ArrowUpDown className="w-3.5 h-3.5" />
                               </button>
                               {movingItemId === item.id && (
-                                <div className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
+                                <div className="absolute right-0 bottom-full mb-1 z-50 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
                                   {Object.keys(grouped)
                                     .filter((cat) => cat !== category)
                                     .map((cat) => (
