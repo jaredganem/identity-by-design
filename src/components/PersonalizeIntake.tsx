@@ -6,6 +6,7 @@ import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import { useToast } from "@/hooks/use-toast";
+// TIER GATE: requires tier2 for AI prompt personalization (canAccessAI)
 
 const ADVANCED_STEPS = [
   {

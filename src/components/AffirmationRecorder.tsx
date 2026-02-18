@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
 import { trackEvent } from "@/lib/analytics";
+// TIER GATE: requires tier1 to save recordings (canSave), requires tier2 for AI personalization (canAccessAI)
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
