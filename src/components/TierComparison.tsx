@@ -47,7 +47,7 @@ const FEATURES: { name: string; free: boolean; pro: boolean; elite: boolean; cat
   { name: "AI Delivery Coaching", free: false, pro: false, elite: true, category: "AI Suite" },
   { name: "Multiple Healing Frequencies", free: false, pro: false, elite: true, category: "AI Suite" },
   { name: "Background Soundscapes", free: false, pro: false, elite: true, category: "AI Suite" },
-  { name: "Subliminal Layering", free: false, pro: false, elite: true, category: "AI Suite" },
+  { name: "Subliminal Saturation Layer", free: false, pro: true, elite: true, category: "Customization" },
 ];
 
 // Group features by category

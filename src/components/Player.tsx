@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1 } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1, Layers } from "lucide-react";
 import { type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import { audioEngine } from "@/lib/audioEngine";
@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { trackEvent } from "@/lib/analytics";
 import { useTier } from "@/hooks/use-tier";
-import { canAccessLibrary } from "@/lib/tierAccess";
+import { canAccessLibrary, meetsMinimumTier } from "@/lib/tierAccess";
+import { getSubliminalPrefs, saveSubliminalPrefs, createSubliminalLayer, type SubliminalMode, type SubliminalIntensity } from "@/lib/subliminalEngine";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
@@ -90,6 +92,9 @@ const Player = ({ onBack }: PlayerProps) => {
   const [volume, setVolume] = useState(0.5);
   const [muted, setMuted] = useState(false);
   const prevVolume = useRef(1);
+  const subliminalRef = useRef<ReturnType<typeof createSubliminalLayer> | null>(null);
+  const [subliminalMode, setSubliminalMode] = useState<SubliminalMode>(getSubliminalPrefs().mode);
+  const [subliminalIntensity, setSubliminalIntensity] = useState<SubliminalIntensity>(getSubliminalPrefs().intensity);
 
   // Cleanup audio on unmount — stop playback when navigating away
   useEffect(() => {
@@ -102,6 +107,7 @@ const Player = ({ onBack }: PlayerProps) => {
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
       }
+      subliminalRef.current?.destroy();
     };
   }, []);
 
@@ -138,6 +144,24 @@ const Player = ({ onBack }: PlayerProps) => {
       source.connect(analyser);
       analyser.connect(ctx.destination);
       sourceRef.current = source;
+
+      // Initialize subliminal layer on same context
+      subliminalRef.current = createSubliminalLayer(ctx, ctx.destination);
+    }
+
+    // Decode track for subliminal layer
+    if (subliminalRef.current && currentTrack.blob) {
+      currentTrack.blob.arrayBuffer().then(buf => {
+        const ctx = analyserRef.current?.context as AudioContext;
+        if (ctx) {
+          ctx.decodeAudioData(buf.slice(0)).then(decoded => {
+            const prefs = getSubliminalPrefs();
+            if (prefs.intensity !== "off") {
+              subliminalRef.current?.start(decoded, prefs.mode, prefs.intensity);
+            }
+          }).catch(() => {});
+        }
+      });
     }
 
     audioRef.current.onended = handleTrackEnd;
@@ -250,12 +274,24 @@ const Player = ({ onBack }: PlayerProps) => {
     if (!audioRef.current || !currentTrack) return;
     if (isPlaying) {
       audioRef.current.pause();
+      subliminalRef.current?.stop();
       setIsPlaying(false);
     } else {
       try {
         await audioRef.current.play();
         setIsPlaying(true);
         trackEvent("playback_started", { track: currentTrack?.name });
+        // Restart subliminal if active
+        if (subliminalIntensity !== "off" && currentTrack.blob) {
+          currentTrack.blob.arrayBuffer().then(buf => {
+            const ctx = analyserRef.current?.context as AudioContext;
+            if (ctx) {
+              ctx.decodeAudioData(buf.slice(0)).then(decoded => {
+                subliminalRef.current?.start(decoded, subliminalMode, subliminalIntensity);
+              }).catch(() => {});
+            }
+          });
+        }
       } catch (e) {
         console.error("Playback failed:", e);
       }
@@ -398,36 +434,131 @@ const Player = ({ onBack }: PlayerProps) => {
         </button>
       </div>
 
-      {/* Volume control */}
-      <div className="flex items-center justify-end gap-3 px-4">
-        <button
-          onClick={() => {
-            if (muted) {
-              setMuted(false);
-              setVolume(prevVolume.current || 0.5);
-              if (audioRef.current) audioRef.current.volume = prevVolume.current || 0.5;
-            } else {
-              prevVolume.current = volume;
-              setMuted(true);
-              setVolume(0);
-              if (audioRef.current) audioRef.current.volume = 0;
-            }
-          }}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 0.5 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-        </button>
-        <Slider
-          value={[muted ? 0 : volume]}
-          max={1}
-          step={0.01}
-          onValueChange={([v]) => {
-            setVolume(v);
-            setMuted(v === 0);
-            if (audioRef.current) audioRef.current.volume = v;
-          }}
-          className="w-28"
-        />
+      {/* Volume & Subliminal controls */}
+      <div className="flex items-center justify-between gap-3 px-4">
+        {/* Subliminal Saturation toggle */}
+        {meetsMinimumTier(tier, "tier1") ? (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={`relative transition-colors ${subliminalIntensity !== "off" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                title="Subliminal Saturation"
+              >
+                <Layers className="w-4 h-4" />
+                {subliminalIntensity !== "off" && (
+                  <span className="absolute -top-1 -right-1.5 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-4 space-y-3" align="start">
+              <div>
+                <p className="text-xs font-display font-bold uppercase tracking-wider text-foreground">Subliminal Saturation</p>
+                <p className="text-[10px] text-muted-foreground normal-case tracking-normal mt-1 leading-relaxed">
+                  Layers your own voice at near-inaudible volume — flooding the environment with your identity programming whether you're focused on it or not.
+                </p>
+              </div>
+              {/* Intensity */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display">Intensity</p>
+                <div className="flex gap-1.5">
+                  {(["off", "low", "medium"] as SubliminalIntensity[]).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => {
+                        setSubliminalIntensity(level);
+                        saveSubliminalPrefs({ mode: subliminalMode, intensity: level });
+                        subliminalRef.current?.updateIntensity(level);
+                        if (level === "off") subliminalRef.current?.stop();
+                        trackEvent("subliminal_intensity", { level });
+                      }}
+                      className={`flex-1 py-1.5 rounded-md text-[10px] font-display uppercase tracking-wider transition-colors ${
+                        subliminalIntensity === level
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Mode */}
+              {subliminalIntensity !== "off" && (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display">Mode</p>
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => {
+                        setSubliminalMode("echo");
+                        saveSubliminalPrefs({ mode: "echo", intensity: subliminalIntensity });
+                        subliminalRef.current?.updateMode("echo", subliminalIntensity);
+                        trackEvent("subliminal_mode", { mode: "echo" });
+                      }}
+                      className={`flex-1 py-1.5 rounded-md text-[10px] font-display transition-colors ${
+                        subliminalMode === "echo"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="block uppercase tracking-wider">Echo</span>
+                      <span className="block normal-case tracking-normal text-[8px] opacity-70 mt-0.5">Pitched-down mirror</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSubliminalMode("rapid");
+                        saveSubliminalPrefs({ mode: "rapid", intensity: subliminalIntensity });
+                        subliminalRef.current?.updateMode("rapid", subliminalIntensity);
+                        trackEvent("subliminal_mode", { mode: "rapid" });
+                      }}
+                      className={`flex-1 py-1.5 rounded-md text-[10px] font-display transition-colors ${
+                        subliminalMode === "rapid"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="block uppercase tracking-wider">Rapid</span>
+                      <span className="block normal-case tracking-normal text-[8px] opacity-70 mt-0.5">Whisper-speed loop</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <div className="w-4" />
+        )}
+
+        {/* Volume */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              if (muted) {
+                setMuted(false);
+                setVolume(prevVolume.current || 0.5);
+                if (audioRef.current) audioRef.current.volume = prevVolume.current || 0.5;
+              } else {
+                prevVolume.current = volume;
+                setMuted(true);
+                setVolume(0);
+                if (audioRef.current) audioRef.current.volume = 0;
+              }
+            }}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 0.5 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+          <Slider
+            value={[muted ? 0 : volume]}
+            max={1}
+            step={0.01}
+            onValueChange={([v]) => {
+              setVolume(v);
+              setMuted(v === 0);
+              if (audioRef.current) audioRef.current.volume = v;
+            }}
+            className="w-28"
+          />
+        </div>
       </div>
 
       {/* Download button */}
