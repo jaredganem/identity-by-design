@@ -146,12 +146,7 @@ const AffirmationRecorder = ({
 
   return (
     <div className="space-y-6">
-      {showCountdown && (
-        <RecordingCountdown
-          onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
-          onCancel={() => setShowCountdown(false)}
-        />
-      )}
+      {/* countdown is now rendered inline in the mic button area below */}
       {/* Personalize with AI */}
       {totalRecorded === 0 && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
@@ -275,32 +270,43 @@ const AffirmationRecorder = ({
           </p>
         )}
 
-        {hasRecording && !isRecording ? (
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
-              <Check className="w-8 h-8 text-primary" />
+        <AnimatePresence mode="wait">
+          {showCountdown ? (
+            <RecordingCountdown
+              key="countdown"
+              onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
+              onCancel={() => setShowCountdown(false)}
+            />
+          ) : hasRecording && !isRecording ? (
+            <div key="done" className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
+                <Check className="w-8 h-8 text-primary" />
+              </div>
             </div>
-          </div>
-        ) : (
-          <motion.button
-            onClick={handleRecord}
-            whileTap={{ scale: 0.95 }}
-            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
-              isRecording
-                ? "bg-destructive shadow-[0_0_40px_hsl(0_84%_60%/0.4)]"
-                : "bg-primary shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)]"
-            }`}
-          >
-            {isRecording ? (
-              <Square className="w-6 h-6 text-destructive-foreground" />
-            ) : (
-              <Mic className="w-6 h-6 text-primary-foreground" />
-            )}
-          </motion.button>
-        )}
+          ) : (
+            <motion.button
+              key="mic"
+              onClick={handleRecord}
+              whileTap={{ scale: 0.95 }}
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
+                isRecording
+                  ? "bg-destructive shadow-[0_0_40px_hsl(0_84%_60%/0.4)]"
+                  : "bg-primary shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)]"
+              }`}
+            >
+              {isRecording ? (
+                <Square className="w-6 h-6 text-destructive-foreground" />
+              ) : (
+                <Mic className="w-6 h-6 text-primary-foreground" />
+              )}
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         <p className="text-sm text-muted-foreground">
-          {isRecording
+          {showCountdown
+            ? "Get into state… tap to cancel"
+            : isRecording
             ? "Recording... tap to stop"
             : hasRecording
             ? "Recorded ✓"

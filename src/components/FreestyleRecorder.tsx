@@ -170,12 +170,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
 
   return (
     <div className="space-y-6">
-      {showCountdown && (
-        <RecordingCountdown
-          onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
-          onCancel={() => setShowCountdown(false)}
-        />
-      )}
+      {/* countdown is now rendered inline in the mic button area below */}
       {/* Deep Dive AI Personalization */}
       {clipItems.length === 0 && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
@@ -428,25 +423,36 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
 
       {/* Record area */}
       <div className="flex flex-col items-center gap-3">
-        <motion.button
-          onClick={handleRecord}
-          whileTap={{ scale: 0.95 }}
-          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
-            isRecording
-              ? "bg-destructive shadow-[0_0_40px_hsl(0_84%_60%/0.4)]"
-              : "bg-primary shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)]"
-          }`}
-        >
-          {isRecording ? (
-            <Square className="w-6 h-6 text-destructive-foreground" />
-          ) : clipItems.length > 0 ? (
-            <Plus className="w-6 h-6 text-primary-foreground" />
+        <AnimatePresence mode="wait">
+          {showCountdown ? (
+            <RecordingCountdown
+              key="countdown"
+              onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
+              onCancel={() => setShowCountdown(false)}
+            />
           ) : (
-            <Mic className="w-6 h-6 text-primary-foreground" />
+            <motion.button
+              key="mic"
+              onClick={handleRecord}
+              whileTap={{ scale: 0.95 }}
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
+                isRecording
+                  ? "bg-destructive shadow-[0_0_40px_hsl(0_84%_60%/0.4)]"
+                  : "bg-primary shadow-glow hover:shadow-[0_0_60px_hsl(42_78%_55%/0.4)]"
+              }`}
+            >
+              {isRecording ? (
+                <Square className="w-6 h-6 text-destructive-foreground" />
+              ) : clipItems.length > 0 ? (
+                <Plus className="w-6 h-6 text-primary-foreground" />
+              ) : (
+                <Mic className="w-6 h-6 text-primary-foreground" />
+              )}
+            </motion.button>
           )}
-        </motion.button>
+        </AnimatePresence>
         <p className="text-sm text-muted-foreground">
-          {isRecording ? "Recording... tap to stop" : clipItems.length > 0 ? "Tap to add another clip" : "Tap to start recording"}
+          {showCountdown ? "Get into state… tap to cancel" : isRecording ? "Recording... tap to stop" : clipItems.length > 0 ? "Tap to add another clip" : "Tap to start recording"}
         </p>
       </div>
 
