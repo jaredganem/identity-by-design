@@ -500,24 +500,20 @@ const AffirmationRecorder = ({
         </Button>
       </div>
 
-      {/* Category overview */}
-      <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
-        {allSlots.map((slot, i) => (
-          <button
-            key={slot.id}
-            onClick={() => setCurrentIndex(i)}
-            className={`min-h-[44px] min-w-[44px] rounded-lg transition-all flex items-center justify-center text-xs font-medium ${
-              recordings[slot.id]
-                ? "bg-primary text-primary-foreground"
-                : i === currentIndex
-                ? "bg-primary/30 text-foreground border border-primary/50"
-                : "bg-secondary text-muted-foreground"
-            }`}
-            title={`Affirmation ${i + 1}`}
-          >
-            {i + 1}
-          </button>
-        ))}
+      {/* Compact progress indicator */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+          {currentIndex + 1}/{allSlots.length}
+        </span>
+        <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${(Object.keys(recordings).length / allSlots.length) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {Object.keys(recordings).length} recorded
+        </span>
       </div>
 
       <LeadCaptureGate
