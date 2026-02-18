@@ -512,11 +512,11 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                     <Flame className="w-3.5 h-3.5 text-primary" />
                     <span className="text-xs text-primary font-display font-bold">{stats.currentStreak} day streak</span>
                     <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground normal-case tracking-normal">7 → 21 → 30 days</span>
+                    <span className="text-xs text-muted-foreground normal-case tracking-normal">1 → 7 → 30 → 365 days</span>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground normal-case tracking-normal">
-                    7 → 21 → 30 days. Each level unlocks when you complete the last.
+                    Progressive levels from Day 1 to Day 365. Can you go the distance?
                   </p>
                 )}
                 <p className="text-[10px] text-primary/70 font-display tracking-wider">
