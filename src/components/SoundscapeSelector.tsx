@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Play, Square } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Square, Lock, Volume2 } from "lucide-react";
 import { AMBIENT_SOUNDSCAPES, HEALING_FREQUENCIES, type Soundscape } from "@/lib/soundscapes";
+import { useTier } from "@/hooks/use-tier";
+import UpgradePrompt from "@/components/UpgradePrompt";
+
+/** 417 Hz is free for everyone. Everything else requires Elite. */
+const FREE_FREQUENCY_ID = "417hz";
 
 interface SoundscapeSelectorProps {
   soundscapeId: string;
@@ -15,74 +20,141 @@ const SoundscapeSelector = ({
   frequencyId,
   onFrequencyChange,
 }: SoundscapeSelectorProps) => {
+  const { tier } = useTier();
+  const isElite = tier === "tier2";
+
   const currentFreqIndex = HEALING_FREQUENCIES.findIndex((f) => f.id === frequencyId);
   const currentFreq = HEALING_FREQUENCIES[currentFreqIndex >= 0 ? currentFreqIndex : 0];
-  const [isPreviewing, setIsPreviewing] = useState(false);
-  const oscRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFreqLocked = currentFreq.id !== FREE_FREQUENCY_ID && !isElite;
 
-  const stopPreview = () => {
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
-    if (oscRef.current) {
-      try { oscRef.current.stop(); } catch {}
-      oscRef.current = null;
+  // --- Frequency preview state ---
+  const [isPreviewingFreq, setIsPreviewingFreq] = useState(false);
+  const freqOscRef = useRef<OscillatorNode | null>(null);
+  const freqGainRef = useRef<GainNode | null>(null);
+  const freqCtxRef = useRef<AudioContext | null>(null);
+  const freqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // --- Soundscape preview state ---
+  const [isPreviewingSoundscape, setIsPreviewingSoundscape] = useState(false);
+  const soundscapeAudioRef = useRef<HTMLAudioElement | null>(null);
+  const soundscapeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  // --- Frequency preview ---
+  const stopFreqPreview = () => {
+    if (freqTimerRef.current) { clearTimeout(freqTimerRef.current); freqTimerRef.current = null; }
+    if (freqOscRef.current) {
+      try { freqOscRef.current.stop(); } catch {}
+      freqOscRef.current = null;
     }
-    if (gainRef.current) { gainRef.current.disconnect(); gainRef.current = null; }
-    setIsPreviewing(false);
+    if (freqGainRef.current) { freqGainRef.current.disconnect(); freqGainRef.current = null; }
+    setIsPreviewingFreq(false);
   };
 
-  const startPreview = (freq: Soundscape) => {
-    stopPreview();
+  const startFreqPreview = (freq: Soundscape) => {
+    stopFreqPreview();
     if (!freq.frequency) return;
 
-    if (!ctxRef.current) ctxRef.current = new AudioContext();
-    const ctx = ctxRef.current;
+    if (!freqCtxRef.current) freqCtxRef.current = new AudioContext();
+    const ctx = freqCtxRef.current;
 
     const gain = ctx.createGain();
     gain.gain.value = 0.25;
     gain.connect(ctx.destination);
-    gainRef.current = gain;
+    freqGainRef.current = gain;
 
     const osc = ctx.createOscillator();
     osc.type = "sine";
     osc.frequency.value = freq.frequency;
     osc.connect(gain);
     osc.start();
-    oscRef.current = osc;
-    setIsPreviewing(true);
+    freqOscRef.current = osc;
+    setIsPreviewingFreq(true);
 
-    timerRef.current = setTimeout(() => stopPreview(), 10000);
+    freqTimerRef.current = setTimeout(() => stopFreqPreview(), 10000);
   };
 
-  const handlePreviewToggle = () => {
-    if (isPreviewing) { stopPreview(); return; }
-    startPreview(currentFreq);
+  const handleFreqPreviewToggle = () => {
+    if (isPreviewingFreq) { stopFreqPreview(); return; }
+    startFreqPreview(currentFreq);
   };
 
-  // Stop & restart preview when frequency changes while previewing
   useEffect(() => {
-    if (isPreviewing) {
-      startPreview(currentFreq);
-    }
+    if (isPreviewingFreq) startFreqPreview(currentFreq);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frequencyId]);
 
+  // --- Soundscape preview ---
+  const stopSoundscapePreview = () => {
+    if (soundscapeTimerRef.current) { clearTimeout(soundscapeTimerRef.current); soundscapeTimerRef.current = null; }
+    if (soundscapeAudioRef.current) {
+      soundscapeAudioRef.current.pause();
+      soundscapeAudioRef.current.currentTime = 0;
+      soundscapeAudioRef.current = null;
+    }
+    setIsPreviewingSoundscape(false);
+  };
+
+  const startSoundscapePreview = (s: Soundscape) => {
+    stopSoundscapePreview();
+    if (!s.path) return;
+
+    const audio = new Audio(s.path);
+    audio.volume = 0.4;
+    audio.play().catch(() => {});
+    soundscapeAudioRef.current = audio;
+    setIsPreviewingSoundscape(true);
+
+    soundscapeTimerRef.current = setTimeout(() => stopSoundscapePreview(), 10000);
+  };
+
+  const handleSoundscapePreviewToggle = () => {
+    if (isPreviewingSoundscape) { stopSoundscapePreview(); return; }
+    const selected = AMBIENT_SOUNDSCAPES.find((s) => s.id === soundscapeId);
+    if (selected && selected.path) startSoundscapePreview(selected);
+  };
+
+  // Stop soundscape preview when selection changes
+  useEffect(() => {
+    stopSoundscapePreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundscapeId]);
+
   // Cleanup on unmount
-  useEffect(() => () => stopPreview(), []);
+  useEffect(() => () => { stopFreqPreview(); stopSoundscapePreview(); }, []);
 
   const cycleFrequency = (direction: -1 | 1) => {
     const idx = currentFreqIndex >= 0 ? currentFreqIndex : 0;
     const next = (idx + direction + HEALING_FREQUENCIES.length) % HEALING_FREQUENCIES.length;
-    onFrequencyChange(HEALING_FREQUENCIES[next].id);
+    const nextFreq = HEALING_FREQUENCIES[next];
+    // Allow cycling to see all, but lock selection on build
+    onFrequencyChange(nextFreq.id);
   };
+
+  const selectedSoundscape = AMBIENT_SOUNDSCAPES.find((s) => s.id === soundscapeId);
+  const canPreviewSoundscape = selectedSoundscape && selectedSoundscape.id !== "none" && selectedSoundscape.path;
 
   return (
     <div className="space-y-6">
       {/* Ambient Soundscape Pills */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">Background Soundscape</label>
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-foreground">Background Soundscape</label>
+          {canPreviewSoundscape && (
+            <button
+              onClick={handleSoundscapePreviewToggle}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border transition-colors ${
+                isPreviewingSoundscape
+                  ? "border-primary/50 bg-primary/15 text-primary"
+                  : "border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40"
+              }`}
+            >
+              {isPreviewingSoundscape ? <Square className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
+              {isPreviewingSoundscape ? "Stop" : "Preview"}
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1">
           {AMBIENT_SOUNDSCAPES.map((s) => (
             <button
@@ -103,7 +175,9 @@ const SoundscapeSelector = ({
       {/* Healing Frequency Carousel */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">Healing Frequency</label>
-        <div className="flex items-center gap-3 p-4 rounded-xl border border-primary/30 bg-secondary/20 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.15)]">
+        <div className={`flex items-center gap-3 p-4 rounded-xl border bg-secondary/20 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.15)] transition-colors ${
+          isFreqLocked ? "border-border/40" : "border-primary/30"
+        }`}>
           <button
             onClick={() => cycleFrequency(-1)}
             className="w-9 h-9 flex-shrink-0 rounded-full border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
@@ -112,25 +186,41 @@ const SoundscapeSelector = ({
           </button>
 
           <div className="flex-1 text-center min-w-0">
-            <p className="text-lg font-display font-bold text-foreground tracking-wide">
+            <p className={`text-lg font-display font-bold tracking-wide ${isFreqLocked ? "text-muted-foreground" : "text-foreground"}`}>
               {currentFreq.emoji} {currentFreq.label}
+              {isFreqLocked && <Lock className="w-3.5 h-3.5 inline ml-1.5 opacity-60" />}
             </p>
             {currentFreq.description && (
               <p className="text-xs text-muted-foreground mt-0.5 normal-case tracking-normal">
                 {currentFreq.description}
               </p>
             )}
-            <button
-              onClick={handlePreviewToggle}
-              className={`mt-2 inline-flex items-center gap-1 px-3 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border transition-colors ${
-                isPreviewing
-                  ? "border-primary/50 bg-primary/15 text-primary"
-                  : "border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40"
-              }`}
-            >
-              {isPreviewing ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
-              {isPreviewing ? "Stop" : "Preview"}
-            </button>
+            {currentFreq.id === FREE_FREQUENCY_ID && (
+              <p className="text-[10px] text-primary/70 mt-1 normal-case tracking-normal font-medium">
+                ✦ Don't know where to start? Start here.
+              </p>
+            )}
+            {isFreqLocked && (
+              <button
+                onClick={() => setShowUpgrade(true)}
+                className="mt-1.5 inline-flex items-center gap-1 px-3 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+              >
+                <Lock className="w-2.5 h-2.5" /> Unlock with Elite
+              </button>
+            )}
+            {!isFreqLocked && (
+              <button
+                onClick={handleFreqPreviewToggle}
+                className={`mt-2 inline-flex items-center gap-1 px-3 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border transition-colors ${
+                  isPreviewingFreq
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40"
+                }`}
+              >
+                {isPreviewingFreq ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
+                {isPreviewingFreq ? "Stop" : "Preview"}
+              </button>
+            )}
           </div>
 
           <button
@@ -141,6 +231,14 @@ const SoundscapeSelector = ({
           </button>
         </div>
       </div>
+
+      {showUpgrade && (
+        <UpgradePrompt
+          requiredTier="tier2"
+          featureName="Additional Healing Frequencies"
+          onDismiss={() => setShowUpgrade(false)}
+        />
+      )}
     </div>
   );
 };
