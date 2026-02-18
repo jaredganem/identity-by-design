@@ -7,7 +7,9 @@ import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { trackEvent } from "@/lib/analytics";
-// TIER GATE: requires tier1 to access player & replay saved tracks (canAccessLibrary)
+import { useTier } from "@/hooks/use-tier";
+import { canAccessLibrary } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface PlayerProps {
   onBack: () => void;
@@ -68,6 +70,7 @@ const SubliminalDisplay = ({
 };
 
 const Player = ({ onBack }: PlayerProps) => {
+  const { tier } = useTier();
   const [tracks, setTracks] = useState<SavedAffirmation[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -113,7 +116,7 @@ const Player = ({ onBack }: PlayerProps) => {
 
   // Set up audio element and visualizer
   useEffect(() => {
-    if (!currentTrack) return;
+    if (!canAccessLibrary(tier) || !currentTrack) return;
     const url = URL.createObjectURL(currentTrack.blob);
     
     if (!audioRef.current) {
@@ -217,6 +220,19 @@ const Player = ({ onBack }: PlayerProps) => {
       setIsPlaying(false);
     }
   }, [loopMode, currentIndex, tracks.length]);
+
+  // Gate: Player requires Pro (tier1+) to access
+  if (!canAccessLibrary(tier)) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative z-10 max-w-2xl mx-auto px-6 py-12"
+      >
+        <UpgradePrompt requiredTier="tier1" featureName="Identity Player" inline onDismiss={onBack} />
+      </motion.div>
+    );
+  }
 
   const togglePlay = async () => {
     if (!audioRef.current || !currentTrack) return;

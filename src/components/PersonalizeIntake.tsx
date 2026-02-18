@@ -6,7 +6,9 @@ import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import { useToast } from "@/hooks/use-toast";
-// TIER GATE: requires tier2 for AI prompt personalization (canAccessAI)
+import { useTier } from "@/hooks/use-tier";
+import { canAccessAI } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 const ADVANCED_STEPS = [
   {
@@ -74,6 +76,7 @@ const PersonalizeIntake = ({
   forceMode,
   onAdvancedResults,
 }: PersonalizeIntakeProps) => {
+  const { tier } = useTier();
   const [mode, setMode] = useState<IntakeMode>(forceMode || "choose");
   const [simpleGoal, setSimpleGoal] = useState("");
   const [advancedAnswers, setAdvancedAnswers] = useState<Record<string, string>>({});
@@ -105,6 +108,11 @@ const PersonalizeIntake = ({
       setGoalListening(true);
     }
   }, [goalListening, speech, mode, currentStepKey]);
+
+  // Gate: AI personalization requires Elite (tier2)
+  if (!canAccessAI(tier)) {
+    return <UpgradePrompt requiredTier="tier2" featureName="AI Prompt Personalization" inline onDismiss={onClose} />;
+  }
 
   const handleSubmit = async () => {
     if (goalListening) {

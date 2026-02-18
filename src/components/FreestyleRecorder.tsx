@@ -13,7 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
 import { trackEvent } from "@/lib/analytics";
-// TIER GATE: requires tier1 to save clips (canSave), requires tier2 for AI deep-dive script (canAccessAI)
+import { useTier } from "@/hooks/use-tier";
+import { canSave, canAccessAI } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -45,6 +47,8 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [generatedAffirmations, setGeneratedAffirmations] = useState<Record<string, string>>({});
   const [scriptIndex, setScriptIndex] = useState(0);
   const [showCountdown, setShowCountdown] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState<"tier1" | "tier2" | null>(null);
+  const { tier } = useTier();
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -173,8 +177,10 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
               <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => setShowDeepDive(true)}
-                  className="border-primary/30 hover:bg-primary/10 text-primary"
+                  onClick={() => {
+                    if (!canAccessAI(tier)) { setShowUpgradePrompt("tier2"); return; }
+                    setShowDeepDive(true);
+                  }}
                 >
                   <Wand2 className="w-4 h-4 mr-2" />
                   {deepDiveComplete ? "Redo Deep Dive" : "🧠 Answer 5 Identity Questions"}
@@ -288,6 +294,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                     </button>
                     <button
                       onClick={() => {
+                        if (!canSave(tier)) { setShowUpgradePrompt("tier1"); return; }
                         setSavingId(savingId === item.id ? null : item.id);
                         setSaveName(item.autoName || `Clip ${i + 1}`);
                         setSaveCategory("Custom");
@@ -452,6 +459,13 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
           toast({ title: "Welcome aboard 🎯", description: "You're in. Start recording your identity." });
         }}
       />
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          requiredTier={showUpgradePrompt}
+          featureName={showUpgradePrompt === "tier2" ? "AI Deep Dive" : "Save to Library"}
+          onDismiss={() => setShowUpgradePrompt(null)}
+        />
+      )}
     </div>
   );
 };

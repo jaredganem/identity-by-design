@@ -13,7 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { captureTranscript } from "@/lib/transcriptCapture";
 import PersonalizeIntake from "@/components/PersonalizeIntake";
 import { trackEvent } from "@/lib/analytics";
-// TIER GATE: requires tier1 to save recordings (canSave), requires tier2 for AI personalization (canAccessAI)
+import { useTier } from "@/hooks/use-tier";
+import { canSave, canEditPrompts, canAccessAI } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -45,6 +47,8 @@ const AffirmationRecorder = ({
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [isPersonalized, setIsPersonalized] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState<"tier1" | "tier2" | null>(null);
+  const { tier } = useTier();
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -149,8 +153,10 @@ const AffirmationRecorder = ({
               <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setShowPersonalize(true)}
-                  className="border-primary/30 hover:bg-primary/10 text-primary"
+                  onClick={() => {
+                    if (!canAccessAI(tier)) { setShowUpgradePrompt("tier2"); return; }
+                    setShowPersonalize(true);
+                  }}
                 >
                   <Wand2 className="w-4 h-4 mr-2" />
                   {isPersonalized ? "Re-personalize with AI" : "Personalize Prompts with AI"}
@@ -241,9 +247,10 @@ const AffirmationRecorder = ({
                 "{displayText}"
               </p>
               <button
-                onClick={() => setEditingText(currentSlot.id)}
-                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                title="Edit affirmation text"
+                onClick={() => {
+                  if (!canEditPrompts(tier)) { setShowUpgradePrompt("tier1"); return; }
+                  setEditingText(currentSlot.id);
+                }}
               >
                 <Pencil className="w-3 h-3" />
                 Edit
@@ -309,6 +316,10 @@ const AffirmationRecorder = ({
                 variant="outline"
                 size="sm"
                 onClick={() => {
+                  if (!canSave(tier)) {
+                    setShowUpgradePrompt("tier1");
+                    return;
+                  }
                   setLibraryName(spokenNames[currentSlot.id] || displayText.slice(0, 40));
                   setSaveCategory(categoryInfo.category);
                   setSavingToLibrary(true);
@@ -501,6 +512,13 @@ const AffirmationRecorder = ({
           toast({ title: "Welcome aboard 🎯", description: "You're in. Start recording your identity." });
         }}
       />
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          requiredTier={showUpgradePrompt}
+          featureName={showUpgradePrompt === "tier2" ? "AI Personalization" : "Save to Library"}
+          onDismiss={() => setShowUpgradePrompt(null)}
+        />
+      )}
     </div>
   );
 };

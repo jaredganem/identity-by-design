@@ -16,6 +16,7 @@ import InstallBanner from "@/components/InstallBanner";
 import { trackPageView, trackEvent } from "@/lib/analytics";
 import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import CompletionShareCTA from "@/components/CompletionShareCTA";
+import UpgradeNudge from "@/components/UpgradeNudge";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -219,6 +220,7 @@ const Index = () => {
                       All 12 affirmations recorded. Now build your nightly installation track below.
                     </motion.p>
                     <CompletionShareCTA />
+                    <UpgradeNudge />
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
