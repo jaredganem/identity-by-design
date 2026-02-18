@@ -16,6 +16,8 @@ import { useTier } from "@/hooks/use-tier";
 import { canAccessLibrary, canBuildTracks, canAccessAI } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
+import SoundscapeSelector from "@/components/SoundscapeSelector";
+import { getSoundscapeById } from "@/lib/soundscapes";
 
 interface ModularTrackBuilderProps {
   refreshKey?: number;
@@ -28,6 +30,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
   const [loopCount, setLoopCount] = useState(3);
+  const [soundscapeId, setSoundscapeId] = useState("417hz");
   const [isProcessing, setIsProcessing] = useState(false);
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -118,12 +121,13 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
         processed = scaled;
       }
 
-      setProgress("Loading 417 Hz frequency...");
-      const bgResponse = await fetch("/audio/417Hz_Frequency.mp3");
+      const soundscape = getSoundscapeById(soundscapeId);
+      setProgress(`Loading ${soundscape.label}...`);
+      const bgResponse = await fetch(soundscape.path);
       const bgBlob = await bgResponse.blob();
       const bgBuffer = await audioEngine.decodeBlob(bgBlob);
 
-      setProgress(`Mixing with 417 Hz — ${loopCount}x repetitions...`);
+      setProgress(`Mixing with ${soundscape.label} — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(processed, bgBuffer, bgVolume, loopCount);
 
       setProgress("Building your installation...");
@@ -412,9 +416,11 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
             <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
           </div>
 
+          <SoundscapeSelector value={soundscapeId} onChange={setSoundscapeId} />
+
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
+              <label className="text-sm font-medium text-foreground">Soundscape Level</label>
               <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
             </div>
             <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
