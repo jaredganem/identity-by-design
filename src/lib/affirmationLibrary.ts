@@ -60,6 +60,25 @@ export async function deleteAffirmation(id: string): Promise<void> {
   });
 }
 
+export async function moveAffirmationToCategory(id: string, category: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const item = getReq.result;
+      if (item) {
+        item.category = category;
+        item.updatedAt = Date.now();
+        store.put(item);
+      }
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 export async function updateAffirmationName(id: string, name: string): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
