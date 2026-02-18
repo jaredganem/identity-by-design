@@ -18,7 +18,7 @@ export const AMBIENT_SOUNDSCAPES: Soundscape[] = [
 ];
 
 export const HEALING_FREQUENCIES: Soundscape[] = [
-  { id: "417hz", label: "417 Hz", emoji: "🔄", frequency: 417, group: "frequency", description: "Facilitating change" },
+  { id: "417hz", label: "417 Hz", emoji: "🔄", frequency: 417, path: "/audio/417Hz_Frequency.mp3", group: "frequency", description: "Facilitating change" },
   { id: "174hz", label: "174 Hz", emoji: "🩹", frequency: 174, group: "frequency", description: "Pain relief & security" },
   { id: "285hz", label: "285 Hz", emoji: "🧬", frequency: 285, group: "frequency", description: "Tissue healing & restoration" },
   { id: "396hz", label: "396 Hz", emoji: "🔓", frequency: 396, group: "frequency", description: "Liberating guilt & fear" },
@@ -217,14 +217,14 @@ export async function loadSoundscapeBuffer(
   soundscape: Soundscape,
   decodeBlob: (blob: Blob) => Promise<AudioBuffer>
 ): Promise<AudioBuffer> {
-  if (soundscape.frequency) {
-    return generateToneBuffer(soundscape.frequency);
-  }
-
   if (soundscape.path) {
     const response = await fetch(soundscape.path);
     const blob = await response.blob();
     return decodeBlob(blob);
+  }
+
+  if (soundscape.frequency) {
+    return generateToneBuffer(soundscape.frequency);
   }
 
   throw new Error(`Soundscape "${soundscape.id}" has no path or frequency`);
