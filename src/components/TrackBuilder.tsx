@@ -34,6 +34,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const [loopCount, setLoopCount] = useState(3);
   const [soundscapeId, setSoundscapeId] = useState("ocean");
   const [frequencyId, setFrequencyId] = useState("417hz");
+  const [subliminalOn, setSubliminalOn] = useState(() => getSubliminalPrefs().intensity !== "off");
   const [isProcessing, setIsProcessing] = useState(false);
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -284,8 +285,9 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
           </div>
           <Switch
-            checked={getSubliminalPrefs().intensity !== "off"}
+            checked={subliminalOn}
             onCheckedChange={(checked) => {
+              setSubliminalOn(checked);
               const prefs = getSubliminalPrefs();
               saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
             }}
