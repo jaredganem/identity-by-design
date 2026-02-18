@@ -6,6 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-signature",
 };
 
+// Variant ID → tier mapping
+const VARIANT_TIER_MAP: Record<string, string> = {
+  "1319026": "tier1", // Pro $27
+  "1319029": "tier2", // Elite $97
+};
+
 async function verifySignature(
   payload: string,
   signature: string,
@@ -46,72 +52,145 @@ Deno.serve(async (req) => {
     const valid = await verifySignature(body, signature, secret);
     if (!valid) {
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 401,
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const event = JSON.parse(body);
     const eventName = event?.meta?.event_name;
-
-    if (eventName !== "order_created") {
-      return new Response(JSON.stringify({ ok: true, skipped: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const attrs = event?.data?.attributes;
     const email = attrs?.user_email;
     const orderId = String(event?.data?.id ?? "");
     const productName = attrs?.first_order_item?.product_name ?? null;
 
-    if (!email) {
-      return new Response(JSON.stringify({ error: "No email in order" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Extract variant ID from the order
+    const variantId = String(
+      attrs?.first_order_item?.variant_id ??
+      event?.meta?.custom_data?.variant_id ??
+      ""
+    );
 
-    // Look up user by email in profiles table
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (!profile) {
-      console.log(`No user found for email: ${email}`);
-      return new Response(
-        JSON.stringify({ error: "User not found", email }),
-        {
-          status: 404,
+    if (eventName === "order_created") {
+      if (!email) {
+        return new Response(JSON.stringify({ error: "No email in order" }), {
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Try custom_data user_id first, then look up by email
+      let userId = event?.meta?.custom_data?.user_id;
+
+      if (!userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (!profile) {
+          console.error(`No user found for email: ${email}`);
+          return new Response(
+            JSON.stringify({ error: "User not found", email }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
-      );
-    }
+        userId = profile.user_id;
+      }
 
-    const { error: insertError } = await supabase.from("purchases").insert({
-      user_id: profile.user_id,
-      provider: "lemonsqueezy",
-      provider_order_id: orderId,
-      product_name: productName,
-      status: "active",
-    });
+      // Determine tier from variant ID
+      const newTier = VARIANT_TIER_MAP[variantId] || "tier1";
 
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      return new Response(JSON.stringify({ error: insertError.message }), {
-        status: 500,
+      // Update user_tiers
+      const { error: tierError } = await supabase
+        .from("user_tiers")
+        .update({
+          tier: newTier,
+          purchase_date: new Date().toISOString(),
+          payment_reference: `ls_${orderId}`,
+        })
+        .eq("user_id", userId);
+
+      if (tierError) {
+        console.error("Tier update error:", tierError);
+        // Try upsert if row doesn't exist yet
+        const { error: upsertError } = await supabase
+          .from("user_tiers")
+          .upsert({
+            user_id: userId,
+            tier: newTier,
+            purchase_date: new Date().toISOString(),
+            payment_reference: `ls_${orderId}`,
+          }, { onConflict: "user_id" });
+
+        if (upsertError) {
+          console.error("Tier upsert error:", upsertError);
+        }
+      }
+
+      // Also insert into purchases for record
+      const { error: insertError } = await supabase.from("purchases").insert({
+        user_id: userId,
+        provider: "lemonsqueezy",
+        provider_order_id: orderId,
+        product_name: productName,
+        status: "active",
+      });
+
+      if (insertError) {
+        console.error("Purchase insert error:", insertError);
+      }
+
+      console.log(`Upgraded user ${userId} to ${newTier} (variant ${variantId})`);
+
+      return new Response(JSON.stringify({ ok: true, tier: newTier }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    if (eventName === "order_refunded") {
+      if (!email) {
+        return new Response(JSON.stringify({ ok: true, skipped: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Find user by email
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (profile) {
+        // Revert to free tier
+        await supabase
+          .from("user_tiers")
+          .update({ tier: "free", payment_reference: `refund_ls_${orderId}` })
+          .eq("user_id", profile.user_id);
+
+        // Update purchase status
+        await supabase
+          .from("purchases")
+          .update({ status: "refunded" })
+          .eq("provider_order_id", orderId);
+
+        console.log(`Reverted user ${profile.user_id} to free (refund)`);
+      }
+
+      return new Response(JSON.stringify({ ok: true, refunded: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Other events — acknowledge
+    return new Response(JSON.stringify({ ok: true, skipped: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

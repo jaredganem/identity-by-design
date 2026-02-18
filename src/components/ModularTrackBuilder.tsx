@@ -11,13 +11,16 @@ import AffirmationLibrary from "@/components/AffirmationLibrary";
 import { type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import { supabase } from "@/integrations/supabase/client";
-// TIER GATE: requires tier1 to access library (canAccessLibrary), requires tier2 for AI track builder & mixing (canBuildTracks, canAccessAI)
+import { useTier } from "@/hooks/use-tier";
+import { canAccessLibrary, canBuildTracks, canAccessAI } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface ModularTrackBuilderProps {
   refreshKey?: number;
 }
 
 const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
+  const { tier } = useTier();
   const [selectedItems, setSelectedItems] = useState<SavedAffirmation[]>([]);
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
@@ -33,6 +36,21 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [allLibraryItems, setAllLibraryItems] = useState<SavedAffirmation[]>([]);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
+  const [hasLibraryItems, setHasLibraryItems] = useState(false);
+
+  useEffect(() => {
+    const checkLibrary = async () => {
+      const items = await getAllAffirmations();
+      setAllLibraryItems(items);
+      setHasLibraryItems(items.length > 0);
+    };
+    checkLibrary();
+  }, [refreshKey]);
+
+  // Gate: Library access requires Pro
+  if (!canAccessLibrary(tier)) {
+    return <UpgradePrompt requiredTier="tier1" featureName="Track Builder" inline />;
+  }
 
   const handleToggleSelect = (item: SavedAffirmation) => {
     setSelectedItems((prev) => {
@@ -139,17 +157,6 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
     URL.revokeObjectURL(url);
   };
 
-  // Check if library has items
-  const [hasLibraryItems, setHasLibraryItems] = useState(false);
-
-  useEffect(() => {
-    const checkLibrary = async () => {
-      const items = await getAllAffirmations();
-      setAllLibraryItems(items);
-      setHasLibraryItems(items.length > 0);
-    };
-    checkLibrary();
-  }, [refreshKey]);
 
   const handleAiBuildTrack = async (goal?: string) => {
     if (allLibraryItems.length === 0) {

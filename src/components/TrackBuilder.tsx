@@ -8,13 +8,16 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
-// TIER GATE: requires tier2 to build & download tracks (canBuildTracks)
+import { useTier } from "@/hooks/use-tier";
+import { canBuildTracks, canDownload } from "@/lib/tierAccess";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface TrackBuilderProps {
   recordings: Record<string, Blob>;
 }
 
 const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
+  const { tier } = useTier();
   const allSlots = getAllSlots();
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);

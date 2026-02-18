@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
 import { Share2 } from "lucide-react";
 import { buildShareUrl } from "@/lib/referral";
+import UpgradeNudge from "@/components/UpgradeNudge";
 
 const SHARE_TEXT = "This app helped me start reprogramming my mindset with custom affirmations. Check it out 🔥";
 
@@ -28,6 +29,7 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 max-w-2xl mx-auto px-6 py-12 mt-8 space-y-4">
+      <UpgradeNudge />
       <div className="text-center space-y-1">
         <button
           onClick={handleShare}
