@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap } from "lucide-react";
-import { redirectToCheckout } from "@/lib/lemonsqueezy";
+import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { supabase } from "@/integrations/supabase/client";
 import { useTier } from "@/hooks/use-tier";
 
@@ -16,7 +16,7 @@ const UpgradeNudge = () => {
     });
   }, []);
 
-  if (loading || tier !== "free" || dismissed) return null;
+  if (loading || tier !== "free" || dismissed || PAYMENTS_DISABLED) return null;
 
   return (
     <AnimatePresence>
