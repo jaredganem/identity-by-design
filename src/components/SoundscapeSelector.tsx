@@ -5,8 +5,11 @@ import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { useTier } from "@/hooks/use-tier";
 import UpgradePrompt from "@/components/UpgradePrompt";
 
-/** 417 Hz is free for everyone. Everything else requires Elite. */
+/** 417 Hz is included with Free tier (always available). */
 const FREE_FREQUENCY_ID = "417hz";
+
+/** Elite-only frequencies — the most esoteric / compelling unlocks. */
+const ELITE_ONLY_IDS = new Set(["963hz", "40hz", "7.83hz"]);
 
 interface SoundscapeSelectorProps {
   soundscapeId: string;
@@ -22,11 +25,15 @@ const SoundscapeSelector = ({
   onFrequencyChange,
 }: SoundscapeSelectorProps) => {
   const { tier } = useTier();
+  const isPro = PAYMENTS_DISABLED || tier === "tier1" || tier === "tier2";
   const isElite = PAYMENTS_DISABLED || tier === "tier2";
 
   const currentFreqIndex = HEALING_FREQUENCIES.findIndex((f) => f.id === frequencyId);
   const currentFreq = HEALING_FREQUENCIES[currentFreqIndex >= 0 ? currentFreqIndex : 0];
-  const isFreqLocked = currentFreq.id !== FREE_FREQUENCY_ID && !isElite;
+
+  // Determine if current frequency is locked
+  const isFreqEliteOnly = ELITE_ONLY_IDS.has(currentFreq.id);
+  const isFreqLocked = isFreqEliteOnly && !isElite;
 
   // --- Frequency preview state ---
   const [isPreviewingFreq, setIsPreviewingFreq] = useState(false);
@@ -203,7 +210,7 @@ const SoundscapeSelector = ({
                 onClick={() => setShowUpgrade(true)}
                 className="mt-1.5 inline-flex items-center gap-1 px-3 py-1 text-[10px] uppercase tracking-[0.15em] rounded-full border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
               >
-                <Lock className="w-2.5 h-2.5" /> Unlock with Elite
+                <Lock className="w-2.5 h-2.5" /> Elite Only
               </button>
             )}
             {!isFreqLocked && (
