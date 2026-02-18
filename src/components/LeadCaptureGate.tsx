@@ -24,6 +24,7 @@ const PROMO_CODES: Record<string, string> = {
   VIPALL: "vip_all",       // Free VIP → all tiers forever
   VIPMID: "vip_mid",       // Free VIP → up to Pro tier forever
   VIPBASIC: "vip_basic",   // Free VIP → Free tier forever, must upgrade for Pro/Elite
+  EARLYACCESS: "early_access", // Beta — everything unlocked for 90 days
 };
 
 /** Grab UTM params from the current URL */

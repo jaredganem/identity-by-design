@@ -11,6 +11,7 @@ import GoDeeper from "@/components/GoDeeper";
 import { useTier } from "@/hooks/use-tier";
 import { canBuildTracks, canDownload } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGate";
 
 interface TrackBuilderProps {
   recordings: Record<string, Blob>;
@@ -29,6 +30,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const [progress, setProgress] = useState("");
   const [downloadFormat, setDownloadFormat] = useState<"wav" | "mp3">("wav");
   const [previewingSlot, setPreviewingSlot] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
@@ -117,12 +119,18 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    // Free users: allow first download, gate after
+    if (tier === "free" && hasUsedFreeDownload()) {
+      setShowUpgradePrompt(true);
+      return;
+    }
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `identity-installation.${downloadFormat}`;
     a.click();
     URL.revokeObjectURL(url);
+    if (tier === "free") markFreeDownloadUsed();
     if (downloadFormat === "mp3") {
       toast({ title: "Note", description: "MP3 encoding requires a server. Downloading as WAV for now." });
     }
@@ -312,6 +320,13 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
             <GoDeeper className="mt-2" />
           </div>
         </motion.div>
+      )}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          requiredTier="tier1"
+          featureName="Unlimited Downloads"
+          onDismiss={() => setShowUpgradePrompt(false)}
+        />
       )}
     </div>
   );

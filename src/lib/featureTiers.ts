@@ -271,8 +271,9 @@ export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
   vip_all: "elite",
   vip_mid: "pro",
   vip_basic: "free",
-  "3mo_free": "pro",    // 3-month Pro trial
-  "6mo_free": "elite",  // 6-month Elite trial
+  "3mo_free": "pro",         // 3-month Pro trial
+  "6mo_free": "elite",       // 6-month Elite trial
+  early_access: "elite",     // Beta — everything unlocked for 90 days
 };
 
 /**
@@ -282,6 +283,7 @@ export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
 export const TRIAL_DURATION_DAYS: Record<string, number> = {
   "3mo_free": 90,
   "6mo_free": 180,
+  early_access: 90,
 };
 
 /** Grace period warning — show banner this many days before expiry */
