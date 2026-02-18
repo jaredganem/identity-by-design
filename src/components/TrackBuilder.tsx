@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { getAllSlots } from "@/lib/affirmationPrompts";
@@ -32,7 +32,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [freqVolume, setFreqVolume] = useState(() => loadEnvironment().freqVolume);
   const [loopCount, setLoopCount] = useState(3);
-  const [showEnvironment, setShowEnvironment] = useState(false);
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -47,23 +47,9 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
   const allRecorded = allSlots.every((s) => recordings[s.id]);
 
-  const isPro = PAYMENTS_DISABLED || tier === "tier1" || tier === "tier2";
-
-  /** Called when user taps "Build" — routes to environment screen for Pro+, or builds directly for free. */
-  const handleBuildClick = () => {
+  const handleBuild = () => {
     if (!allRecorded) return;
-    if (isPro) {
-      setShowEnvironment(true);
-      return;
-    }
-    // Free tier: build with defaults
     executeBuild(loadEnvironment());
-  };
-
-  /** Callback from SetYourEnvironment — user confirmed their settings. */
-  const handleEnvironmentConfirm = (envSettings: EnvironmentSettings) => {
-    setShowEnvironment(false);
-    executeBuild(envSettings);
   };
 
   const executeBuild = async (env: EnvironmentSettings) => {
@@ -257,81 +243,73 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
         </div>
       )}
 
-      {/* Environment screen (intermediate step) */}
-      <AnimatePresence mode="wait">
-        {showEnvironment ? (
-          <SetYourEnvironment
-            key="environment"
-            onConfirm={handleEnvironmentConfirm}
-            onBack={() => setShowEnvironment(false)}
+      <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
+        {/* Voice Level */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Your Voice Level</label>
+            <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
+          </div>
+          <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
+        </div>
+
+        {/* 417Hz Frequency Level */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
+            <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+          </div>
+          <Slider
+            value={[freqVolume]}
+            onValueChange={([v]) => {
+              setFreqVolume(v);
+              const env = loadEnvironment();
+              saveEnvironment({ ...env, freqVolume: v });
+            }}
+            max={1} step={0.01} className="w-full"
           />
-        ) : (
-          <motion.div key="mixer" className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
-            {/* Voice Level */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-foreground">Your Voice Level</label>
-                <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
-              </div>
-              <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
-            </div>
+        </div>
 
-            {/* 417Hz Frequency Level */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
-                <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
-              </div>
-              <Slider
-                value={[freqVolume]}
-                onValueChange={([v]) => {
-                  setFreqVolume(v);
-                  const env = loadEnvironment();
-                  saveEnvironment({ ...env, freqVolume: v });
-                }}
-                max={1} step={0.01} className="w-full"
-              />
-            </div>
+        {/* Depth Effect */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
+            <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
+          </div>
+          <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
+        </div>
 
-            {/* Depth Effect */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
-                <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
-              </div>
-              <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
-            </div>
+        {/* Repetitions */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
+            <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
+          </div>
+          <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
+          <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
+            "Repetition of the same thought or physical action develops into a habit which, repeated frequently enough, becomes an automatic reflex." — Norman Vincent Peale
+          </p>
+        </div>
 
-            {/* Repetitions */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
-                <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
-              </div>
-              <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
-              <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
-                "Repetition of the same thought or physical action develops into a habit which, repeated frequently enough, becomes an automatic reflex." — Norman Vincent Peale
-              </p>
-            </div>
+        {/* Inline environment collapsible */}
+        <SetYourEnvironment />
 
-            <Button
-              onClick={handleBuildClick}
-              disabled={isProcessing || !allRecorded}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
-            >
-              {isProcessing ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
-              ) : (
-                "🎧 Build My Identity Installation"
-              )}
-            </Button>
+        <Button
+          onClick={handleBuild}
+          disabled={isProcessing || !allRecorded}
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+        >
+          {isProcessing ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
+          ) : (
+            "🎧 Build My Identity Installation"
+          )}
+        </Button>
 
-            {!allRecorded && (
-              <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record all 12 statements to unlock your identity installation.</p>
-            )}
-          </motion.div>
+        {!allRecorded && (
+          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record all 12 statements to unlock your identity installation.</p>
         )}
-      </AnimatePresence>
+      </div>
 
       {finalBlob && (
         <motion.div
