@@ -53,23 +53,38 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
-  const handleAiNameAndCategory = async (blob: Blob) => {
-    if (aiNaming || aiCategorizing) return;
+  const transcribeClip = async (blob: Blob) => {
+    const arrayBuffer = await blob.arrayBuffer();
+    const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
+    const { data, error } = await supabase.functions.invoke("transcribe-clip", {
+      body: { audioBase64: base64, mimeType: blob.type },
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const handleAiName = async (blob: Blob) => {
+    if (aiNaming) return;
     setAiNaming(true);
-    setAiCategorizing(true);
     try {
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(new Uint8Array(arrayBuffer).reduce((d, b) => d + String.fromCharCode(b), ""));
-      const { data, error } = await supabase.functions.invoke("transcribe-clip", {
-        body: { audioBase64: base64, mimeType: blob.type },
-      });
-      if (error) throw error;
+      const data = await transcribeClip(blob);
       if (data?.name) setSaveName(data.name);
-      if (data?.category) setSaveCategory(data.category);
     } catch {
-      toast({ variant: "destructive", title: "AI failed", description: "Try again or fill in manually." });
+      toast({ variant: "destructive", title: "AI naming failed", description: "Try again or fill in manually." });
     } finally {
       setAiNaming(false);
+    }
+  };
+
+  const handleAiCategory = async (blob: Blob) => {
+    if (aiCategorizing) return;
+    setAiCategorizing(true);
+    try {
+      const data = await transcribeClip(blob);
+      if (data?.category) setSaveCategory(data.category);
+    } catch {
+      toast({ variant: "destructive", title: "AI categorize failed", description: "Try again or choose manually." });
+    } finally {
       setAiCategorizing(false);
     }
   };
@@ -335,7 +350,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                               <label className="text-xs text-muted-foreground font-medium">Name</label>
                               <button
                                 type="button"
-                                onClick={() => handleAiNameAndCategory(item.blob)}
+                                onClick={() => handleAiName(item.blob)}
                                 disabled={aiNaming || aiCategorizing}
                                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                               >
@@ -357,7 +372,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
                               <label className="text-xs text-muted-foreground font-medium">Category</label>
                               <button
                                 type="button"
-                                onClick={() => handleAiNameAndCategory(item.blob)}
+                                onClick={() => handleAiCategory(item.blob)}
                                 disabled={aiNaming || aiCategorizing}
                                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                               >
