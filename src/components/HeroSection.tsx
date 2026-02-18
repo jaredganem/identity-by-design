@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, Headphones, Play } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
+import { getProgressStats, isReturningUser } from "@/lib/streakTracker";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,13 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [showModes, setShowModes] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [stats, setStats] = useState<ReturnType<typeof getProgressStats> | null>(null);
+
+  useEffect(() => {
+    if (isReturningUser()) {
+      setStats(getProgressStats());
+    }
+  }, []);
 
   const toggleCard = (id: string) => {
     setExpandedCard(expandedCard === id ? null : id);
@@ -104,8 +112,64 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
         Your custom unconscious reprogramming system. Script, record, and install your new identity — in your own voice, while you sleep.
       </motion.p>
 
-      {/* Returning user welcome */}
-      {libraryCount > 0 && (
+      {/* Returning user — streak & progress */}
+      {stats ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="mb-8 px-5 py-4 rounded-xl border border-primary/20 bg-primary/5 w-full max-w-md"
+        >
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3 text-center font-display">
+            Welcome Back
+          </p>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-1">
+                <Flame className="w-4 h-4 text-primary" />
+                <span className="text-xl font-display font-bold text-primary">{stats.currentStreak}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Day Streak</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-1">
+                <Mic className="w-4 h-4 text-primary" />
+                <span className="text-xl font-display font-bold text-foreground">{stats.totalRecordings}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Recordings</p>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-1">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="text-xl font-display font-bold text-foreground">{stats.totalDaysActive}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Days Active</p>
+            </div>
+          </div>
+          {stats.currentStreak > 0 && (
+            <p className="text-xs text-center text-primary/80 mt-2 font-display tracking-wide">
+              {stats.currentStreak >= 30
+                ? "🏆 30-Day Challenge complete. Legend."
+                : stats.currentStreak >= 7
+                ? "🔥 You're on fire. Keep the momentum."
+                : stats.isActiveToday
+                ? "✓ Today's session logged."
+                : "Don't break the chain — record today."}
+            </p>
+          )}
+          {stats.currentStreak === 0 && stats.totalDaysActive > 0 && (
+            <p className="text-xs text-center text-muted-foreground mt-2 italic normal-case tracking-normal">
+              Your streak reset. Start a new one today.
+            </p>
+          )}
+          {stats.longestStreak > stats.currentStreak && stats.longestStreak > 1 && (
+            <p className="text-[10px] text-center text-muted-foreground mt-1">
+              <Trophy className="w-3 h-3 inline mr-0.5" />
+              Best streak: {stats.longestStreak} days
+            </p>
+          )}
+        </motion.div>
+      ) : libraryCount > 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,9 +182,9 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
             {libraryCount === 1 ? "track" : "tracks"}.
           </p>
         </motion.div>
-      )}
+      ) : null}
 
-      {libraryCount === 0 && <div className="mb-6" />}
+      {!stats && libraryCount === 0 && <div className="mb-6" />}
 
       {/* Napoleon Hill — Featured Quote */}
       <motion.div

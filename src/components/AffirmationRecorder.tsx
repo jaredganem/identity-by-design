@@ -128,6 +128,8 @@ const AffirmationRecorder = ({
       }
       setIsRecording(false);
       trackEvent("recording_completed", { mode: "guided", slot: currentIndex + 1, total: allSlots.length });
+      // Log streak activity
+      import("@/lib/streakTracker").then(({ logActivity }) => logActivity("recording"));
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
     } else {
       setShowCountdown(true);

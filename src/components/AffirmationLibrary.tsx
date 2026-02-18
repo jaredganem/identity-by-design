@@ -611,28 +611,92 @@ const AffirmationLibrary = ({
       })}
 
       {/* Move to category dialog */}
-      <Dialog open={!!movingItem} onOpenChange={(open) => !open && setMovingItem(null)}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle className="text-base">Move "{movingItem?.item.name}"</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1 pt-2">
-            {movingItem && Object.keys(grouped)
-              .filter((cat) => cat !== movingItem.category)
-              .map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => handleMoveToCategory(movingItem.item, cat)}
-                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-primary/10 transition-colors flex items-center gap-2"
-                >
-                  <span>{CATEGORY_ICONS[cat] || "📁"}</span>
-                  <span>{cat}</span>
-                </button>
-              ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <MoveToCategory
+        open={!!movingItem}
+        item={movingItem?.item ?? null}
+        currentCategory={movingItem?.category ?? ""}
+        existingCategories={Object.keys(grouped)}
+        onMove={handleMoveToCategory}
+        onClose={() => setMovingItem(null)}
+      />
     </div>
+  );
+};
+
+/** Move to Category dialog with custom category creation */
+const MoveToCategory = ({
+  open,
+  item,
+  currentCategory,
+  existingCategories,
+  onMove,
+  onClose,
+}: {
+  open: boolean;
+  item: SavedAffirmation | null;
+  currentCategory: string;
+  existingCategories: string[];
+  onMove: (item: SavedAffirmation, category: string) => void;
+  onClose: () => void;
+}) => {
+  const [creating, setCreating] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+
+  const handleCreate = () => {
+    const name = newCatName.trim();
+    if (!name || !item) return;
+    onMove(item, name);
+    setCreating(false);
+    setNewCatName("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setCreating(false); setNewCatName(""); } }}>
+      <DialogContent className="max-w-xs">
+        <DialogHeader>
+          <DialogTitle className="text-base">Move "{item?.name}"</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-1 pt-2">
+          {existingCategories
+            .filter((cat) => cat !== currentCategory)
+            .map((cat) => (
+              <button
+                key={cat}
+                onClick={() => item && onMove(item, cat)}
+                className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-primary/10 transition-colors flex items-center gap-2"
+              >
+                <span>{CATEGORY_ICONS[cat] || "📁"}</span>
+                <span>{cat}</span>
+              </button>
+            ))}
+
+          {/* Create new category */}
+          {!creating ? (
+            <button
+              onClick={() => setCreating(true)}
+              className="w-full text-left px-3 py-2.5 rounded-lg text-sm hover:bg-primary/10 transition-colors flex items-center gap-2 text-primary"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New Category</span>
+            </button>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="flex gap-2 px-1 pt-2">
+              <input
+                autoFocus
+                type="text"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Category name…"
+                className="flex-1 h-9 px-3 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:border-primary"
+              />
+              <Button type="submit" size="sm" disabled={!newCatName.trim()} className="h-9 px-3">
+                <Check className="w-3.5 h-3.5" />
+              </Button>
+            </form>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
