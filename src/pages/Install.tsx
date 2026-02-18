@@ -159,6 +159,17 @@ const Install = () => {
                   </div>
                 </motion.div>
               )}
+
+              {/* Mobile hint on desktop */}
+              {platform === "desktop" && (
+                <motion.div variants={item} className="p-4 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm text-center space-y-1.5">
+                  <Smartphone className="w-5 h-5 mx-auto text-primary" />
+                  <p className="text-sm text-foreground font-medium">Also available on mobile</p>
+                  <p className="text-xs text-muted-foreground">
+                    Visit this page on your iPhone or Android to install the app on your phone — no app store needed.
+                  </p>
+                </motion.div>
+              )}
             </>
           )}
 
