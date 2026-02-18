@@ -31,6 +31,7 @@ const SetYourEnvironment = () => {
   const freqNodesRef = useRef<AudioNode[]>([]);
   const freqCtxRef = useRef<AudioContext | null>(null);
   const freqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const freqAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- Soundscape preview ---
   const [isPreviewingSoundscape, setIsPreviewingSoundscape] = useState(false);
@@ -53,6 +54,11 @@ const SetYourEnvironment = () => {
   // --- Frequency preview logic ---
   const stopFreqPreview = () => {
     if (freqTimerRef.current) { clearTimeout(freqTimerRef.current); freqTimerRef.current = null; }
+    if (freqAudioRef.current) {
+      freqAudioRef.current.pause();
+      freqAudioRef.current.currentTime = 0;
+      freqAudioRef.current = null;
+    }
     for (const node of freqNodesRef.current) {
       try { (node as OscillatorNode).stop?.(); } catch {}
       try { node.disconnect(); } catch {}
@@ -63,6 +69,17 @@ const SetYourEnvironment = () => {
 
   const startFreqPreview = (freq: Soundscape) => {
     stopFreqPreview();
+    // If frequency has a file, play it directly
+    if (freq.path) {
+      const audio = new Audio(freq.path);
+      audio.volume = 0.35;
+      audio.play().catch(() => {});
+      freqAudioRef.current = audio;
+      setIsPreviewingFreq(true);
+      freqTimerRef.current = setTimeout(() => stopFreqPreview(), 10000);
+      return;
+    }
+    // Fallback to oscillator for frequencies without files
     if (!freq.frequency) return;
     if (!freqCtxRef.current) freqCtxRef.current = new AudioContext();
     const ctx = freqCtxRef.current;
