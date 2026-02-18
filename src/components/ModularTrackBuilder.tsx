@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
 import AffirmationLibrary from "@/components/AffirmationLibrary";
-import { getAllAffirmations, type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import { supabase } from "@/integrations/supabase/client";
 // TIER GATE: requires tier1 to access library (canAccessLibrary), requires tier2 for AI track builder & mixing (canBuildTracks, canAccessAI)
 

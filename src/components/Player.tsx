@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1 } from "lucide-react";
-import { getAllAffirmations, SavedAffirmation } from "@/lib/affirmationLibrary";
+import { type SavedAffirmation } from "@/lib/affirmationLibrary";
+import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";

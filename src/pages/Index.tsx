@@ -13,7 +13,8 @@ import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
 import InstallBanner from "@/components/InstallBanner";
 import { trackPageView, trackEvent } from "@/lib/analytics";
-import { getAllAffirmations } from "@/lib/affirmationLibrary";
+import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
+import CompletionShareCTA from "@/components/CompletionShareCTA";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -216,6 +217,7 @@ const Index = () => {
                     >
                       All 12 affirmations recorded. Now build your nightly installation track below.
                     </motion.p>
+                    <CompletionShareCTA />
                   </motion.div>
                 )}
                 <AffirmationRecorder
