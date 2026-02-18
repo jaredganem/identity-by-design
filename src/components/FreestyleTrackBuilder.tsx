@@ -14,7 +14,7 @@ import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import SoundscapeSelector from "@/components/SoundscapeSelector";
-import { getSoundscapeById } from "@/lib/soundscapes";
+import { getSoundscapeById, loadSoundscapeBuffer } from "@/lib/soundscapes";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -72,9 +72,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
       const soundscape = getSoundscapeById(soundscapeId);
       setProgress(`Loading ${soundscape.label}...`);
-      const bgResponse = await fetch(soundscape.path);
-      const bgBlob = await bgResponse.blob();
-      const bgBuffer = await audioEngine.decodeBlob(bgBlob);
+      const bgBuffer = await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b));
 
       setProgress(`Mixing with ${soundscape.label} — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
