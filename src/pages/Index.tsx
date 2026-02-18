@@ -8,6 +8,7 @@ import FreestyleRecorder from "@/components/FreestyleRecorder";
 import FreestyleTrackBuilder from "@/components/FreestyleTrackBuilder";
 import AffirmationLibrary from "@/components/AffirmationLibrary";
 import ModularTrackBuilder from "@/components/ModularTrackBuilder";
+import GoDeeper from "@/components/GoDeeper";
 import Player from "@/components/Player";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
@@ -218,6 +219,14 @@ const Index = () => {
                       All 12 affirmations recorded. Now build your nightly installation track below.
                     </motion.p>
                     <CompletionShareCTA />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1 }}
+                      className="pt-2"
+                    >
+                      <GoDeeper />
+                    </motion.div>
                   </motion.div>
                 )}
                 <AffirmationRecorder

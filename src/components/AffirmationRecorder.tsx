@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import RecordingCountdown from "@/components/RecordingCountdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Square, Check, RotateCcw, ChevronRight, ChevronLeft, Pencil, BookmarkPlus, X, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -43,6 +44,7 @@ const AffirmationRecorder = ({
   const [aiCategorizing, setAiCategorizing] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [isPersonalized, setIsPersonalized] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -89,6 +91,17 @@ const AffirmationRecorder = ({
     count += cat.slots.length;
   }
 
+  const startRecordingNow = useCallback(async () => {
+    try {
+      await audioEngine.startRecording();
+      speech.start();
+      setIsRecording(true);
+      trackEvent("recording_started", { mode: "guided" });
+    } catch {
+      toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
+    }
+  }, [toast]);
+
   const handleRecord = useCallback(async () => {
     // Gate: first record tap shows lead capture
     if (!isRecording && !hasLeadCaptured()) {
@@ -101,20 +114,12 @@ const AffirmationRecorder = ({
       onRecordingsChange({ ...recordings, [currentSlot.id]: blob });
       if (autoName) {
         setSpokenNames((prev) => ({ ...prev, [currentSlot.id]: autoName }));
-        // Capture transcript for trend analysis (anonymous)
         captureTranscript(autoName, { category: categoryInfo.category, source: "guided" });
       }
       setIsRecording(false);
       toast({ title: "Recorded ✓", description: `Affirmation ${currentIndex + 1} of ${allSlots.length} saved.` });
     } else {
-      try {
-        await audioEngine.startRecording();
-        speech.start();
-        setIsRecording(true);
-        trackEvent("recording_started", { mode: "guided" });
-      } catch {
-        toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
-      }
+      setShowCountdown(true);
     }
   }, [isRecording, currentSlot.id, recordings, onRecordingsChange, currentIndex, allSlots.length, toast]);
 
@@ -130,6 +135,12 @@ const AffirmationRecorder = ({
 
   return (
     <div className="space-y-6">
+      {showCountdown && (
+        <RecordingCountdown
+          onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
+          onCancel={() => setShowCountdown(false)}
+        />
+      )}
       {/* Personalize with AI */}
       {totalRecorded === 0 && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">

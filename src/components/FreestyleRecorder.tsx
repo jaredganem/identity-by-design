@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import RecordingCountdown from "@/components/RecordingCountdown";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { Mic, Square, Trash2, Play, Pause, Plus, GripVertical, BookmarkPlus, X, Check, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -43,6 +44,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
   const [deepDiveComplete, setDeepDiveComplete] = useState(false);
   const [generatedAffirmations, setGeneratedAffirmations] = useState<Record<string, string>>({});
   const [scriptIndex, setScriptIndex] = useState(0);
+  const [showCountdown, setShowCountdown] = useState(false);
   const speech = useSpeechRecognition();
   const { toast } = useToast();
 
@@ -72,6 +74,17 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     onClipsChange(items.map((c) => c.blob));
   };
 
+  const startRecordingNow = useCallback(async () => {
+    try {
+      await audioEngine.startRecording();
+      speech.start();
+      setIsRecording(true);
+      trackEvent("recording_started", { mode: "freestyle" });
+    } catch {
+      toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
+    }
+  }, [toast]);
+
   const handleRecord = useCallback(async () => {
     // Gate: first record tap shows lead capture
     if (!isRecording && !hasLeadCaptured()) {
@@ -85,18 +98,10 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       const updated = [...clipItems, newItem];
       updateClips(updated);
       setIsRecording(false);
-      // Capture transcript for trend analysis (anonymous)
       if (autoName) captureTranscript(autoName, { source: "freestyle" });
       toast({ title: "Clip saved ✓", description: `${updated.length} clip${updated.length > 1 ? "s" : ""} total.` });
     } else {
-      try {
-        await audioEngine.startRecording();
-        speech.start();
-        setIsRecording(true);
-        trackEvent("recording_started", { mode: "freestyle" });
-      } catch {
-        toast({ variant: "destructive", title: "Microphone needed", description: "Please allow microphone access." });
-      }
+      setShowCountdown(true);
     }
   }, [isRecording, clipItems, toast]);
 
@@ -154,6 +159,12 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
 
   return (
     <div className="space-y-6">
+      {showCountdown && (
+        <RecordingCountdown
+          onComplete={() => { setShowCountdown(false); startRecordingNow(); }}
+          onCancel={() => setShowCountdown(false)}
+        />
+      )}
       {/* Deep Dive AI Personalization */}
       {clipItems.length === 0 && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">

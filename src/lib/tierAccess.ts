@@ -4,10 +4,10 @@
  * Infrastructure for tiered feature gating.
  * NOT enforced yet — helpers are ready to flip on.
  *
- * Tiers:
- *   "free"  → Record & experience one session. No save/replay.
- *   "tier1" → $27 — Full guided + freestyle recording, unlimited saves, library.
- *   "tier2" → $97 — Everything in tier1 + AI features, track building, mixing, future updates.
+ * Revised Tiers:
+ *   "free"  → Record & hear playback. No save, no download, default prompts only.
+ *   "tier1" → $27 (Pro) — Save, download, edit prompts, mixer, depth, reps, cloud sync, streaks.
+ *   "tier2" → $97 (Elite) — Everything + full AI suite, voice cloning, delivery coaching, subliminal.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +29,6 @@ export async function checkTier(userId?: string): Promise<TierInfo> {
   const fallback: TierInfo = { tier: "free", purchaseDate: null, paymentReference: null };
 
   try {
-    // If no userId provided, get from current session
     let uid = userId;
     if (!uid) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -56,24 +55,44 @@ export async function checkTier(userId?: string): Promise<TierInfo> {
 }
 
 // ─── Boolean gate helpers ────────────────────────────────
-// Each derives from the tier so gating is one clean call.
+// Revised: Save/Download/EditPrompts now require tier1 (Pro)
 
-/** Can the user save recordings to the library? Requires tier1+. */
+/** Can the user save recordings to the library? Requires Pro (tier1+). */
 export function canSave(tier: UserTier): boolean {
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user access the full affirmation library & replay? Requires tier1+. */
+/** Can the user download/export tracks? Requires Pro (tier1+). */
+export function canDownload(tier: UserTier): boolean {
+  return TIER_RANK[tier] >= TIER_RANK.tier1;
+}
+
+/** Can the user edit affirmation prompts? Requires Pro (tier1+). */
+export function canEditPrompts(tier: UserTier): boolean {
+  return TIER_RANK[tier] >= TIER_RANK.tier1;
+}
+
+/** Can the user access the full affirmation library & replay? Requires Pro (tier1+). */
 export function canAccessLibrary(tier: UserTier): boolean {
   return TIER_RANK[tier] >= TIER_RANK.tier1;
 }
 
-/** Can the user use AI features (personalization, transcription, track builder)? Requires tier2. */
+/** Can the user access cloud sync? Requires Pro (tier1+). */
+export function canCloudSync(tier: UserTier): boolean {
+  return TIER_RANK[tier] >= TIER_RANK.tier1;
+}
+
+/** Can the user access streak/progress tracking? Requires Pro (tier1+). */
+export function canTrackProgress(tier: UserTier): boolean {
+  return TIER_RANK[tier] >= TIER_RANK.tier1;
+}
+
+/** Can the user use AI features (personalization, track builder, coaching)? Requires Elite (tier2). */
 export function canAccessAI(tier: UserTier): boolean {
   return TIER_RANK[tier] >= TIER_RANK.tier2;
 }
 
-/** Can the user build & mix tracks? Requires tier2. */
+/** Can the user build & mix AI-powered tracks? Requires Elite (tier2). */
 export function canBuildTracks(tier: UserTier): boolean {
   return TIER_RANK[tier] >= TIER_RANK.tier2;
 }

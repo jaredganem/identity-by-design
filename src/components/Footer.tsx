@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
 import { Share2 } from "lucide-react";
 import { buildShareUrl } from "@/lib/referral";
@@ -45,6 +46,11 @@ const Footer = () => {
         <p className="text-xs text-muted-foreground mt-2">
           © 2025 Self-Mastery for Men™
         </p>
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <Link to="/privacy" className="text-xs text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
+          <span className="text-muted-foreground/30">|</span>
+          <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
+        </div>
       </div>
       <p className="text-center">
         <a
