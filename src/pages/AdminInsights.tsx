@@ -51,8 +51,16 @@ const AdminInsights = () => {
       setAuthorized(false);
       return;
     }
-    // Check admin role via RPC or just try the analysis endpoint
-    setAuthorized(true);
+    // Server-side role verification using existing RPC
+    const { data, error } = await supabase.rpc('has_role', {
+      _user_id: session.user.id,
+      _role: 'admin' as const,
+    });
+    if (error || !data) {
+      setAuthorized(false);
+      return;
+    }
+    setAuthorized(data === true);
   };
 
   const runAnalysis = async () => {
@@ -91,13 +99,22 @@ const AdminInsights = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Loading state while checking auth
+  if (authorized === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (authorized === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-display text-foreground">Access Denied</h1>
           <p className="text-muted-foreground">You must be logged in as an admin.</p>
-          <Button variant="outline" onClick={() => navigate("/auth")}>Sign In</Button>
+          <Button variant="outline" onClick={() => navigate("/")}>Go Home</Button>
         </div>
       </div>
     );
