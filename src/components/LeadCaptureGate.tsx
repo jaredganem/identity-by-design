@@ -25,6 +25,7 @@ const PROMO_CODES: Record<string, string> = {
   VIPMID: "vip_mid",       // Free VIP → up to Pro tier forever
   VIPBASIC: "vip_basic",   // Free VIP → Free tier forever, must upgrade for Pro/Elite
   EARLYACCESS: "early_access", // Beta — everything unlocked for 90 days
+  FOUNDERS10: "founders10",    // Founders beta — Elite for 90 days
 };
 
 /** Grab UTM params from the current URL */
@@ -46,7 +47,7 @@ function getUtmParams(): Record<string, string | null> {
 export async function saveLead(firstName: string, email: string, promoCode?: string, lastName?: string) {
   const upperCode = (promoCode || "").trim().toUpperCase();
   const promoTier = PROMO_CODES[upperCode] || null;
-  const isFoundingMember = ["VIP", "FOUNDERSVIP", "VIPALL"].includes(upperCode);
+  const isFoundingMember = ["VIP", "FOUNDERSVIP", "VIPALL", "FOUNDERS10"].includes(upperCode);
 
   // Capture referral code from sessionStorage and UTM params from URL
   const refCode = getReferralCode();
