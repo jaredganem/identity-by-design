@@ -484,7 +484,7 @@ const Player = ({ onBack }: PlayerProps) => {
           )}
         </div>
         <p className="text-xs text-muted-foreground normal-case tracking-normal leading-relaxed">
-          Your voice saturates the environment at near-inaudible volume — present whether your attention is focused or not.
+          Layers your own voice beneath the mix at near-inaudible volume — your identity programming saturates the environment whether your attention is focused or not.
         </p>
         {meetsMinimumTier(tier, "tier1") ? (
           <div className="space-y-3">
