@@ -77,6 +77,7 @@ serve(async (req) => {
       vip_basic: "free",
       "3mo_free": "free",
       "6mo_free": "free",
+      founders10: "elite",
     };
 
     const featureTier = data.promo_tier
