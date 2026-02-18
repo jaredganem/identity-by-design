@@ -93,14 +93,22 @@ const Index = () => {
     if (!hasLeadCaptured()) {
       setPendingMode(m);
       setShowLeadCapture(true);
+      trackEvent("lead_gate_viewed", { trigger: "mode_select", mode: m });
       return;
     }
     setMode(m);
     trackEvent("mode_selected", { mode: m });
   };
 
+  const handleLeadClose = () => {
+    setShowLeadCapture(false);
+    trackEvent("lead_gate_closed", { pending_mode: pendingMode });
+    setPendingMode(null);
+  };
+
   const handleLeadSuccess = () => {
     setShowLeadCapture(false);
+    trackEvent("lead_gate_completed", { mode: pendingMode });
     if (pendingMode) {
       setMode(pendingMode);
       trackEvent("mode_selected", { mode: pendingMode });
@@ -354,7 +362,7 @@ const Index = () => {
       <Footer />
       <LeadCaptureGate
         open={showLeadCapture}
-        onClose={() => { setShowLeadCapture(false); setPendingMode(null); }}
+        onClose={handleLeadClose}
         onSuccess={handleLeadSuccess}
       />
     </div>
