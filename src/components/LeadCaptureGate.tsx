@@ -4,7 +4,7 @@ import { ArrowRight, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
-import { logReferral } from "@/lib/referral";
+import { logReferral, getReferralCode } from "@/lib/referral";
 
 const STORAGE_KEY = "smfm_lead";
 
@@ -26,14 +26,46 @@ const PROMO_CODES: Record<string, string> = {
   VIPBASIC: "vip_basic",   // Free VIP → Free tier forever, must upgrade for Pro/Elite
 };
 
+/** Grab UTM params from the current URL */
+function getUtmParams(): Record<string, string | null> {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get("utm_source"),
+      utm_medium: params.get("utm_medium"),
+      utm_campaign: params.get("utm_campaign"),
+      utm_term: params.get("utm_term"),
+      utm_content: params.get("utm_content"),
+    };
+  } catch {
+    return { utm_source: null, utm_medium: null, utm_campaign: null, utm_term: null, utm_content: null };
+  }
+}
+
 export async function saveLead(firstName: string, email: string, promoCode?: string, lastName?: string) {
   const upperCode = (promoCode || "").trim().toUpperCase();
   const promoTier = PROMO_CODES[upperCode] || null;
   const isFoundingMember = ["VIP", "FOUNDERSVIP", "VIPALL"].includes(upperCode);
 
+  // Capture referral code from sessionStorage and UTM params from URL
+  const refCode = getReferralCode();
+  const utms = getUtmParams();
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: firstName, lastName, email, founding: isFoundingMember, promoTier, ts: Date.now() }));
-  const { data } = await supabase.from("leads").insert({ name: firstName, last_name: lastName || null, email, is_founding_member: isFoundingMember, promo_tier: promoTier } as any).select("id, referral_code").single();
-  trackEvent("lead_captured", { is_founding_member: isFoundingMember, promo_tier: promoTier });
+  const { data } = await supabase.from("leads").insert({
+    name: firstName,
+    last_name: lastName || null,
+    email,
+    is_founding_member: isFoundingMember,
+    promo_tier: promoTier,
+    ref_code: refCode || null,
+    utm_source: utms.utm_source,
+    utm_medium: utms.utm_medium,
+    utm_campaign: utms.utm_campaign,
+    utm_term: utms.utm_term,
+    utm_content: utms.utm_content,
+  } as any).select("id, referral_code").single();
+  trackEvent("lead_captured", { is_founding_member: isFoundingMember, promo_tier: promoTier, ref_code: refCode });
 
   // Log referral attribution if they arrived via ?ref=
   if (data?.id) {

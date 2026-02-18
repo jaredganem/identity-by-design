@@ -152,7 +152,13 @@ export type Database = {
           last_name: string | null
           name: string
           promo_tier: string | null
+          ref_code: string | null
           referral_code: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           created_at?: string
@@ -162,7 +168,13 @@ export type Database = {
           last_name?: string | null
           name: string
           promo_tier?: string | null
+          ref_code?: string | null
           referral_code?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           created_at?: string
@@ -172,7 +184,13 @@ export type Database = {
           last_name?: string | null
           name?: string
           promo_tier?: string | null
+          ref_code?: string | null
           referral_code?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
