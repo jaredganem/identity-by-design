@@ -30,6 +30,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
+  const [freqVolume, setFreqVolume] = useState(0.3);
   const [loopCount, setLoopCount] = useState(3);
   const [soundscapeId, setSoundscapeId] = useState("ocean");
   const [frequencyId, setFrequencyId] = useState("417hz");
@@ -88,7 +89,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
       setProgress(`Mixing — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
-        processed, bgBuffer, bgVolume, loopCount, freqBuffer, bgVolume
+        processed, bgBuffer, bgVolume, loopCount, freqBuffer, freqVolume
       );
 
       setProgress("Building your installation...");
@@ -256,6 +257,15 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           <p className="text-xs text-muted-foreground italic normal-case tracking-normal">
             "The principle of autosuggestion voluntarily reaches the subconscious mind and influences it with these thoughts." — Napoleon Hill
           </p>
+        </div>
+
+        {/* Healing Frequency Level */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Healing Frequency Level</label>
+            <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+          </div>
+          <Slider value={[freqVolume]} onValueChange={([v]) => setFreqVolume(v)} max={1} step={0.01} className="w-full" />
         </div>
 
         {/* Depth Effect */}
