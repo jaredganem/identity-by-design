@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
+import IdentityChallenge from "@/components/IdentityChallenge";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
 import { getProgressStats, isReturningUser } from "@/lib/streakTracker";
@@ -229,6 +230,16 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
 
       {!stats && libraryCount === 0 && <div className="mb-6" />}
 
+      {/* Identity Challenge */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: stats ? 1.0 : 0.85 }}
+        className="mb-6 w-full flex justify-center"
+      >
+        <IdentityChallenge />
+      </motion.div>
+
       {/* Napoleon Hill — Featured Quote */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -406,10 +417,10 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
 
             <div className="text-center pt-4 space-y-1">
               <p className="text-foreground font-display text-lg md:text-xl font-bold tracking-[0.08em]">
-                Take the 30-Day Challenge.
+                Start The Identity Challenge.
               </p>
               <p className="text-sm text-muted-foreground normal-case tracking-normal">
-                Do this for 30 days & notice what's changed.
+                7 → 21 → 30 days. Each level unlocks when you complete the last.
               </p>
             </div>
             <div className="text-center pt-3">

@@ -110,6 +110,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       setIsRecording(false);
       trackEvent("recording_completed", { mode: "freestyle", clip_count: updated.length });
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("recording"));
+      import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
       if (autoName) captureTranscript(autoName, { source: "freestyle" });
       toast({ title: "Clip saved ✓", description: `${updated.length} clip${updated.length > 1 ? "s" : ""} total.` });
     } else {
