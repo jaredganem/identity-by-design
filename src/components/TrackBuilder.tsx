@@ -18,7 +18,7 @@ import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer, HEALING_FREQUENCIES } from "@/lib/soundscapes";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
-import SetYourEnvironment from "@/components/SetYourEnvironment";
+import HealingFrequencySelector from "@/components/HealingFrequencySelector";
 import { loadEnvironment, saveEnvironment, type EnvironmentSettings, type FullMixSettings } from "@/lib/environmentStorage";
 import MixPresetBar, { SaveMyMixLink } from "@/components/MixPresetBar";
 
@@ -330,8 +330,8 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           </p>
         </div>
 
-        {/* Inline environment collapsible */}
-        <SetYourEnvironment />
+        {/* Inline healing frequency selector */}
+        <HealingFrequencySelector />
 
         <SaveMyMixLink onSave={() => {
           const env = loadEnvironment(tier);

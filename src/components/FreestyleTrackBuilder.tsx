@@ -16,7 +16,7 @@ import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer, HEALING_FREQUENCIES } from "@/lib/soundscapes";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
-import SetYourEnvironment from "@/components/SetYourEnvironment";
+import HealingFrequencySelector from "@/components/HealingFrequencySelector";
 import { loadEnvironment, saveEnvironment, type EnvironmentSettings, type FullMixSettings } from "@/lib/environmentStorage";
 import MixPresetBar, { SaveMyMixLink } from "@/components/MixPresetBar";
 
@@ -288,7 +288,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
           <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
         </div>
 
-        <SetYourEnvironment />
+        <HealingFrequencySelector />
 
         <SaveMyMixLink onSave={() => {
           const env = loadEnvironment(tier);
