@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Zap, Crown, X } from "lucide-react";
+import { Lock, Zap, Crown, X, Sparkles } from "lucide-react";
 import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -90,32 +90,58 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
         </p>
       </div>
 
-      <ul className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">
-        {info.features.map((f) => (
-          <li key={f} className="flex items-center gap-2 normal-case tracking-normal">
-            <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
-            {f}
-          </li>
-        ))}
-      </ul>
+      {PAYMENTS_DISABLED ? (
+        <div className="space-y-3">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="font-display text-sm text-primary">Launch Access</span>
+            </div>
+            <p className="text-xs text-muted-foreground normal-case tracking-normal leading-relaxed">
+              All Pro &amp; Elite features are unlocked free during our launch period. Pricing goes live soon — get in early.
+            </p>
+            <p className="text-[10px] text-muted-foreground/60 normal-case tracking-normal">
+              Have a promo code? You'll keep extended access even after launch pricing begins.
+            </p>
+          </div>
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
+            >
+              Continue — It's Free
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <ul className="grid grid-cols-1 gap-1.5 text-xs text-muted-foreground">
+            {info.features.map((f) => (
+              <li key={f} className="flex items-center gap-2 normal-case tracking-normal">
+                <span className="w-1 h-1 rounded-full bg-primary flex-shrink-0" />
+                {f}
+              </li>
+            ))}
+          </ul>
 
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={handleUpgrade}
-        disabled={PAYMENTS_DISABLED}
-        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {PAYMENTS_DISABLED ? "Payments Coming Soon" : `Get ${info.label} — ${info.price} one time`}
-      </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleUpgrade}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
+          >
+            Get {info.label} — {info.price} one time
+          </motion.button>
 
-      {onDismiss && (
-        <button
-          onClick={onDismiss}
-          className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1 normal-case tracking-normal"
-        >
-          Maybe later
-        </button>
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1 normal-case tracking-normal"
+            >
+              Maybe later
+            </button>
+          )}
+        </>
       )}
     </div>
   );
