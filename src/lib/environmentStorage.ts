@@ -4,6 +4,7 @@
  */
 
 const STORAGE_KEY = "smfm_environment";
+const MY_MIX_KEY = "smfm_my_mix";
 
 export interface EnvironmentSettings {
   soundscapeId: string;
@@ -69,4 +70,31 @@ export function saveEnvironment(settings: EnvironmentSettings): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     window.dispatchEvent(new CustomEvent("environment-changed", { detail: settings }));
   } catch {}
+}
+
+/** Full mix = mixer settings + environment settings combined */
+export interface FullMixSettings extends MixerSettings, EnvironmentSettings {}
+
+export function saveMyMix(mix: FullMixSettings): void {
+  try {
+    localStorage.setItem(MY_MIX_KEY, JSON.stringify(mix));
+  } catch {}
+}
+
+export function loadMyMix(): FullMixSettings | null {
+  try {
+    const raw = localStorage.getItem(MY_MIX_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as FullMixSettings;
+  } catch {
+    return null;
+  }
+}
+
+export function hasMyMix(): boolean {
+  return localStorage.getItem(MY_MIX_KEY) !== null;
+}
+
+export function clearMyMix(): void {
+  localStorage.removeItem(MY_MIX_KEY);
 }

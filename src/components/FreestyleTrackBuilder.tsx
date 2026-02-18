@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
-import { Play, Pause, Download, Loader2, Headphones, Save, RotateCcw, Moon } from "lucide-react";
+import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -17,7 +17,8 @@ import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
 import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer, HEALING_FREQUENCIES } from "@/lib/soundscapes";
 import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import SetYourEnvironment from "@/components/SetYourEnvironment";
-import { loadEnvironment, saveEnvironment, OPTIMAL_MIX, SLEEP_MIX, type EnvironmentSettings } from "@/lib/environmentStorage";
+import { loadEnvironment, saveEnvironment, type EnvironmentSettings, type FullMixSettings } from "@/lib/environmentStorage";
+import MixPresetBar, { SaveMyMixLink } from "@/components/MixPresetBar";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -31,13 +32,21 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const [freqLabel, setFreqLabel] = useState(() => (HEALING_FREQUENCIES.find(f => f.id === loadEnvironment(tier).frequencyId) || HEALING_FREQUENCIES[0]).label);
   const [loopCount, setLoopCount] = useState(3);
 
-  const applyPreset = (preset: typeof OPTIMAL_MIX) => {
+  const applyPreset = (preset: { vocalVolume: number; reverbAmount: number; loopCount: number; bgVolume: number; freqVolume: number }) => {
     setVocalVolume(preset.vocalVolume);
     setReverbAmount(preset.reverbAmount);
     setLoopCount(preset.loopCount);
     setFreqVolume(preset.freqVolume);
     const env = loadEnvironment(tier);
     saveEnvironment({ ...env, freqVolume: preset.freqVolume, bgVolume: preset.bgVolume });
+  };
+
+  const applyFullMix = (mix: FullMixSettings) => {
+    setVocalVolume(mix.vocalVolume);
+    setReverbAmount(mix.reverbAmount);
+    setLoopCount(mix.loopCount);
+    setFreqVolume(mix.freqVolume);
+    saveEnvironment({ soundscapeId: mix.soundscapeId, frequencyId: mix.frequencyId, subliminalOn: mix.subliminalOn, bgVolume: mix.bgVolume, freqVolume: mix.freqVolume });
   };
 
   useEffect(() => {
@@ -237,14 +246,15 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
       )}
 
       <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
-        <div className="flex gap-2">
-          <button onClick={() => applyPreset(OPTIMAL_MIX)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.12em] rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
-            <RotateCcw className="w-3 h-3" /> Optimal Mix
-          </button>
-          <button onClick={() => applyPreset(SLEEP_MIX)} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.12em] rounded-lg border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
-            <Moon className="w-3 h-3" /> Sleep Mix
-          </button>
-        </div>
+        <MixPresetBar
+          vocalVolume={vocalVolume}
+          reverbAmount={reverbAmount}
+          loopCount={loopCount}
+          freqVolume={freqVolume}
+          getEnvironment={() => loadEnvironment(tier)}
+          onApplyPreset={applyPreset}
+          onApplyFullMix={applyFullMix}
+        />
 
         <div className="space-y-3">
           <div className="flex justify-between items-center">
@@ -280,6 +290,13 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
         <SetYourEnvironment />
 
+        <SaveMyMixLink onSave={() => {
+          const env = loadEnvironment(tier);
+          const mix: FullMixSettings = { vocalVolume, reverbAmount, loopCount, ...env };
+          import("@/lib/environmentStorage").then(({ saveMyMix }) => {
+            saveMyMix(mix);
+          });
+        }} />
         <Button
           onClick={handleBuild}
           disabled={isProcessing || !hasClips}
