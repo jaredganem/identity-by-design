@@ -46,11 +46,19 @@ export const SLEEP_MIX: MixerSettings & Pick<EnvironmentSettings, "bgVolume" | "
   freqVolume: 0.42,
 };
 
-export function loadEnvironment(): EnvironmentSettings {
+/** Frequencies that require elite tier */
+const ELITE_FREQ_IDS = new Set(["963hz", "40hz", "7.83hz"]);
+
+export function loadEnvironment(userTier?: string): EnvironmentSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULTS };
-    return { ...DEFAULTS, ...JSON.parse(raw) };
+    const parsed = { ...DEFAULTS, ...JSON.parse(raw) };
+    // Reset elite-locked frequency to 417hz if user isn't elite
+    if (ELITE_FREQ_IDS.has(parsed.frequencyId) && userTier !== "tier2") {
+      parsed.frequencyId = "417hz";
+    }
+    return parsed;
   } catch {
     return { ...DEFAULTS };
   }
