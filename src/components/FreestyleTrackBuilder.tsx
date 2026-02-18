@@ -1,12 +1,11 @@
 import { useState, useRef } from "react";
 import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
@@ -15,9 +14,10 @@ import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGat
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import { saveTrack, canSaveTrack } from "@/lib/savedTrackStorage";
-import SoundscapeSelector from "@/components/SoundscapeSelector";
-import CustomizeEnvironment from "@/components/CustomizeEnvironment";
 import { getSoundscapeById, getFrequencyById, loadSoundscapeBuffer } from "@/lib/soundscapes";
+import { PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
+import SetYourEnvironment from "@/components/SetYourEnvironment";
+import { loadEnvironment, saveEnvironment, type EnvironmentSettings } from "@/lib/environmentStorage";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
@@ -27,12 +27,9 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const { tier } = useTier();
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
-  const [bgVolume, setBgVolume] = useState(0.3);
-  const [freqVolume, setFreqVolume] = useState(0.3);
+  const [freqVolume, setFreqVolume] = useState(() => loadEnvironment().freqVolume);
   const [loopCount, setLoopCount] = useState(3);
-  const [soundscapeId, setSoundscapeId] = useState("ocean");
-  const [frequencyId, setFrequencyId] = useState("417hz");
-  const [subliminalOn, setSubliminalOn] = useState(() => getSubliminalPrefs().intensity !== "off");
+  const [showEnvironment, setShowEnvironment] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [finalBlob, setFinalBlob] = useState<Blob | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -44,9 +41,22 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
+  const isPro = PAYMENTS_DISABLED || tier === "tier1" || tier === "tier2";
+
+  const handleBuildClick = () => {
+    if (!hasClips) return;
+    if (isPro) { setShowEnvironment(true); return; }
+    executeBuild(loadEnvironment());
+  };
+
+  const handleEnvironmentConfirm = (env: EnvironmentSettings) => {
+    setShowEnvironment(false);
+    executeBuild(env);
+  };
+
   const hasClips = clips.length > 0;
 
-  const handleBuild = async () => {
+  const executeBuild = async (env: EnvironmentSettings) => {
     if (!hasClips) return;
     setIsProcessing(true);
     setFinalBlob(null);
@@ -76,16 +86,21 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
         processed = scaled;
       }
 
+      if (env.subliminalOn) {
+        const prefs = getSubliminalPrefs();
+        saveSubliminalPrefs({ ...prefs, intensity: "low" });
+      }
+
       setProgress("Loading background layers...");
-      const soundscape = getSoundscapeById(soundscapeId);
-      const effectiveFreqId = (tier === "free" || tier === "tier1") && frequencyId !== "417hz" ? "417hz" : frequencyId;
+      const soundscape = getSoundscapeById(env.soundscapeId);
+      const effectiveFreqId = (tier === "free" || tier === "tier1") && env.frequencyId !== "417hz" ? "417hz" : env.frequencyId;
       const frequency = getFrequencyById(effectiveFreqId);
       const bgBuffer = soundscape && soundscape.id !== "none" ? await loadSoundscapeBuffer(soundscape, (b) => audioEngine.decodeBlob(b)) : null;
       const freqBuffer = frequency ? await loadSoundscapeBuffer(frequency, (b) => audioEngine.decodeBlob(b)) : null;
 
       setProgress(`Mixing — ${loopCount}x repetitions...`);
       const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(
-        processed, bgBuffer, bgVolume, loopCount, freqBuffer, freqVolume
+        processed, bgBuffer, env.bgVolume, loopCount, freqBuffer, env.freqVolume
       );
 
       setProgress("Building your installation...");
@@ -209,80 +224,65 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
         </div>
       )}
 
-      <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
-        {/* Voice Level */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Your Voice Level</label>
-            <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
-          </div>
-          <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
-        </div>
-
-        {/* Customize Environment — gated collapsible */}
-        <CustomizeEnvironment>
-          <SoundscapeSelector soundscapeId={soundscapeId} onSoundscapeChange={setSoundscapeId} frequencyId={frequencyId} onFrequencyChange={setFrequencyId} />
-
-          {/* Soundscape Level */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">Soundscape Level</label>
-              <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
+      <AnimatePresence mode="wait">
+        {showEnvironment ? (
+          <SetYourEnvironment
+            key="environment"
+            onConfirm={handleEnvironmentConfirm}
+            onBack={() => setShowEnvironment(false)}
+          />
+        ) : (
+          <motion.div key="mixer" className="p-6 rounded-2xl bg-gradient-card border border-border space-y-6">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-foreground">Your Voice Level</label>
+                <span className="text-xs text-muted-foreground">{Math.round(vocalVolume * 100)}%</span>
+              </div>
+              <Slider value={[vocalVolume]} onValueChange={([v]) => setVocalVolume(v)} max={1} step={0.01} className="w-full" />
             </div>
-            <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
-          </div>
 
-          {/* Healing Frequency Level */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-foreground">Healing Frequency Level</label>
-              <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-foreground">417Hz Frequency Level</label>
+                <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+              </div>
+              <Slider value={[freqVolume]} onValueChange={([v]) => { setFreqVolume(v); const env = loadEnvironment(); saveEnvironment({ ...env, freqVolume: v }); }} max={1} step={0.01} className="w-full" />
             </div>
-            <Slider value={[freqVolume]} onValueChange={([v]) => setFreqVolume(v)} max={1} step={0.01} className="w-full" />
-          </div>
 
-          {/* Subliminal Layer */}
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <label className="text-sm font-medium text-foreground">Subliminal Layer</label>
-              <p className="text-xs text-muted-foreground normal-case tracking-normal mt-0.5">Your voice plays beneath the mix at near-inaudible volume</p>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-foreground">Depth Effect <span className="font-normal text-muted-foreground">(Creates That Trancy Feel)</span></label>
+                <span className="text-xs text-muted-foreground">{Math.round(reverbAmount * 100)}%</span>
+              </div>
+              <Slider value={[reverbAmount]} onValueChange={([v]) => setReverbAmount(v)} max={1} step={0.01} className="w-full" />
             </div>
-            <Switch
-              checked={subliminalOn}
-              onCheckedChange={(checked) => {
-                setSubliminalOn(checked);
-                const prefs = getSubliminalPrefs();
-                saveSubliminalPrefs({ ...prefs, intensity: checked ? "low" : "off" });
-              }}
-            />
-          </div>
-        </CustomizeEnvironment>
 
-        {/* Repetitions */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
-            <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
-          </div>
-          <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
-        </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-foreground">Repetitions <span className="font-normal text-muted-foreground">(Repetition = Installation)</span></label>
+                <span className="text-xs text-muted-foreground">{loopCount}× repeat</span>
+              </div>
+              <Slider value={[loopCount]} onValueChange={([v]) => setLoopCount(v)} min={1} max={10} step={1} className="w-full" />
+            </div>
 
-        <Button
-          onClick={handleBuild}
-          disabled={isProcessing || !hasClips}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
-        >
-          {isProcessing ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
-          ) : (
-            "🎧 Build My Identity Installation"
-          )}
-        </Button>
+            <Button
+              onClick={handleBuildClick}
+              disabled={isProcessing || !hasClips}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
+            >
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
+              ) : (
+                "🎧 Build My Identity Installation"
+              )}
+            </Button>
 
-        {!hasClips && (
-          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record at least one clip to build your installation.</p>
+            {!hasClips && (
+              <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record at least one clip to build your installation.</p>
+            )}
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {finalBlob && (
         <motion.div
