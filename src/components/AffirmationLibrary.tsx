@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Play, Pause, Archive, Plus, Check, Sparkles, Loader2, ChevronDown, Eraser, Pencil, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ const AffirmationLibrary = ({
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState("");
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
+  const [moveBtnRect, setMoveBtnRect] = useState<DOMRect | null>(null);
   const playRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
@@ -420,7 +422,7 @@ const AffirmationLibrary = ({
       {Object.entries(grouped).map(([category, catItems]) => {
         const isExpanded = expandedCategories.has(category);
         return (
-          <div key={category} className="rounded-xl border border-border overflow-hidden">
+          <div key={category} className="rounded-xl border border-border overflow-visible">
             {/* Category header — clickable drawer toggle */}
             <div className="flex items-center justify-between gap-2 px-4 py-3 bg-secondary/30">
               {editingCategory === category ? (
@@ -488,9 +490,9 @@ const AffirmationLibrary = ({
                   animate={{ height: "auto" }}
                   exit={{ height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+                  className="overflow-visible"
                 >
-                  <div className="max-h-48 overflow-y-auto p-2 space-y-1.5">
+                  <div className="max-h-48 overflow-y-auto overflow-x-visible p-2 space-y-1.5">
                     {catItems.map((item) => {
                       const isSelected = selectedIds.includes(item.id);
                       const isRenaming = renamingIds.has(item.id);
@@ -547,14 +549,30 @@ const AffirmationLibrary = ({
                             )}
                             <div className="relative">
                               <button
-                                onClick={() => setMovingItemId(movingItemId === item.id ? null : item.id)}
+                                ref={(el) => {
+                                  if (el && movingItemId === item.id) {
+                                    (el as any)._rect = el.getBoundingClientRect();
+                                  }
+                                }}
+                                onClick={(e) => {
+                                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                  setMoveBtnRect(rect);
+                                  setMovingItemId(movingItemId === item.id ? null : item.id);
+                                }}
                                 className="flex-shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                 title="Move to category"
                               >
-                              <ArrowUpDown className="w-3.5 h-3.5" />
+                                <ArrowUpDown className="w-3.5 h-3.5" />
                               </button>
-                              {movingItemId === item.id && (
-                                <div className="absolute right-0 bottom-full mb-1 z-50 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[160px]">
+                              {movingItemId === item.id && moveBtnRect && createPortal(
+                                <div
+                                  className="fixed z-[9999] bg-card border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
+                                  style={{
+                                    top: moveBtnRect.top - 4,
+                                    left: Math.min(moveBtnRect.right - 160, window.innerWidth - 170),
+                                    transform: 'translateY(-100%)',
+                                  }}
+                                >
                                   {Object.keys(grouped)
                                     .filter((cat) => cat !== category)
                                     .map((cat) => (
@@ -567,7 +585,8 @@ const AffirmationLibrary = ({
                                         <span>{cat}</span>
                                       </button>
                                     ))}
-                                </div>
+                                </div>,
+                                document.body
                               )}
                             </div>
                             <button
