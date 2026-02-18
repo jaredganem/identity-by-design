@@ -7,12 +7,16 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import SleepTimer from "@/components/SleepTimer";
 import GoDeeper from "@/components/GoDeeper";
+import { useTier } from "@/hooks/use-tier";
+import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGate";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface FreestyleTrackBuilderProps {
   clips: Blob[];
 }
 
 const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
+  const { tier } = useTier();
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
@@ -22,6 +26,7 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState("");
   const [previewingIndex, setPreviewingIndex] = useState<number | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
@@ -109,12 +114,17 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    if (tier === "free" && hasUsedFreeDownload()) {
+      setShowUpgradePrompt(true);
+      return;
+    }
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "identity-installation.wav";
     a.click();
     URL.revokeObjectURL(url);
+    if (tier === "free") markFreeDownloadUsed();
   };
 
   const handlePreviewClip = async (index: number) => {
@@ -279,6 +289,13 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
             <GoDeeper className="mt-2" />
           </div>
         </motion.div>
+      )}
+      {showUpgradePrompt && (
+        <UpgradePrompt
+          requiredTier="tier1"
+          featureName="Unlimited Downloads"
+          onDismiss={() => setShowUpgradePrompt(false)}
+        />
       )}
     </div>
   );

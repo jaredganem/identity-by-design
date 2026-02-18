@@ -16,6 +16,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useTier } from "@/hooks/use-tier";
 import { canSave, canAccessAI } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import { hasUsedFreeDownload } from "@/lib/freeDownloadGate";
 
 const CATEGORIES = [
   ...AFFIRMATION_CATEGORIES.map((c) => c.category),
@@ -95,6 +96,11 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       setShowLeadCapture(true);
       return;
     }
+    // Gate: free users who already downloaded cannot start a new session
+    if (!isRecording && tier === "free" && hasUsedFreeDownload()) {
+      setShowUpgradePrompt("tier1");
+      return;
+    }
     if (isRecording) {
       const autoName = speech.stop();
       const blob = await audioEngine.stopRecording();
@@ -107,7 +113,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
     } else {
       setShowCountdown(true);
     }
-  }, [isRecording, clipItems, toast]);
+  }, [isRecording, clipItems, toast, tier]);
 
   const handleDelete = (id: number) => {
     updateClips(clipItems.filter((c) => c.id !== id));

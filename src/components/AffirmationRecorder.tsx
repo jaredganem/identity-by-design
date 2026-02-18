@@ -16,6 +16,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useTier } from "@/hooks/use-tier";
 import { canSave, canEditPrompts, canAccessAI } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import { hasUsedFreeDownload } from "@/lib/freeDownloadGate";
 
 interface AffirmationRecorderProps {
   recordings: Record<string, Blob>;
@@ -112,6 +113,11 @@ const AffirmationRecorder = ({
       setShowLeadCapture(true);
       return;
     }
+    // Gate: free users who already downloaded cannot start a new session
+    if (!isRecording && tier === "free" && hasUsedFreeDownload()) {
+      setShowUpgradePrompt("tier1");
+      return;
+    }
     if (isRecording) {
       const autoName = speech.stop();
       const blob = await audioEngine.stopRecording();
@@ -125,7 +131,7 @@ const AffirmationRecorder = ({
     } else {
       setShowCountdown(true);
     }
-  }, [isRecording, currentSlot.id, recordings, onRecordingsChange, currentIndex, allSlots.length, toast]);
+  }, [isRecording, currentSlot.id, recordings, onRecordingsChange, currentIndex, allSlots.length, toast, tier]);
 
   const handleReRecord = async () => {
     const updated = { ...recordings };
