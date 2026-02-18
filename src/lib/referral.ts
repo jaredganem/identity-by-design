@@ -45,7 +45,7 @@ export async function logReferral(referredEmail: string, referredLeadId?: string
 
 /** Build a share URL that includes a lead's referral code */
 export function buildShareUrl(referralCode?: string | null): string {
-  const base = "https://identity-by-design.lovable.app/install";
+  const base = "https://identity-by-design.lovable.app";
   if (referralCode) return `${base}?ref=${referralCode}`;
   return base;
 }
