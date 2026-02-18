@@ -88,6 +88,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
       setFinalBlob(wavBlob);
       trackEvent("track_build_completed", { mode: "guided", duration_min: Math.round(finalBuffer.length / finalBuffer.sampleRate / 60) });
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("track_build"));
+      import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({
