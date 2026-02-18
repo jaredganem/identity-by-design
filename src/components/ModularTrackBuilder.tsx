@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Download, Loader2, X, GripVertical, Library, Mic, Plus, Sparkles, Shuffle, Send } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
@@ -88,6 +89,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
   const handleBuild = async () => {
     if (selectedItems.length === 0) return;
+    trackEvent("track_build_started", { mode: "library", items: selectedItems.length, loop_count: loopCount });
     setIsProcessing(true);
     setFinalBlob(null);
 
@@ -163,6 +165,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    trackEvent("download_completed", { mode: "library" });
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement("a");
     a.href = url;
