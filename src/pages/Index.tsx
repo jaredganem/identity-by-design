@@ -10,6 +10,7 @@ import AffirmationLibrary from "@/components/AffirmationLibrary";
 import ModularTrackBuilder from "@/components/ModularTrackBuilder";
 import GoDeeper from "@/components/GoDeeper";
 import Player from "@/components/Player";
+import IdentityChallenge from "@/components/IdentityChallenge";
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough";
 import Footer from "@/components/Footer";
 import InstallBanner from "@/components/InstallBanner";
@@ -20,7 +21,7 @@ import UpgradeNudge from "@/components/UpgradeNudge";
 import TrialBanner from "@/components/TrialBanner";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
-type Mode = "guided" | "freestyle" | "library" | "player";
+type Mode = "guided" | "freestyle" | "library" | "player" | "challenge";
 
 const modeHeaders: Record<string, { title: string; highlight: string; subtitle: string; quote?: { text: string; author: string } }> = {
   guided: {
@@ -117,6 +118,42 @@ const Index = () => {
           <HeroSection key="hero" libraryCount={libraryCount} onStart={handleModeSelect} />
         ) : mode === "player" ? (
           <Player key="player" onBack={handleBack} />
+        ) : mode === "challenge" ? (
+          <motion.div
+            key="challenge"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="relative z-10 max-w-2xl mx-auto px-6 py-12 space-y-8"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center space-y-3"
+            >
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Self-Mastery for Men™
+              </p>
+              <h2 className="font-display text-3xl md:text-4xl text-foreground">
+                The Identity{" "}
+                <span className="text-primary text-glow">Challenge</span>
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-lg mx-auto normal-case tracking-normal">
+                Progressive identity installation. Complete each level to unlock the next.
+                Days are logged automatically when you record or listen.
+              </p>
+            </motion.div>
+            <IdentityChallenge />
+            <div className="text-center pt-4">
+              <button
+                onClick={handleBack}
+                className="min-h-[44px] px-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to home
+              </button>
+            </div>
+          </motion.div>
         ) : (
           <motion.div
             key="studio"

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause } from "lucide-react";
+import { ArrowRight, ChevronDown, Headphones, Play, Flame, Trophy, Calendar, Mic, Pause, Target } from "lucide-react";
 import GoDeeper from "@/components/GoDeeper";
-import IdentityChallenge from "@/components/IdentityChallenge";
+import { Progress } from "@/components/ui/progress";
 import FreeWorkshopCTA from "@/components/FreeWorkshopCTA";
 import jaredPhoto from "@/assets/jared-before-after.jpeg";
 import { getProgressStats, isReturningUser } from "@/lib/streakTracker";
+import { getChallengeStatus, CHALLENGE_LEVELS } from "@/lib/challengeTracker";
 import { getSavedTracks, type SavedTrack } from "@/lib/savedTrackStorage";
 import { audioEngine } from "@/lib/audioEngine";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface HeroSectionProps {
-  onStart: (mode: "guided" | "freestyle" | "library" | "player") => void;
+  onStart: (mode: "guided" | "freestyle" | "library" | "player" | "challenge") => void;
   libraryCount?: number;
 }
 
@@ -58,6 +59,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   const [showModes, setShowModes] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [stats, setStats] = useState<ReturnType<typeof getProgressStats> | null>(null);
+  const [challengeStatus, setChallengeStatus] = useState(getChallengeStatus());
   const [savedTrack, setSavedTrack] = useState<SavedTrack | null>(null);
   const [isPlayingSaved, setIsPlayingSaved] = useState(false);
   const savedPlayerRef = useRef<{ stop: () => void } | null>(null);
@@ -65,6 +67,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
   useEffect(() => {
     if (isReturningUser()) {
       setStats(getProgressStats());
+      setChallengeStatus(getChallengeStatus());
     }
     getSavedTracks().then((tracks) => {
       if (tracks.length > 0) setSavedTrack(tracks[0]);
@@ -84,6 +87,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
     savedPlayerRef.current = player;
     setIsPlayingSaved(true);
     import("@/lib/streakTracker").then(({ logActivity }) => logActivity("listen"));
+    import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
     setTimeout(() => setIsPlayingSaved(false), buf.duration * 1000);
   };
 
@@ -137,7 +141,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
         Your custom unconscious reprogramming system. Script, record, and install your new identity — in your own voice, while you sleep.
       </motion.p>
 
-      {/* Returning user — streak & progress */}
+      {/* Returning user — streak & challenge progress */}
       {stats ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -171,10 +175,73 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
               <p className="text-[10px] text-muted-foreground">Days Active</p>
             </div>
           </div>
-          {stats.currentStreak > 0 && (
+
+          {/* Challenge progress — compact inline */}
+          {challengeStatus.active && challengeStatus.level && (
+            <div className="mt-3 pt-3 border-t border-primary/10">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">{challengeStatus.level.badge}</span>
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-primary font-display">
+                    {challengeStatus.level.name}
+                  </p>
+                </div>
+                <span className="text-xs font-display font-bold text-primary">
+                  {challengeStatus.daysCompleted}/{challengeStatus.totalDays}
+                </span>
+              </div>
+              <Progress value={challengeStatus.progressPercent} className="h-1.5" />
+              <p className="text-[10px] text-muted-foreground mt-1 text-center normal-case tracking-normal">
+                {challengeStatus.completedToday
+                  ? "✓ Today logged"
+                  : challengeStatus.isLevelComplete
+                  ? "🎉 Challenge complete!"
+                  : "Record or listen to log today's session"}
+              </p>
+            </div>
+          )}
+
+          {/* Completed badges */}
+          {challengeStatus.completedLevels.length > 0 && !challengeStatus.active && (
+            <div className="mt-3 pt-3 border-t border-primary/10">
+              <div className="flex items-center justify-center gap-2">
+                {CHALLENGE_LEVELS.map((l) => (
+                  <span
+                    key={l.id}
+                    className={`text-lg ${challengeStatus.completedLevels.includes(l.id) ? "" : "opacity-20 grayscale"}`}
+                    title={l.name}
+                  >
+                    {l.badge}
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={() => onStart("challenge")}
+                className="mt-1.5 text-[10px] text-primary hover:text-primary/80 font-display tracking-wider w-full text-center"
+              >
+                View Challenge →
+              </button>
+            </div>
+          )}
+
+          {/* Start challenge prompt if none active and none completed */}
+          {!challengeStatus.active && challengeStatus.completedLevels.length === 0 && (
+            <button
+              onClick={() => onStart("challenge")}
+              className="mt-3 pt-3 border-t border-primary/10 w-full flex items-center justify-between hover:bg-primary/5 rounded-lg px-1 py-1.5 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" />
+                <span className="text-xs text-foreground font-display">Start the Identity Challenge</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground">7 → 21 → 30 days</span>
+            </button>
+          )}
+
+          {stats.currentStreak > 0 && !challengeStatus.active && (
             <p className="text-xs text-center text-primary/80 mt-2 font-display tracking-wide">
               {stats.currentStreak >= 30
-                ? "🏆 30-Day Challenge complete. Legend."
+                ? "🏆 30-Day Identity Shift complete. Legend."
                 : stats.currentStreak >= 7
                 ? "🔥 You're on fire. Keep the momentum."
                 : stats.isActiveToday
@@ -182,7 +249,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                 : "Don't break the chain — record today."}
             </p>
           )}
-          {stats.currentStreak === 0 && stats.totalDaysActive > 0 && (
+          {stats.currentStreak === 0 && stats.totalDaysActive > 0 && !challengeStatus.active && (
             <p className="text-xs text-center text-muted-foreground mt-2 italic normal-case tracking-normal">
               Your streak reset. Start a new one today.
             </p>
@@ -229,16 +296,6 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
       ) : null}
 
       {!stats && libraryCount === 0 && <div className="mb-6" />}
-
-      {/* Identity Challenge */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: stats ? 1.0 : 0.85 }}
-        className="mb-6 w-full flex justify-center"
-      >
-        <IdentityChallenge />
-      </motion.div>
 
       {/* Napoleon Hill — Featured Quote */}
       <motion.div

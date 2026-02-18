@@ -130,6 +130,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
       setFinalBlob(wavBlob);
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("track_build"));
+      import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({
