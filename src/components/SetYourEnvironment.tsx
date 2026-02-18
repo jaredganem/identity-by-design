@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronLeft, ChevronRight, Play, Square, Lock, Volume2, Settings } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Play, Square, Lock, Settings } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { AMBIENT_SOUNDSCAPES, HEALING_FREQUENCIES, buildDroneGraphLive, type Soundscape } from "@/lib/soundscapes";
@@ -179,7 +179,7 @@ const SetYourEnvironment = () => {
                           : "border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/40"
                       }`}
                     >
-                      {isPreviewingSoundscape ? <Square className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
+                      {isPreviewingSoundscape ? <Square className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5" />}
                       {isPreviewingSoundscape ? "Stop" : "Preview"}
                     </button>
                   )}

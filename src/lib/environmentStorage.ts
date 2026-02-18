@@ -25,7 +25,10 @@ export function loadEnvironment(): EnvironmentSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULTS };
-    return { ...DEFAULTS, ...JSON.parse(raw) };
+    const parsed = { ...DEFAULTS, ...JSON.parse(raw) };
+    // Clamp bgVolume to safe range (prevent drowning voice)
+    if (parsed.bgVolume > 0.5) parsed.bgVolume = 0.3;
+    return parsed;
   } catch {
     return { ...DEFAULTS };
   }
