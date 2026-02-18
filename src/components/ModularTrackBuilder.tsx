@@ -31,6 +31,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
   const [reverbAmount, setReverbAmount] = useState(0.5);
   const [vocalVolume, setVocalVolume] = useState(1.0);
   const [bgVolume, setBgVolume] = useState(0.3);
+  const [freqVolume, setFreqVolume] = useState(0.3);
   const [loopCount, setLoopCount] = useState(3);
   const [soundscapeId, setSoundscapeId] = useState("ocean");
   const [frequencyId, setFrequencyId] = useState("417hz");
@@ -132,7 +133,7 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
       const freqBuffer = frequency ? await loadSoundscapeBuffer(frequency, (b) => audioEngine.decodeBlob(b)) : null;
 
       setProgress(`Mixing — ${loopCount}x repetitions...`);
-      const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(processed, bgBuffer, bgVolume, loopCount, freqBuffer, bgVolume);
+      const finalBuffer = await audioEngine.mixWithBackgroundAndLoop(processed, bgBuffer, bgVolume, loopCount, freqBuffer, freqVolume);
 
       setProgress("Building your installation...");
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
@@ -428,6 +429,15 @@ const ModularTrackBuilder = ({ refreshKey = 0 }: ModularTrackBuilderProps) => {
               <span className="text-xs text-muted-foreground">{Math.round(bgVolume * 100)}%</span>
             </div>
             <Slider value={[bgVolume]} onValueChange={([v]) => setBgVolume(v)} max={1} step={0.01} className="w-full" />
+          </div>
+
+          {/* Healing Frequency Level */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-foreground">Healing Frequency Level</label>
+              <span className="text-xs text-muted-foreground">{Math.round(freqVolume * 100)}%</span>
+            </div>
+            <Slider value={[freqVolume]} onValueChange={([v]) => setFreqVolume(v)} max={1} step={0.01} className="w-full" />
           </div>
 
           <div className="space-y-3">

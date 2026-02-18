@@ -58,54 +58,84 @@ export async function generateToneBuffer(
   const length = sampleRate * durationSec;
   const ctx = new OfflineAudioContext(2, length, sampleRate);
 
-  // Create a simple synthetic impulse response for reverb
-  const irLength = sampleRate * 2.5; // 2.5s reverb tail
+  // Long synthetic reverb impulse with stereo spread
+  const irLength = Math.floor(sampleRate * 3.5);
   const irBuffer = ctx.createBuffer(2, irLength, sampleRate);
   for (let ch = 0; ch < 2; ch++) {
     const data = irBuffer.getChannelData(ch);
     for (let i = 0; i < irLength; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-3.5 * i / irLength);
+      // Stereo variation for width
+      const stereoOffset = ch === 0 ? 0.7 : 1.3;
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-2.8 * i / irLength) * stereoOffset;
     }
   }
 
   const convolver = ctx.createConvolver();
   convolver.buffer = irBuffer;
 
+  // Wet/dry for spaciousness — heavier on wet for ethereal feel
   const dryGain = ctx.createGain();
-  dryGain.gain.value = 0.5;
+  dryGain.gain.value = 0.35;
   const wetGain = ctx.createGain();
-  wetGain.gain.value = 0.5;
+  wetGain.gain.value = 0.65;
 
   dryGain.connect(ctx.destination);
   convolver.connect(wetGain);
   wetGain.connect(ctx.destination);
 
-  // Drone: multiple slightly-detuned oscillators for chorusing
-  const voices: { freq: number; gain: number; detune: number; type: OscillatorType }[] = [
-    { freq: frequency, gain: 0.35, detune: 0, type: "sine" },
-    { freq: frequency, gain: 0.20, detune: 4, type: "sine" },    // slightly sharp
-    { freq: frequency, gain: 0.20, detune: -4, type: "sine" },   // slightly flat
-    { freq: frequency * 2, gain: 0.06, detune: 2, type: "sine" }, // octave harmonic
-    { freq: frequency * 3, gain: 0.03, detune: -3, type: "sine" }, // fifth harmonic
-    { freq: frequency * 0.5, gain: 0.10, detune: 0, type: "sine" }, // sub-octave drone
+  // LFO for slow amplitude shimmer
+  const lfo = ctx.createOscillator();
+  lfo.type = "sine";
+  lfo.frequency.value = 0.15; // very slow pulse
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 0.08; // subtle shimmer depth
+
+  // Expanded drone voices — wider detuning, stereo panning, more harmonics
+  const voices: { freq: number; gain: number; detune: number; pan: number }[] = [
+    // Core fundamental cluster
+    { freq: frequency, gain: 0.30, detune: 0, pan: 0 },
+    { freq: frequency, gain: 0.15, detune: 7, pan: -0.6 },
+    { freq: frequency, gain: 0.15, detune: -7, pan: 0.6 },
+    { freq: frequency, gain: 0.08, detune: 12, pan: -0.9 },
+    { freq: frequency, gain: 0.08, detune: -12, pan: 0.9 },
+    // Sub-octave drone
+    { freq: frequency * 0.5, gain: 0.12, detune: 0, pan: 0 },
+    { freq: frequency * 0.5, gain: 0.06, detune: 3, pan: -0.4 },
+    // Harmonics — octave + fifth for brightness
+    { freq: frequency * 2, gain: 0.05, detune: 2, pan: -0.3 },
+    { freq: frequency * 2, gain: 0.05, detune: -2, pan: 0.3 },
+    { freq: frequency * 3, gain: 0.025, detune: -4, pan: -0.7 },
+    { freq: frequency * 1.5, gain: 0.03, detune: 1, pan: 0.5 }, // perfect fifth
   ];
+
+  lfo.connect(lfoGain);
+  lfo.start(0);
+  lfo.stop(durationSec);
 
   for (const v of voices) {
     const osc = ctx.createOscillator();
-    osc.type = v.type;
+    osc.type = "sine";
     osc.frequency.value = v.freq;
     osc.detune.value = v.detune;
 
     const gain = ctx.createGain();
-    // Fade in over 0.5s, fade out over 0.5s
+    // Slow fade in/out
     gain.gain.setValueAtTime(0, 0);
-    gain.gain.linearRampToValueAtTime(v.gain, 0.5);
-    gain.gain.setValueAtTime(v.gain, durationSec - 0.5);
+    gain.gain.linearRampToValueAtTime(v.gain, 1.2);
+    gain.gain.setValueAtTime(v.gain, durationSec - 1.0);
     gain.gain.linearRampToValueAtTime(0, durationSec);
 
+    // LFO modulation on gain for shimmer
+    lfoGain.connect(gain.gain);
+
+    // Stereo panning
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = v.pan;
+
     osc.connect(gain);
-    gain.connect(dryGain);
-    gain.connect(convolver);
+    gain.connect(panner);
+    panner.connect(dryGain);
+    panner.connect(convolver);
 
     osc.start(0);
     osc.stop(durationSec);
