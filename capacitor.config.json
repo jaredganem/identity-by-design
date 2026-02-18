@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.8eae88415a3a4df7a03bd475707631db",
+  "appName": "identity-by-design",
+  "webDir": "dist",
+  "server": {
+    "url": "https://8eae8841-5a3a-4df7-a03b-d475707631db.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
