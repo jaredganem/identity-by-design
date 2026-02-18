@@ -263,6 +263,7 @@ const TIER_RANK: Record<FeatureTier, number> = { free: 0, pro: 1, elite: 2 };
 
 /**
  * Promo-tier → max unlocked FeatureTier mapping.
+ * Trial codes grant real access during the trial window.
  */
 export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
   vip: "elite",
@@ -270,9 +271,21 @@ export const PROMO_TIER_MAP: Record<string, FeatureTier> = {
   vip_all: "elite",
   vip_mid: "pro",
   vip_basic: "free",
-  "3mo_free": "free",
-  "6mo_free": "free",
+  "3mo_free": "pro",    // 3-month Pro trial
+  "6mo_free": "elite",  // 6-month Elite trial
 };
+
+/**
+ * Trial duration in days per promo code.
+ * Codes NOT listed here grant permanent access.
+ */
+export const TRIAL_DURATION_DAYS: Record<string, number> = {
+  "3mo_free": 90,
+  "6mo_free": 180,
+};
+
+/** Grace period warning — show banner this many days before expiry */
+export const TRIAL_GRACE_PERIOD_DAYS = 7;
 
 export function canAccess(userTier: FeatureTier, featureId: string): boolean {
   const feature = FEATURE_TIERS.find((f) => f.id === featureId);
