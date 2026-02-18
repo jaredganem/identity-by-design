@@ -61,10 +61,20 @@ export async function getCheckoutUrl(
 /**
  * Open the checkout in a new tab.
  */
+/**
+ * Payments are temporarily disabled while the store is being reviewed.
+ * Set to `false` once the LemonSqueezy store is activated.
+ */
+export const PAYMENTS_DISABLED = true;
+
 export async function redirectToCheckout(
   tier: "tier1" | "tier2",
   userEmail: string
 ): Promise<void> {
+  if (PAYMENTS_DISABLED) {
+    // Silently no-op while store is in review
+    return;
+  }
   const url = await getCheckoutUrl(tier, userEmail);
   window.open(url, "_blank", "noopener,noreferrer");
 }

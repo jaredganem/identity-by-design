@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Zap, Crown, X } from "lucide-react";
-import { redirectToCheckout } from "@/lib/lemonsqueezy";
+import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UpgradePromptProps {
@@ -103,9 +103,10 @@ const UpgradePrompt = ({ requiredTier, featureName, inline = false, onDismiss }:
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleUpgrade}
-        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500"
+        disabled={PAYMENTS_DISABLED}
+        className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.12em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Get {info.label} — {info.price} one time
+        {PAYMENTS_DISABLED ? "Payments Coming Soon" : `Get ${info.label} — ${info.price} one time`}
       </motion.button>
 
       {onDismiss && (

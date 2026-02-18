@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Zap } from "lucide-react";
 import { useTier } from "@/hooks/use-tier";
-import { redirectToCheckout } from "@/lib/lemonsqueezy";
+import { redirectToCheckout, PAYMENTS_DISABLED } from "@/lib/lemonsqueezy";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,7 +48,7 @@ const TrialBanner = () => {
           onClick={() => redirectToCheckout(upgradeTier, userEmail)}
           className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-display font-bold uppercase tracking-wider hover:shadow-glow transition-shadow"
         >
-          Upgrade Now
+          {PAYMENTS_DISABLED ? "Coming Soon" : "Upgrade Now"}
         </button>
       </motion.div>
     );
@@ -74,7 +74,7 @@ const TrialBanner = () => {
           onClick={() => redirectToCheckout(upgradeTier, userEmail)}
           className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-display font-bold uppercase tracking-wider hover:shadow-glow transition-shadow"
         >
-          Keep Access
+          {PAYMENTS_DISABLED ? "Coming Soon" : "Keep Access"}
         </button>
       </motion.div>
     </AnimatePresence>
