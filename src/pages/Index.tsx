@@ -17,6 +17,7 @@ import { trackPageView, trackEvent } from "@/lib/analytics";
 import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
 import CompletionShareCTA from "@/components/CompletionShareCTA";
 import UpgradeNudge from "@/components/UpgradeNudge";
+import TrialBanner from "@/components/TrialBanner";
 
 type Mode = "guided" | "freestyle" | "library" | "player";
 
@@ -106,6 +107,7 @@ const Index = () => {
             transition={{ duration: 0.6 }}
             className="relative z-10 max-w-2xl mx-auto px-6 py-12 space-y-8"
           >
+            <TrialBanner />
             {/* Header with stagger */}
             <motion.div
               variants={staggerContainer}

@@ -1,13 +1,13 @@
 /**
  * React hook for accessing the current user's tier.
  * Merges database tier (from purchases) with promo tier (from lead capture).
- * Returns the HIGHER of the two so promo users aren't gated.
- * Components can call `refresh()` after a purchase to re-check.
+ * Handles trial expiry — trial codes grant real access for a limited time,
+ * then drop back to free with a grace period warning.
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { checkTier, type UserTier, type TierInfo } from "@/lib/tierAccess";
-import { PROMO_TIER_MAP, type FeatureTier } from "@/lib/featureTiers";
+import { PROMO_TIER_MAP, TRIAL_DURATION_DAYS, TRIAL_GRACE_PERIOD_DAYS, type FeatureTier } from "@/lib/featureTiers";
 
 const TIER_RANK: Record<string, number> = { free: 0, tier1: 1, pro: 1, tier2: 2, elite: 2 };
 
@@ -18,39 +18,93 @@ function normalizeToUserTier(tier: string): UserTier {
   return "free";
 }
 
-function getPromoTier(): UserTier {
+interface PromoInfo {
+  tier: UserTier;
+  promoCode: string | null;
+  trialStartTs: number | null;
+  daysRemaining: number | null;
+  isExpired: boolean;
+  isInGracePeriod: boolean;
+}
+
+function getPromoInfo(): PromoInfo {
+  const none: PromoInfo = { tier: "free", promoCode: null, trialStartTs: null, daysRemaining: null, isExpired: false, isInGracePeriod: false };
   try {
     const raw = localStorage.getItem("smfm_lead");
-    if (!raw) return "free";
+    if (!raw) return none;
     const data = JSON.parse(raw);
-    if (!data.promoTier) return "free";
-    const mapped = PROMO_TIER_MAP[data.promoTier] || "free";
-    return normalizeToUserTier(mapped);
+    const promoCode = data.promoTier as string | null;
+    if (!promoCode) return none;
+
+    const mapped = PROMO_TIER_MAP[promoCode] || "free";
+    const mappedTier = normalizeToUserTier(mapped);
+
+    // Check if this is a time-limited trial
+    const trialDays = TRIAL_DURATION_DAYS[promoCode];
+    if (!trialDays) {
+      // Permanent access — no expiry
+      return { tier: mappedTier, promoCode, trialStartTs: data.ts || null, daysRemaining: null, isExpired: false, isInGracePeriod: false };
+    }
+
+    // Calculate trial expiry
+    const startTs = data.ts as number;
+    if (!startTs) return none;
+
+    const now = Date.now();
+    const expiryTs = startTs + trialDays * 24 * 60 * 60 * 1000;
+    const msRemaining = expiryTs - now;
+    const daysRemaining = Math.ceil(msRemaining / (24 * 60 * 60 * 1000));
+
+    if (daysRemaining <= 0) {
+      // Trial expired — drop to free
+      return { tier: "free", promoCode, trialStartTs: startTs, daysRemaining: 0, isExpired: true, isInGracePeriod: false };
+    }
+
+    const isInGracePeriod = daysRemaining <= TRIAL_GRACE_PERIOD_DAYS;
+    return { tier: mappedTier, promoCode, trialStartTs: startTs, daysRemaining, isExpired: false, isInGracePeriod };
   } catch {
-    return "free";
+    return none;
   }
 }
 
-export function useTier() {
+export interface UseTierResult extends TierInfo {
+  loading: boolean;
+  refresh: () => Promise<void>;
+  /** Days remaining on trial, or null if not a trial */
+  trialDaysRemaining: number | null;
+  /** True if trial expired */
+  trialExpired: boolean;
+  /** True if within grace period (last N days of trial) */
+  trialGracePeriod: boolean;
+  /** The tier label for display ("Pro" / "Elite") */
+  tierLabel: string;
+}
+
+const TIER_LABELS: Record<UserTier, string> = { free: "Free", tier1: "Pro", tier2: "Elite" };
+
+export function useTier(): UseTierResult {
   const [tierInfo, setTierInfo] = useState<TierInfo>({
     tier: "free" as UserTier,
     purchaseDate: null,
     paymentReference: null,
   });
   const [loading, setLoading] = useState(true);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [trialGracePeriod, setTrialGracePeriod] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     const dbInfo = await checkTier();
-    const promoTier = getPromoTier();
+    const promo = getPromoInfo();
 
-    // Use whichever tier is higher
+    // Use whichever tier is higher (purchased tier always wins over expired trial)
     const dbRank = TIER_RANK[dbInfo.tier] ?? 0;
-    const promoRank = TIER_RANK[promoTier] ?? 0;
+    const promoRank = TIER_RANK[promo.tier] ?? 0;
 
     if (promoRank > dbRank) {
       setTierInfo({
-        tier: promoTier,
+        tier: promo.tier,
         purchaseDate: dbInfo.purchaseDate,
         paymentReference: dbInfo.paymentReference,
       });
@@ -58,6 +112,9 @@ export function useTier() {
       setTierInfo(dbInfo);
     }
 
+    setTrialDaysRemaining(promo.daysRemaining);
+    setTrialExpired(promo.isExpired);
+    setTrialGracePeriod(promo.isInGracePeriod);
     setLoading(false);
   }, []);
 
@@ -65,5 +122,15 @@ export function useTier() {
     refresh();
   }, [refresh]);
 
-  return { ...tierInfo, loading, refresh };
+  const effectiveTier = tierInfo.tier;
+
+  return {
+    ...tierInfo,
+    loading,
+    refresh,
+    trialDaysRemaining,
+    trialExpired,
+    trialGracePeriod,
+    tierLabel: TIER_LABELS[effectiveTier] || "Free",
+  };
 }
