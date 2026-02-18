@@ -86,6 +86,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
       const wavBlob = audioEngine.audioBufferToWav(finalBuffer);
       setFinalBlob(wavBlob);
       trackEvent("track_build_completed", { mode: "guided", duration_min: Math.round(finalBuffer.length / finalBuffer.sampleRate / 60) });
+      import("@/lib/streakTracker").then(({ logActivity }) => logActivity("track_build"));
 
       const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
       toast({

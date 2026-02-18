@@ -109,6 +109,7 @@ const FreestyleRecorder = ({ clips, onClipsChange, onLibraryChanged }: Freestyle
       updateClips(updated);
       setIsRecording(false);
       trackEvent("recording_completed", { mode: "freestyle", clip_count: updated.length });
+      import("@/lib/streakTracker").then(({ logActivity }) => logActivity("recording"));
       if (autoName) captureTranscript(autoName, { source: "freestyle" });
       toast({ title: "Clip saved ✓", description: `${updated.length} clip${updated.length > 1 ? "s" : ""} total.` });
     } else {
