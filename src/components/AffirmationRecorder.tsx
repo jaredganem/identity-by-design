@@ -176,7 +176,7 @@ const AffirmationRecorder = ({
     <div className="space-y-6">
       {/* countdown is now rendered inline in the mic button area below */}
       {/* Personalize with AI */}
-      {totalRecorded === 0 && (
+{true && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <AnimatePresence mode="wait">
             {!showPersonalize ? (
@@ -202,7 +202,7 @@ const AffirmationRecorder = ({
                 isPersonalized={isPersonalized}
                 onPersonalized={() => { setShowPersonalize(false); setIsPersonalized(true); }}
                 onClose={() => setShowPersonalize(false)}
-                forceMode="simple"
+                
               />
             )}
           </AnimatePresence>
