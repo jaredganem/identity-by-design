@@ -10,6 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useTier } from "@/hooks/use-tier";
 import { canAccessLibrary } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 interface PlayerProps {
   onBack: () => void;
@@ -71,6 +72,7 @@ const SubliminalDisplay = ({
 
 const Player = ({ onBack }: PlayerProps) => {
   const { tier } = useTier();
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [tracks, setTracks] = useState<SavedAffirmation[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -221,7 +223,17 @@ const Player = ({ onBack }: PlayerProps) => {
     }
   }, [loopMode, currentIndex, tracks.length]);
 
-  // Gate: Player requires Pro (tier1+) to access
+  // Gate: Lead capture first, then tier check
+  if (!hasLeadCaptured()) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 max-w-2xl mx-auto px-6 py-12 text-center space-y-4">
+        <p className="text-muted-foreground">Enter your email to unlock the Identity Player.</p>
+        <Button onClick={() => setShowLeadCapture(true)}>Get Started</Button>
+        <LeadCaptureGate open={showLeadCapture} onClose={() => setShowLeadCapture(false)} onSuccess={() => { setShowLeadCapture(false); window.location.reload(); }} />
+      </motion.div>
+    );
+  }
+
   if (!canAccessLibrary(tier)) {
     return (
       <motion.div

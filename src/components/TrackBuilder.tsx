@@ -12,6 +12,7 @@ import { useTier } from "@/hooks/use-tier";
 import { canBuildTracks, canDownload } from "@/lib/tierAccess";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import { hasUsedFreeDownload, markFreeDownloadUsed } from "@/lib/freeDownloadGate";
+import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 
 interface TrackBuilderProps {
   recordings: Record<string, Blob>;
@@ -31,6 +32,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const [downloadFormat, setDownloadFormat] = useState<"wav" | "mp3">("wav");
   const [previewingSlot, setPreviewingSlot] = useState<string | null>(null);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const playbackRef = useRef<{ stop: () => void } | null>(null);
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
@@ -119,6 +121,8 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
   const handleDownload = () => {
     if (!finalBlob) return;
+    // Lead capture first
+    if (!hasLeadCaptured()) { setShowLeadCapture(true); return; }
     // Free users: allow first download, gate after
     if (tier === "free" && hasUsedFreeDownload()) {
       setShowUpgradePrompt(true);
@@ -328,6 +332,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
           onDismiss={() => setShowUpgradePrompt(false)}
         />
       )}
+      <LeadCaptureGate open={showLeadCapture} onClose={() => setShowLeadCapture(false)} onSuccess={() => { setShowLeadCapture(false); window.location.reload(); }} />
     </div>
   );
 };
