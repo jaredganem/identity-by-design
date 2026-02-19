@@ -22,29 +22,28 @@ const PromoBanner = () => {
           className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pointer-events-none"
         >
           <div className="max-w-lg mx-auto pointer-events-auto">
-            <div className="relative rounded-2xl border border-primary/30 bg-card/95 backdrop-blur-xl shadow-lg px-5 py-4">
-              {/* Dismiss */}
+            <div className="relative rounded-2xl border border-primary/20 bg-card/90 backdrop-blur-xl shadow-lg px-5 py-3.5 text-center">
               <button
                 onClick={() => setDismissed(true)}
-                className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute top-2.5 right-2.5 p-1 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Dismiss"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-xs uppercase tracking-[0.2em] text-primary font-medium">
+              <div className="flex flex-col items-center gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[10px] uppercase tracking-[0.25em] text-primary font-medium">
                     Pre-Launch Access
                   </span>
                 </div>
-                <p className="text-sm text-foreground leading-relaxed pr-6">
-                  Have a promo code? Unlock unlimited access to every feature during our beta.
+                <p className="text-xs text-muted-foreground">
+                  Have a promo code? Unlock unlimited access during beta.
                 </p>
                 <button
                   onClick={() => setShowGate(true)}
-                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                  className="px-6 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
                 >
                   Enter Promo Code
                 </button>
