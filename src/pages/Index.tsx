@@ -20,6 +20,7 @@ import CompletionShareCTA from "@/components/CompletionShareCTA";
 import UpgradeNudge from "@/components/UpgradeNudge";
 import TrialBanner from "@/components/TrialBanner";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
+import PromoBanner from "@/components/PromoBanner";
 
 type Mode = "guided" | "freestyle" | "library" | "player" | "challenge";
 
@@ -352,6 +353,7 @@ const Index = () => {
         )}
       </AnimatePresence>
 
+      <PromoBanner />
       <InstallBanner />
       <Footer />
       <LeadCaptureGate
