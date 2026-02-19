@@ -84,13 +84,13 @@ export async function saveLead(firstName: string, email: string, promoCode?: str
       body: { email, name: firstName },
     });
 
-    if (authData?.password && authData?.email) {
-      // New user — sign in with the generated password
-      await supabase.auth.signInWithPassword({
-        email: authData.email,
-        password: authData.password,
+    if (authData?.session) {
+      // New user — set session returned from server
+      await supabase.auth.setSession({
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
       });
-      console.log("[SilentAuth] New user signed in");
+      console.log("[SilentAuth] New user signed in via server session");
     } else if (authData?.exists && authData?.token_hash) {
       // Existing user — verify OTP to sign in
       await supabase.auth.verifyOtp({
