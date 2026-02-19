@@ -70,13 +70,26 @@ serve(async (req) => {
       throw createError;
     }
 
-    // New user created — sign them in with the password we generated
+    // New user created — sign them in server-side and return session
+    const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError || !signInData.session) {
+      console.error("Server-side sign-in failed:", signInError);
+      return new Response(
+        JSON.stringify({ exists: false, user_id: newUser.user?.id, email }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({
         exists: false,
         user_id: newUser.user?.id,
         email,
-        password, // Send back so client can signInWithPassword
+        session: signInData.session,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
