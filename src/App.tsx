@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Install from "./pages/Install";
+import Guide from "./pages/Guide";
 import AdminInsights from "./pages/AdminInsights";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/install" element={<Install />} />
+          <Route path="/guide" element={<Guide />} />
           <Route path="/admin/insights" element={<AdminInsights />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />

@@ -21,6 +21,7 @@ import UpgradeNudge from "@/components/UpgradeNudge";
 import TrialBanner from "@/components/TrialBanner";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import PromoBanner from "@/components/PromoBanner";
+import FeatureTip, { RECORDER_TIPS, TRACK_BUILDER_TIPS, LIBRARY_TIPS } from "@/components/FeatureTip";
 
 type Mode = "guided" | "freestyle" | "library" | "player" | "challenge";
 
@@ -248,7 +249,7 @@ const Index = () => {
 
             {mode === "guided" ? (
               <>
-                {/* Session completion celebration */}
+                <FeatureTip {...RECORDER_TIPS} />
                 {Object.keys(recordings).length === 12 && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -313,10 +314,12 @@ const Index = () => {
                     </span>
                   </p>
                 </motion.div>
+                <FeatureTip {...TRACK_BUILDER_TIPS} />
                 <TrackBuilder recordings={recordings} />
               </>
             ) : mode === "freestyle" ? (
               <>
+                <FeatureTip {...RECORDER_TIPS} />
                 <FreestyleRecorder clips={clips} onClipsChange={setClips} onLibraryChanged={() => setLibraryRefreshKey((k) => k + 1)} />
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -332,10 +335,12 @@ const Index = () => {
                     </span>
                   </p>
                 </motion.div>
+                <FeatureTip {...TRACK_BUILDER_TIPS} />
                 <FreestyleTrackBuilder clips={clips} />
               </>
             ) : (
               <>
+                <FeatureTip {...LIBRARY_TIPS} />
                 <ModularTrackBuilder refreshKey={libraryRefreshKey} />
               </>
             )}
