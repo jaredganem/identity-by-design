@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Headphones, Moon, ArrowRight, X } from "lucide-react";
+import { Mic, Headphones, Moon, ArrowRight, X, Bookmark, Library, HelpCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ONBOARDING_KEY = "ibd-onboarding-seen";
 
@@ -9,19 +10,26 @@ const steps = [
     icon: Mic,
     title: "Record Your Identity",
     description: "Script powerful \"I am now…\" statements and record them in your own voice. Your unconscious mind already trusts it.",
-    visual: "🎙️",
+  },
+  {
+    icon: Bookmark,
+    title: "Clips Auto-Save",
+    description: "Every recording is saved to your Identity Library automatically. You can reuse, rename, and remix them anytime.",
   },
   {
     icon: Headphones,
-    title: "Mix Over 417Hz",
-    description: "Layer your voice over the 417Hz healing frequency. Add depth, set repetitions, and build your custom program.",
-    visual: "🎧",
+    title: "Build Your Installation",
+    description: "Layer your voice over 417Hz healing frequency with reverb and looping. Add soundscapes for a sleep-ready experience.",
+  },
+  {
+    icon: Library,
+    title: "Mix From Your Library",
+    description: "Open the Library to combine your best clips into a single track. The AI can even select them for you based on your goal.",
   },
   {
     icon: Moon,
-    title: "Listen & Transform",
-    description: "Play your program as you fall asleep. Within days, your internal dialogue starts shifting to match what you recorded.",
-    visual: "🌙",
+    title: "Sleep & Transform",
+    description: "Use the Sleep Timer and drift off. Your subconscious absorbs the programming all night. 30 nights to rewire your identity.",
   },
 ];
 
