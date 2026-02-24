@@ -62,9 +62,10 @@ export const RECORDER_TIPS = {
   title: "Pro Tips: Recording",
   tips: [
     "Speak with conviction — your unconscious mind responds to certainty, not wishful thinking.",
-    "Each clip auto-saves to your Identity Library. You can reuse them later to build custom installations.",
+    "Each clip auto-saves to your Identity Library. Tap 'Save to Library' after recording to name and categorize it for later.",
     "If you don't like a take, just re-record. Only your best version gets saved.",
     "Use 'I am now…' phrasing. Present tense tells your brain it's already real.",
+    "Saved clips become reusable building blocks. Record once, remix forever — that's the power of your vocal library.",
   ],
 };
 
@@ -91,9 +92,11 @@ export const PLAYER_TIPS = {
 export const LIBRARY_TIPS = {
   title: "Pro Tips: Identity Library",
   tips: [
-    "Every recording you make gets auto-saved here. This is your vault of identity programming.",
-    "Tap any saved clip to rename it — give it a name that resonates (e.g., 'Unstoppable Confidence').",
-    "Use the Track Builder to combine your best clips into a single nightly installation.",
+    "Every recording you make can be saved here. This is your vault of identity programming.",
+    "After recording, hit 'Save to Library' — name it something powerful like 'Unstoppable Confidence' and assign a category.",
+    "Access your library anytime by choosing 'Library Mode' from the main menu. All your saved clips are there.",
+    "Use the ⋮ menu on any clip to rename, move to a different category, or delete it.",
+    "Use the Track Builder to combine your best clips into a single nightly installation — select clips directly from your library.",
     "The AI can auto-select the most impactful clips for you if you tell it your goal.",
   ],
 };

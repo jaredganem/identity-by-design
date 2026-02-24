@@ -27,8 +27,8 @@ const sections = [
   {
     icon: Library,
     emoji: "📚",
-    title: "Your Identity Library",
-    description: "Every clip you record is saved. Here's how to make the most of your collection.",
+    title: "Your Clip Library",
+    description: "Save individual vocal scripts to repurpose later. Here's how to build and access your collection.",
     tips: LIBRARY_TIPS.tips,
   },
   {
@@ -50,7 +50,7 @@ const sections = [
 const quickStart = [
   { step: "1", text: "Choose Guided or Freestyle mode and record your identity statements in your own voice." },
   { step: "2", text: "Build your track — set loops, reverb, frequency, and soundscape to create your custom installation." },
-  { step: "3", text: "Save to your library. Your clips are stored and can be remixed anytime." },
+  { step: "3", text: "Save individual clips to your Identity Library — name them, categorize them, and reuse them anytime from Library Mode." },
   { step: "4", text: "Open the Player, set the Sleep Timer, put on headphones, and let it play as you drift off." },
   { step: "5", text: "Do this for 30 nights. Watch your internal dialogue — and your reality — begin to shift." },
 ];
