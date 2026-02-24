@@ -10,6 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useTier } from "@/hooks/use-tier";
 import { canAccessLibrary, meetsMinimumTier } from "@/lib/tierAccess";
 import { getSubliminalPrefs, saveSubliminalPrefs, createSubliminalLayer, type SubliminalMode, type SubliminalIntensity } from "@/lib/subliminalEngine";
+import { updateMediaSession, clearMediaSession } from "@/lib/mediaSession";
 import UpgradePrompt from "@/components/UpgradePrompt";
 import LeadCaptureGate, { hasLeadCaptured } from "@/components/LeadCaptureGate";
 import PlayerSoundscape from "@/components/PlayerSoundscape";
@@ -108,6 +109,7 @@ const Player = ({ onBack }: PlayerProps) => {
         cancelAnimationFrame(animFrameRef.current);
       }
       subliminalRef.current?.destroy();
+      clearMediaSession();
     };
   }, []);
 
@@ -121,6 +123,23 @@ const Player = ({ onBack }: PlayerProps) => {
   }, []);
 
   const currentTrack = tracks[currentIndex];
+
+  // Register Media Session for background/lock-screen playback
+  useEffect(() => {
+    if (!currentTrack) return;
+    updateMediaSession(currentTrack.name, "Identity by Design", {
+      onPlay: () => audioRef.current?.play().then(() => setIsPlaying(true)),
+      onPause: () => { audioRef.current?.pause(); setIsPlaying(false); },
+      onNextTrack: () => {
+        setCurrentIndex((prev) => (prev + 1) % tracks.length);
+        setTimeout(() => audioRef.current?.play(), 100);
+      },
+      onPrevTrack: () => {
+        setCurrentIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
+        setTimeout(() => audioRef.current?.play(), 100);
+      },
+    });
+  }, [currentTrack, currentIndex, tracks.length]);
 
   // Set up audio element and visualizer
   useEffect(() => {
