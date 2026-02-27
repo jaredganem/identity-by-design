@@ -427,7 +427,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                 className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
               >
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">You already know your affirmations. Let's install them.</span>
-                Custom Identity Script
+                Record Your Own / Custom Identity Script
                 <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
                   Freestyle recording for men who already know their affirmations. Record as many as you want. Build your exact identity code.
                 </span>
@@ -435,39 +435,35 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
                   Press record → save your clip → rename it → reuse it from your library anytime.
                 </span>
               </motion.button>
+            </div>
 
+            <div className="grid grid-cols-2 gap-3 mt-2">
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onStart("library")}
-                className="w-full px-8 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-left"
+                className="px-5 py-4 rounded-xl border border-primary/40 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-primary/10 transition-all duration-500 text-center"
               >
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-0.5">Your personal unconscious programming vault.</span>
-                Identity Library
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                  Mix, match, and build custom sessions from what's working.
-                </span>
+                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mb-1">Your saved vocal scripts</span>
+                Recordings Library
               </motion.button>
 
               <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onStart("player")}
-                className="w-full px-8 py-4 rounded-xl border border-accent/30 bg-accent/5 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-accent/10 transition-all duration-500 text-left"
+                className="px-5 py-4 rounded-xl border border-accent/30 bg-accent/5 text-foreground font-display font-bold text-sm uppercase tracking-[0.12em] hover:bg-accent/10 transition-all duration-500 text-center"
               >
-                <span className="block text-accent/70 text-xs normal-case tracking-normal font-normal mb-0.5 flex items-center gap-1">
-                  <Headphones className="w-3 h-3" /> Listen to your programs
+                <span className="block text-accent/70 text-xs normal-case tracking-normal font-normal mb-1 flex items-center justify-center gap-1">
+                  <Headphones className="w-3 h-3" /> Listen & immerse
                 </span>
-                Identity Player
-                <span className="block text-muted-foreground text-xs normal-case tracking-normal font-normal mt-1">
-                  Play your saved affirmations with a visualizer. Loop, shuffle, and immerse.
-                </span>
+                Media Player
               </motion.button>
             </div>
 
