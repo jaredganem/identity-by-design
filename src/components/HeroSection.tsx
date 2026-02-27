@@ -311,7 +311,7 @@ const HeroSection = ({ onStart, libraryCount = 0 }: HeroSectionProps) => {
           }}
           className="px-12 py-5 rounded-full bg-primary text-primary-foreground font-display font-bold text-sm uppercase tracking-[0.15em] shadow-glow hover:shadow-[0_0_60px_hsl(195_100%_29%/0.4)] transition-shadow duration-500 flex items-center gap-2"
         >
-          Start Building Your Identity
+          Click Here to Start
           <ArrowRight className="w-4 h-4" />
         </motion.button>
       </motion.div>
