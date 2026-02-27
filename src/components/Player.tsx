@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1, Lock } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Repeat, Shuffle, Download, ChevronLeft, List, Volume2, VolumeX, Volume1, Lock, Trash2 } from "lucide-react";
 import { type SavedAffirmation } from "@/lib/affirmationLibrary";
 import { getAllAffirmationsSync as getAllAffirmations } from "@/lib/cloudStorage";
+import { getSavedTracks, deleteSavedTrack, type SavedTrack } from "@/lib/savedTrackStorage";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -114,12 +115,37 @@ const Player = ({ onBack }: PlayerProps) => {
   }, []);
 
   useEffect(() => {
-    getAllAffirmations().then((all) => {
-      if (all.length > 0) {
-        const sorted = [...all].sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
+    const loadAllTracks = async () => {
+      const allItems: SavedAffirmation[] = [];
+
+      // Load individual affirmation clips
+      try {
+        const affirmations = await getAllAffirmations();
+        allItems.push(...affirmations);
+      } catch {}
+
+      // Load saved built tracks (from track builders)
+      try {
+        const savedTracks = await getSavedTracks();
+        const converted: SavedAffirmation[] = savedTracks.map((t) => ({
+          id: t.id,
+          name: t.name,
+          blob: t.blob,
+          text: t.name,
+          category: "Built Tracks",
+          createdAt: t.createdAt,
+          updatedAt: t.createdAt,
+          _isSavedTrack: true,
+        } as SavedAffirmation & { _isSavedTrack: boolean }));
+        allItems.push(...converted);
+      } catch {}
+
+      if (allItems.length > 0) {
+        const sorted = [...allItems].sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
         setTracks(sorted);
       }
-    });
+    };
+    loadAllTracks();
   }, []);
 
   const currentTrack = tracks[currentIndex];
@@ -613,27 +639,53 @@ const Player = ({ onBack }: PlayerProps) => {
           >
             <div className="rounded-2xl border border-border bg-card/50 divide-y divide-border/50 max-h-64 overflow-y-auto">
               {tracks.map((track, i) => (
-                <button
+                <div
                   key={track.id}
-                  onClick={() => {
-                    setCurrentIndex(i);
-                    if (isPlaying) setTimeout(() => audioRef.current?.play(), 100);
-                  }}
-                  className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors ${
+                  className={`flex items-center gap-1 transition-colors ${
                     i === currentIndex
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground hover:bg-secondary/50"
+                      ? "bg-primary/10"
+                      : "hover:bg-secondary/50"
                   }`}
                 >
-                  <span className="text-xs text-muted-foreground w-6">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate normal-case tracking-normal">{track.name}</p>
-                    <p className="text-xs text-muted-foreground normal-case tracking-normal">{track.category}</p>
-                  </div>
-                  {i === currentIndex && isPlaying && (
-                    <Volume2 className="w-4 h-4 text-primary animate-pulse" />
+                  <button
+                    onClick={() => {
+                      setCurrentIndex(i);
+                      if (isPlaying) setTimeout(() => audioRef.current?.play(), 100);
+                    }}
+                    className={`flex-1 px-4 py-3 text-left flex items-center gap-3 ${
+                      i === currentIndex ? "text-primary" : "text-foreground"
+                    }`}
+                  >
+                    <span className="text-xs text-muted-foreground w-6">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate normal-case tracking-normal">{track.name}</p>
+                      <p className="text-xs text-muted-foreground normal-case tracking-normal">{track.category}</p>
+                    </div>
+                    {i === currentIndex && isPlaying && (
+                      <Volume2 className="w-4 h-4 text-primary animate-pulse" />
+                    )}
+                  </button>
+                  {(track as any)._isSavedTrack && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await deleteSavedTrack(track.id);
+                        setTracks((prev) => {
+                          const next = prev.filter((t) => t.id !== track.id);
+                          if (currentIndex >= next.length && next.length > 0) {
+                            setCurrentIndex(next.length - 1);
+                          }
+                          return next;
+                        });
+                        trackEvent("saved_track_deleted", { trackId: track.id });
+                      }}
+                      className="px-3 py-2 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Remove from player"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
-                </button>
+                </div>
               ))}
             </div>
           </motion.div>

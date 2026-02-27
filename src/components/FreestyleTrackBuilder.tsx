@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
-import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
+import { Play, Pause, Download, Loader2, Headphones } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -129,10 +129,31 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("track_build"));
       import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
 
-      const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
+      const durationSec = Math.round(finalBuffer.length / finalBuffer.sampleRate);
+      const durationMin = Math.round(durationSec / 60);
+      const trackName = `Custom Script — ${new Date().toLocaleDateString()}`;
+
+      // Auto-save to Media Player
+      try {
+        const allowed = await canSaveTrack(tier);
+        if (allowed) {
+          await saveTrack({
+            id: crypto.randomUUID(),
+            name: trackName,
+            blob: wavBlob,
+            durationSec,
+            createdAt: Date.now(),
+            mode: "freestyle",
+          });
+          trackEvent("track_auto_saved", { mode: "freestyle", tier });
+        }
+      } catch (e) {
+        console.error("Auto-save failed:", e);
+      }
+
       toast({
         title: "🎧 Your installation is ready",
-        description: `${durationMin} minute identity installation created.`,
+        description: `${durationMin} min track created & saved to your Media Player.`,
       });
     } catch (err) {
       console.error(err);
@@ -351,34 +372,9 @@ const FreestyleTrackBuilder = ({ clips }: FreestyleTrackBuilderProps) => {
                 Download My Program
               </Button>
             </div>
-            <Button
-              variant="outline"
-              className="w-full border-primary/30 hover:bg-primary/10"
-              onClick={async () => {
-                if (!finalBlob) return;
-                const allowed = await canSaveTrack(tier);
-                if (!allowed) {
-                  toast({ title: "Limit reached", description: "Free users can save 1 track. Upgrade for unlimited." });
-                  setShowUpgradePrompt(true);
-                  return;
-                }
-                const ctx = audioEngine.getContext();
-                const buf = await ctx.decodeAudioData(await finalBlob.arrayBuffer());
-                await saveTrack({
-                  id: crypto.randomUUID(),
-                  name: "Custom Identity Script",
-                  blob: finalBlob,
-                  durationSec: Math.round(buf.duration),
-                  createdAt: Date.now(),
-                  mode: "freestyle",
-                });
-                trackEvent("track_saved_to_app", { mode: "freestyle", tier });
-                toast({ title: "Saved ✓", description: "Track saved to your app. Come back anytime to replay it." });
-              }}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save to App
-            </Button>
+            <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">
+              ✓ Auto-saved to your Media Player. Open the Media Player anytime to replay or remove it.
+            </p>
           </div>
 
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />

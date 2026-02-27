@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { getSubliminalPrefs, saveSubliminalPrefs } from "@/lib/subliminalEngine";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
-import { Play, Pause, Download, Loader2, Headphones, Save } from "lucide-react";
+import { Play, Pause, Download, Loader2, Headphones } from "lucide-react";
 import { audioEngine } from "@/lib/audioEngine";
 import { getAllSlots } from "@/lib/affirmationPrompts";
 import { Button } from "@/components/ui/button";
@@ -74,10 +74,11 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
   const previewRef = useRef<{ stop: () => void } | null>(null);
   const { toast } = useToast();
 
-  const allRecorded = allSlots.every((s) => recordings[s.id]);
+  const recordedCount = Object.keys(recordings).length;
+  const hasAnyRecordings = recordedCount > 0;
 
   const handleBuild = () => {
-    if (!allRecorded) return;
+    if (!hasAnyRecordings) return;
     executeBuild(loadEnvironment(tier));
   };
 
@@ -88,7 +89,7 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
 
     try {
       setProgress("Decoding recordings...");
-      const orderedBlobs = allSlots.map((s) => recordings[s.id]);
+      const orderedBlobs = allSlots.map((s) => recordings[s.id]).filter(Boolean);
       const decodedBuffers = await Promise.all(
         orderedBlobs.map((blob) => audioEngine.decodeBlob(blob))
       );
@@ -136,10 +137,31 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
       import("@/lib/streakTracker").then(({ logActivity }) => logActivity("track_build"));
       import("@/lib/challengeTracker").then(({ logChallengeDay }) => logChallengeDay());
 
-      const durationMin = Math.round(finalBuffer.length / finalBuffer.sampleRate / 60);
+      const durationSec = Math.round(finalBuffer.length / finalBuffer.sampleRate);
+      const durationMin = Math.round(durationSec / 60);
+      const trackName = `Identity Installation — ${new Date().toLocaleDateString()}`;
+
+      // Auto-save to Media Player
+      try {
+        const allowed = await canSaveTrack(tier);
+        if (allowed) {
+          await saveTrack({
+            id: crypto.randomUUID(),
+            name: trackName,
+            blob: wavBlob,
+            durationSec,
+            createdAt: Date.now(),
+            mode: "guided",
+          });
+          trackEvent("track_auto_saved", { mode: "guided", tier });
+        }
+      } catch (e) {
+        console.error("Auto-save failed:", e);
+      }
+
       toast({
         title: "🎧 Your installation is ready",
-        description: `${durationMin} minute identity installation created.`,
+        description: `${durationMin} min track created & saved to your Media Player.`,
       });
     } catch (err) {
       console.error(err);
@@ -341,18 +363,18 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
         }} />
         <Button
           onClick={handleBuild}
-          disabled={isProcessing || !allRecorded}
+          disabled={isProcessing || !hasAnyRecordings}
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow"
         >
           {isProcessing ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{progress || "Processing..."}</>
           ) : (
-            "🎧 Build My Identity Installation"
+            `🎧 Build My Identity Installation (${recordedCount}/12 recorded)`
           )}
         </Button>
 
-        {!allRecorded && (
-          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record all 12 statements to unlock your identity installation.</p>
+        {!hasAnyRecordings && (
+          <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">Record at least one statement to build your identity installation.</p>
         )}
       </div>
 
@@ -394,34 +416,9 @@ const TrackBuilder = ({ recordings }: TrackBuilderProps) => {
                 Download My Program
               </Button>
             </div>
-            <Button
-              variant="outline"
-              className="w-full border-primary/30 hover:bg-primary/10"
-              onClick={async () => {
-                if (!finalBlob) return;
-                const allowed = await canSaveTrack(tier);
-                if (!allowed) {
-                  toast({ title: "Limit reached", description: "Free users can save 1 track. Upgrade for unlimited." });
-                  setShowUpgradePrompt(true);
-                  return;
-                }
-                const ctx = audioEngine.getContext();
-                const buf = await ctx.decodeAudioData(await finalBlob.arrayBuffer());
-                await saveTrack({
-                  id: crypto.randomUUID(),
-                  name: "Identity Installation",
-                  blob: finalBlob,
-                  durationSec: Math.round(buf.duration),
-                  createdAt: Date.now(),
-                  mode: "guided",
-                });
-                trackEvent("track_saved_to_app", { mode: "guided", tier });
-                toast({ title: "Saved ✓", description: "Track saved to your app. Come back anytime to replay it." });
-              }}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save to App
-            </Button>
+            <p className="text-xs text-center text-muted-foreground normal-case tracking-normal">
+              ✓ Auto-saved to your Media Player. Open the Media Player anytime to replay or remove it.
+            </p>
           </div>
 
           <SleepTimer onTimerEnd={stopPlayback} isPlaying={isPlaying} />
